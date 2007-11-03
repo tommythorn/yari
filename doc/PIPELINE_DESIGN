@@ -1,0 +1,126 @@
+YARI Pipeline Design, version 1
+
+Assuming the classic five stage pipeline:
+- IF - instruction fetch,
+- DE - decode and register fetch,
+- EX - bypassing and execution,
+- ME - memory access, and
+- WB - results write-back.
+
+Implementing this is trivial if you ignore hazards.
+
+The main hazards we have to deal with are:
+
+- WAR hazards - in the simplest pipeline this only happens for loads
+  followed by an immediate use. The most obvious way to deal with this
+  is stalling the use.
+
+- Control transfers, such as branches (B and Bxx), jumps (J),
+  subroutine calls (JAL and JRAL), etc. We'll call all of these
+  branches for simplicity. MIPS adds the twist of delayed branches,
+  meaning that the instruction immediately following the branch (the
+  "delay slot") is executed before the control is transferred. If any
+  of the instructions following the delay are present in the pipe they
+  must be flushed.
+
+- Memory busy / data cache (D$) misses. Again, the most obvious way to
+  deal with this is to stall the pipe until the memory/cache is ready.
+
+- Instruction cache (I$) misses.
+
+Unfortunately, stalling the pipeline not only is very expensive (a
+global signal gating all flip-flops in the pipeline, and memory blocks
+can't be stalled so needs extra logic), but stalling for WAR hazards
+means introducing bubbles in the pipeline, which in turn makes dealing
+with the delay slot very complicated (branches must flush everything
+following the delay slot, but the delay slot can be in several
+locations depending on the history of stalls).
+
+We thus reject stalling and instead restart the pipeline whenever we
+encounter a hazard. This generally means that means a higher cost of
+hazards in number of pipeline bubbles, but this is partially offset by
+a shorter cycle time and the fact that hazards doesn't happen all the
+time (given the probability of the hazard, you can work out much speed
+up you need to offset the additional hazard costs).
+
+
+Restarting upon hazards:
+
+- I$ miss - not much choice here, the IF stage will emit bubbles until
+  it's ready.
+
+- Branches - to simplify the handling of delay slots we will require
+  that a taken branch will never see a bubble in it's delay slot. If
+  that is detected, we treat it as a different kind of hazard and
+  restart the branch instruction, flushing everything following and
+  including the branch itself. This trick only works because all
+  branches in MIPS are idempotent. Otherwise, a taken branch flushes
+  everything following the delay slot and restart from the branch
+  target.
+
+- D$ misses/memory busy - there are several options here, but they are
+  somewhat dependent on how the ME stage is implemented.
+
+  The simplest option is to kill the pipeline while memory is
+  busy/while the D$ fills and restart the instruction following the
+  store/load. Unfortunately, as this hazard is fairly deep in the
+  pipeline it pays the highest penalty for restarting as opposed to
+  stalling.
+
+  A slightly better option is keep restarting the following
+  instruction until we know that memory will be ready before that
+  instruction propagates down to the ME stage.
+
+  We can further reduce store hazards by applying a small store buffer
+  (~ FIFO). The caveat is of course that loads would either need to
+  check against the store buffer or stall until it has drained.
+
+  Raising the D$ size and/or associativity will help lower the
+  frequency of the load hazards. Another technique that can sometimes
+  hide load latencies is non-blocking loads. Here the idea is simply
+  to decouple the load pipeline, keeping track of which registers have
+  outstanding loads, thus causes WAR hazards whenever a use of such a
+  register is attempted. As data eventually arrives they can be
+  written to the register file using a second write port (requiring
+  two write ports to the register file), or they can wait from the
+  write port to be otherwise idle and write back the loaded
+  results. Alas, in practice for MIPS code there tends to be a fairly
+  short distance between the load and its use, rendering this
+  elaborate technique less valuable.
+
+- WAR - simply restart (**) the use. This hazard is non-existent for
+  properly scheduled code (assuming blocking caches).
+
+  (**) Alas, nothing is quite that simple. The instructions restarted
+  in the WAR hazards could be delay-slots, and if so, would cause the
+  effect of the branch to be ignored. To issue this restart, we must
+  know if the instruction is in a delay-slot, and if it is, we restart
+  the preceding instruction. (This again depends on the impotence of
+  MIPS branches.)
+
+
+Choosing between hazards: as hazards are generally detected in
+detected in different stages, it's important to ensure that the hazard
+of the instruction closet to committing, that is, furthest along in
+the pipe, takes priority.
+
+
+Implementing the hazard handling
+
+Intuitively we would want to restart as soon as a hazard can be
+detected, however to more stages that can issue a restart, the larger
+the priority arbitration as well larger the mux for the restart
+control (address and stages to flush). It will be better to focus on
+the frequent hazards (say, branches and D$ misses) and only accept
+restarts from the corresponding stages (say, EX and ME). A less
+important hazard as fx. WAR detected in DE, will have to ask EX to
+perform the restart. However, care must be taken to ensure than these
+pending hazards are handled correctly (for example, that no
+instruction that will be flushed by the pending restart can cause any
+hazards or other effects).
+
+Naively implemented flushing a pipeline stage means clearing all the
+flip flops, turning instructions into nops. This is very expensive, so
+instead provide all stage with a "valid" bit. Any effect from a stage
+(hazards, memory ops, register writes etc) must be ignored if the
+stage is invalid (that is, it's a pipeline bubble).

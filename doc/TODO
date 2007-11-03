@@ -1,3 +1,205 @@
+PIPELINE OVERVIEW:
+
+    (Beware, currently there's a fairly loose mapping between pipeline
+    stages and corresponding RTL files.)
+
+
+    IF1 IF2 IF3 DE EX      [EX2] WB
+                   ME1 ME2 [ME3]
+
+    IF1 - pc calculation / handle restarts and kill
+
+    IF2 - begin I$ tag lookup
+
+    IF3 - determine I$ way and begin I$ access
+
+    DE  - begin register file lookup, partial decoding
+
+    EX  - bypass and alu computations
+    ME1 - begin D$ tag lookup
+
+    ME2 - determine way and start D$ access
+
+    WB  - load subword extraction & sign extension, and
+          register file write-back.
+
+    It's possible that we get rid of IF1. If we switch to a directly
+    mapped I$ then we can get rid of IF2 also.
+
+    EX3/ME3 is under consideration but the bypass network is
+    terrifying.
+
+    As of 2007-12-13, the subword extraction & sign extension is the
+    critical path.
+
+
+DONE
+* Once a sufficient testing structure is in place, start replacing the
+  pipeline with a high performance one. [DONE]
+* Fix the arrays that can't be inferred as RAM. Notably the register
+  file. [DONE]
+* Restart the pipeline instead of stalling [DONE]
+* Forward results instead of restarting [DONE]
+* Move configuration parameters (such as cache size, etc) to a global
+  configuration file. [DONE]
+* Wizzard generated RAM blocks (to know exactly what I get) [DONE]
+* Extend the forwarding in DE and use dual-port memory w/o bypassing
+  [DONE]
+* Handle uncached loads (uncached stores works as a side effect of the
+  write-through cache).
+
+  1. Move the x_res mux up to just after the data cache out and make
+     sure that x_res falls through the shifter network when not
+     loading [DONE]
+
+  2. Add another memory event (uncached_load), make sure it doesn't
+     accidentally writes to the data cache array or tags.
+
+  3. Make uncached loads kill the pipe and set up the uncached_load
+     event.
+
+  4. When the data for uncached_load comes in, thread it through the
+     shifter network and restart the next instruction.
+
+  5. Test by making all loads uncachable.
+[DONE]
+* Restart on load-use hazards. [DONE]
+* Restart branches whose delay slots gets delayed (ie. due to cache
+  misses) [DONE]
+
+* Fix the current strange behavior of tinymon. Fault points to a
+  serial port problem. Prefer a software workaround, as the
+  peripherals are going to get an overhaul later anyway. [DONE - it
+  was two actual bugs in the pipeline]
+* Found a new home: git://repo.or.cz/yari.git
+
+
+IMPORTANT (Preferably before release)
+
+* Implement MUL
+
+* Implemnent DIV
+
+* Move all architectual state updates to the latest stage that can
+  flush the pipe (and thus annul the updates).
+
+  Doing this requires one of two approaches: The simplest is to move
+  their implementation to stage ME, that is, give them an additional
+  cycle of latency, and add the hazard checking.
+
+  The more advanced approach is to maintain two copies of the state:
+  the speculative in the earlier state and the committed state in ME
+  (or WB). Pipe restarts will copy the committed state back into the
+  speculative state, while normal (and valid) instructions will update
+  the commited state just like the register file.
+
+  Ex:                               LO
+                                SPEC  COMMITTED
+    ld   $r3, ($r0)              old    old
+    mtlo $r2                     $r2    old
+    <exception from ld detected> old    old
+
+  Ex:                               LO
+                                SPEC  COMMITTED
+    mtlo $r2                     $r2    old
+    mflo $r3                     $r2    old
+    addi $r4,$r3,2               $r2    $r2
+
+  (These are poorly chosen examples as mtlo is idempotent and does not
+  strictly speaking need this until we implement memory exceptions,
+  but imagine something like mul or other that can change the state in
+  a different way each time.)
+
+* Trap on ADD[I] and SUB overflow
+
+* Separate the memory bus from the peripheral bus.
+
+  Things gets interesting with peripherals that need DMA-like access
+  to memory, such as video interfaces.
+
+  A consequence would be that Flash etc would be on the peripheral
+  bus, so if we wish to cache this, we'd have to distinguish IO from
+  uncachable.
+
+* Merge fpgaMMIX and YARI, incl. the Avalon-like interconnect (for
+  peripherals). Automate the generation of the interconnection.
+
+* Implement interrupt support
+
+* Implement I$ and D$ flushing!
+
+* I$ locking under sw control
+
+* (PERF) Sign-extension and shifting in ME is the critical
+  path.
+
+  Add an ME2 stage to handle that. Restart on LB/LBU/LH/LHU-use
+  hazards (LW keeps its 1-cycle latency, but LB/LBU/LH/LHU are now
+  2-cycle). Add an extra level of bypass.
+
+  This opens the door to EX2 and EX3, useful for multiply and shifts
+  especially.
+
+* (PERF) Make the video interface much more efficient and have all major
+  parameters settable from IO space (where it makes sense). Lot's of
+  MSB counters as these are cheap and fast. Example:
+
+     if (x[X_MSB])
+       x <= video_registers_xwidth;
+     else
+       x <= x - 1;
+
+
+
+OTHER:
+* Improve documentation, notably how to build and port the RTL
+
+* Restructure the RTL so that it matches the actual pipeline better
+  and all stage_XX outputs are guaranteed to be registers.
+
+* (PERF) Investigate the cycle penalty of going from the current three
+  stages for IF to just two stages.
+
+* (PERF) Make I$ cache words wider and use the extra bits for, say:
+  - Poor-mans two bit branch prediction
+  - Pre-decode key instruction, such as branches and jumps
+  - Pre calculate part of the destination of branches/jumps
+  All aimed at issueing control flow instructions (sometimes
+  speculatively) from DE, saving one precious pipeline bubble.
+
+* (PERF) Change the bypass mux from the current priority encoded mux
+  to a regular mux and precompute the index in DE.
+
+* (PERF) Better cache replacement strategy (at least use pseudo
+  random, but investigate how hard pseudo-LRU would be to implement)
+
+* Support more of CP2 and move it to a later stage (cf. correct
+  handling of pipeline flushes)
+
+* Trap on illegal instructions
+
+* (PERF) Conditional support for pipeline stalls (need to examine the
+  cycle-time penalty and the cost-benefit)
+
+* Better portability to other devices incl. Xilinx
+
+* More complete R3000 support, incl. trapping ADD/SUB on overflow
+
+* Make the simulator more complete, incl. support for CP2 features
+  like virtual memory etc.
+
+* The I$ tags are very inefficient four 20x32 arrays. Investigate
+
+  - Making the tag(s) single port arrays (thus two in a ram block)
+
+  - Making a single combined 80x32 array - all tags are read at the
+    same time anyway and four 20-bit 4-to-1 muxes can handle the writing
+
+  - Using smaller blocks, say 32-byte instead of 128-byte (tags are
+    cheap). (4Kb = 512 B = 128 W) Faster fill and better
+    utilization. [DID THAT]
+
+
 * Reconsider cosimulating against gxemul. I'd obviously need to fill
   in the gaps where gxemul takes a shortcut (such as providing a real
   firmware). Q: how to deal with the IO?
@@ -14,15 +216,13 @@
   DECstation. (See gxemul/src/machines/machine_pmax.c and
   gxemul/src/promemul/dec_prom.c)
 
-* Add a small ROM to the RTL implementation
+* Add a small ROM to the RTL implementation (maybe)
 
 * Matching IO behaviour like I do now is unsustainable. As a general
   principle, while cosimulating, higher level models could take the IO
   events from the lower levels (which can ultimately be the running
   FPGA).
 
-* Once a sufficient testing structure is in place, start replacing the
-  pipeline with a high performance one.
 
 
 
@@ -47,7 +247,6 @@ FEATURES
 
    1b. Get single stepping working (GDB stub work mostly).
 
-1.5. More flexible I$ locking control under sw control.
 
 
 
@@ -81,14 +280,10 @@ PERFORMANCE
   this without inserting logic between the I$ ram and the decode
   stage.
 
-- Implement by-passing/forwarding.  Easy.
-
 - (ADV) Non-blocking loads.  For a single outstanding load it's
   actually not too hard, but we'll have to stall the pipe if the
   write-back stage is busy when the memory comes back to us.  Multiple
   outstanding are probably not worth the trouble.
-
-- Tune logic to meet 20 ns cycle time.
 
 OTHER
 
@@ -110,59 +305,3 @@ OTHER
 
   + Minimize the amount of logic after registers (D'OH!)
 
-  + Use a valid bit and just pass the instruction unaltered from I to
-    D).  Or extend the opcode with an extra invalid bit.  Then an
-    invalid instruction would trivially never match a valid
-    opcode. (ONGOING)
-
-  + Consider the use of literate Verilog.
-
-    * Pros: better documentation and more readable code.
-    * Cons: lack of tool support (notably emacs)
-
-   + Add a section somewhere with roughly (see mipscore.v)
-
-      "The pipeline would be fairly simple and efficient if it wasn't
-       for the need to handle: stalls, bubbles, hazards, flushes,
-       freezes, and by-passing.  Some of these are related:
-
-       * A WAR hazard occurs when the decoding/register-read stage
-         tries to read register values from the register file while
-         instructions are in flight that will end up updating that
-         register.  The pipeline must stall until either the correct
-         value has been written to the register file or the correct
-         value have been calculated and can be forwarded.
-
-       * In our world a stall refers to the flushing of a stage and
-         freezing of all preceeding stages, in effect inserting
-         "bubbles" into the pipeline.
-
-       * When a pipeline flush occur (due to a branch and thus
-         mispredicted direction) only the front end of the pipe is
-         affected and the instructions there are replaced with NOPs.
-         Whether only I or both I and D are flushed depends upon where
-         the control transfer was resolved and where the branch delay
-         slot is in the pipe (a previous stall could mean that it's
-         still in the fetch stage)..
-
-      Part of making this hard is the conflict between minimizing the
-      amount of logic between registers and the desire to react as
-      early as possible to conditions that can lead to instructions
-      being flushed from pipeline stages."
-
-
-Lessons learned
-- if (....) begin
-  end if (....) begin
-  end
-
-  The missing else between "end if" doesn't cause compilation error
-  and can be hard to find.
-
-- Make the simulation as close to the real hardware as absolutely
-  possible.  REALLY CLOSE!
-
-- Don't assign the same net multiple times.
-
-- Misspelled registers are silently assumed to be implicitly declared
-  nets.

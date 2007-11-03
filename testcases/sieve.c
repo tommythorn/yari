@@ -342,7 +342,7 @@ void sieve(unsigned *cand, unsigned max)
   unsigned i, j, n = 0;
   unsigned *p;
 
-  myputs("Hej Tommy: nogle primtal!: ");
+  myputs("Some prime numbers: ");
   putchar('2');
   putchar(' ');
 
@@ -386,5 +386,5 @@ void sieve(unsigned *cand, unsigned max)
     }
   }
   putchar('\n');
-  myputs("\nFaerdig!\n");
+  myputs("\nDone!\n");
 }

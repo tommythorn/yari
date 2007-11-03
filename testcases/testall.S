@@ -12,6 +12,12 @@
 	.global	_start
 	.ent	_start
 _start:
+	// Optimistic
+        la      $6, 0xFF000000
+        li	$7, '!'
+        sb      $7, ($6)
+
+
         /* Check stalled delay slot (this assumes no forwarding of $2). */
 
 	.set noreorder
@@ -85,14 +91,24 @@ $L6:	EXPECT($4,555)
 	   cp1 cp2] bbql bgtzl lb lh lwl lw lbu lhu lwr sb sh swl sw- swr
 	*/
 
-	li	$2, 0x80808080
+        nop
+	li	$2, 0x89878685
 	la	$3, SRAM
 	sw	$2, ($3)
 	lb	$4, ($3)
-	EXPECT($4,0xFFFFFF80)
+	EXPECT($4,0xFFFFFF89)
 
-	lbu	$4, ($3)
-	EXPECT($4,0x80)
+	lbu	$4, 3($3)
+	EXPECT($4,0x85)
+
+	lh	$4, 2($3)
+        move    $5, $4   /* Test load-use hazard handling */
+	EXPECT($5,0xFFFF8685)
+
+	lw	$5, 4($3) /* Loads back-to-back */
+	lhu	$4, ($3)
+	EXPECT($4,0x00008987)
+
 
 /* .... */
 
@@ -107,48 +123,57 @@ $L6:	EXPECT($4,555)
 	nop
 
 2:
-	j	$31 		// 0x03e00008
+	li	$4, 1728	// 0x240406c0
+	jalr	$31 		// 0x03e0f809
 	li	$4, 1729	// 0x240406c1
 	nop			// 0x00000000
-	nop			// 0x00000000
 
-1:	la	$10, SRAM
-	la	$2, 0x03e00008
+        /* Test I$ misses and also test bubbles in delay slot hazards */
+1:	la	$10, SRAM + 30 * 4
+	la	$5, 0x240406c0
+	la	$2, 0x03e0f809
 	la	$3, 0x240406c1
 	la	$4, 0x00000000
-	sw	$2, 0($10)
-	sw	$3, 4($10)
-	sw	$4, 8($10)
-	sw	$4, 12($10)
-	/* flush pipeline */
-	nop
-	nop
-	nop
-	nop
+	sw	$5,  0($10)
+	sw	$2,  4($10)
+	sw	$3,  8($10)
+	/* This only works because we know that this line misses in I$ */
 	jal	$10
-	nop
+	sw	$4, 12($10)
 	EXPECT($4, 1729)
 
 
-        la      $6, 0xFF000000
-        li	$7, 65 // 'A'
+// Emit OkOk... a few times
+
+	li      $5, 10
+        li	$7, 79 // 'O'
+        li	$9, 107 + 79 // 'k' + 'O'
 loop:
-        lb	$8, ($6)
+/* Use this to exercize the hazard detection
+        lw	$8, ($6)
+loop2:  bne	$8, $0, loop2
+        lw	$8, ($6) */
+
+
+        lw	$8, ($6)
+	nop
+
         bne	$8, $0, loop
-        nop
+	nop
 
         sb      $7, ($6)
-/*
-        b	loop
-        xori	$7, $7, 1
-*/
 
+        subu	$7, $9, $7
+
+        bne	$5, $0, loop
+	addi	$5, $5, -1
 
 	SUCCESS
 
+
 	li	$6, 1
 1:
-	/* Do something on the frame buffer. */
+/* Do something on the frame buffer. */
 	la	$4, 0x400E6A00
 	la	$5, 0x400E6A00 + 4*(640*480/32 - 1)
 2:

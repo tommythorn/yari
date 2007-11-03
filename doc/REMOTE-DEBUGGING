@@ -5,13 +5,13 @@ once that start becoming useful.
 # MASTER: GDB side
 mips-elf-gdb
 target remote /dev/ptya1
-(now start runmips)
-load /home/tommy/projects/onnama/testcases/count10
+(now start yarisim)
+load testcases/count10
 si
 
-# SLAVE: MIPS side
-runmips --verb -s /dev/ttya1 ../gdbstub/gdbstub.mips  OR
-(./runmips --verb -s  /dev/ttya1 ../gdbstub/gdbstub.mips > /dev/null)|grep PUT
+# SLAVE: YARI side
+yarisim --verb -s /dev/ttya1 ../gdbstub/gdbstub.mips  OR
+(./sim --verb -s  /dev/ttya1 ../gdbstub/gdbstub.mips > /dev/null)|grep PUT
 
 This is the initial communication (OUTPUT is from slave, INPUT from master)
 
@@ -189,5 +189,5 @@ bfc005a8 27bdfff8 addiu r29,r29,-8
 bfc005ac 00801021 addu  r2,r4,r0
 bfc005b0 a3a20000 sb    r2,(r29)
         storing outside memory 0xfffffff8
-runmips: support.c:486: store: Assertion `0' failed.
+yarisim: support.c:486: store: Assertion `0' failed.
 Aborted

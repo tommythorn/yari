@@ -28,9 +28,9 @@ Root map (nearly all I-type )
 001101 sssss ttttt iiiii iiiii iiiiii  ORI      -- Bitwise or immediate
 001110 sssss ttttt iiiii iiiii iiiiii  XORI     -- Bitwise exclusive or immediate
 001111 ----- ttttt iiiii iiiii iiiiii  LUI      -- Load upper immediate
-010000 ----- ttttt iiiii iiiii iiiiii  LLO      -- 
-010001 ----- ttttt iiiii iiiii iiiiii  TRAP     -- 
-                                                
+010000 ----- ttttt iiiii iiiii iiiiii  LLO      --
+010001 ----- ttttt iiiii iiiii iiiiii  TRAP     --
+
 100000 sssss ttttt iiiii iiiii iiiiii  LB       -- Load byte
 100001 sssss ttttt iiiii iiiii iiiiii  LH       -- Load half
 100011 sssss ttttt iiiii iiiii iiiiii  LW       -- Load word
@@ -42,7 +42,7 @@ Root map (nearly all I-type )
 
 reg_map (all R-type)
 000000 00000 00000 00000 00000 000000  NOP      -- no operation
-000000 sssss ttttt ddddd hhhhh 000000  SLL      -- Shift left logical 
+000000 sssss ttttt ddddd hhhhh 000000  SLL      -- Shift left logical
 000000 ----- ttttt ddddd hhhhh 000010  SRL      -- Shift right logical
 000000 ----- ttttt ddddd hhhhh 000011  SRA      -- Shift right arithmetic
 000000 sssss ttttt ddddd 00000 000100  SLLV     -- Shift left logical variable
@@ -51,7 +51,7 @@ reg_map (all R-type)
 000000 sssss 00000 00000 00000 001000  JR       -- Jump register
 000000 sssss 00000 ddddd 00000 001001  JALR     -- Jump and link register
 000000 ----- ----- ----- ----- 001100  SYSCALL  -- System call
-                                                
+
 000000 00000 00000 ddddd 00000 010000  MFHI     -- Move from HI
 000000 sssss 00000 00000 00000 010001  MTHI     -- Move to HI
 000000 00000 00000 ddddd 00000 010010  MFLO     -- Move from LO
@@ -60,7 +60,7 @@ reg_map (all R-type)
 000000 sssss ttttt 00000 00000 011001  MULTU    -- Multiply unsigned
 000000 sssss ttttt 00000 00000 011010  DIV      -- Divide
 000000 sssss ttttt 00000 00000 011011  DIVU     -- Divide unsigned
-                                                
+
 000000 sssss ttttt ddddd 00000 100000  ADD      -- Add
 000000 sssss ttttt ddddd 00000 100001  ADDU     -- Add unsigned
 000000 sssss ttttt ddddd 00000 100010  SUB      -- Subtract

@@ -1,0 +1,540 @@
+# Copyright (C) 1991-2005 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions
+# and other software and tools, and its AMPP partner logic
+# functions, and any output files any of the foregoing
+# (including device programming or simulation files), and any
+# associated documentation or information are expressly subject
+# to the terms and conditions of the Altera Program License
+# Subscription Agreement, Altera MegaCore Function License
+# Agreement, or other applicable license agreement, including,
+# without limitation, that your use is for the sole purpose of
+# programming logic devices manufactured by Altera and sold by
+# Altera or its authorized distributors.  Please refer to the
+# applicable agreement for further details.
+
+
+# The default values for assignments are stored in the file
+#		main_assignment_defaults.qdf
+# If this file doesn't exist, and for assignments not listed, see file
+#		assignment_defaults.qdf
+
+# Altera recommends that you do not modify this file. This
+# file is updated automatically by the Quartus II software
+# and any changes you make may be lost or overwritten.
+
+
+# Project-Wide Assignments
+# ========================
+
+# Pin & Location Assignments
+# ==========================
+
+# Analysis & Synthesis Assignments
+# ================================
+set_global_assignment -name TOP_LEVEL_ENTITY main
+
+# Fitter Assignments
+# ==================
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+
+# Assembler Assignments
+# =====================
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name AUTO_RESTART_CONFIGURATION ON
+
+
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME ON
+set_global_assignment -name IGNORE_CLOCK_SETTINGS ON
+set_global_assignment -name FMAX_REQUIREMENT "200 MHz"
+set_global_assignment -name USE_SIGNALTAP_FILE stp2.stp
+
+
+
+set_global_assignment -name DEVICE EP3C25F324C8
+set_global_assignment -name FAMILY "Cyclone III"
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "6.1 SP0.01"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:18:31  FEBRUARY 20, 2007"
+set_global_assignment -name LAST_QUARTUS_VERSION 7.2
+set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+set_global_assignment -name DEVICE_FILTER_PIN_COUNT 324
+set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 8
+set_global_assignment -name CYCLONEIII_CONFIGURATION_SCHEME "ACTIVE PARALLEL"
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
+set_global_assignment -name RESERVE_DCLK_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DATA0_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DATA1_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_FLASH_NCE_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name POWER_USE_PVA ON
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[1]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[0]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[2]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[3]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[4]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[5]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[6]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[7]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[8]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[9]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[10]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[11]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[12]
+set_global_assignment -name RESERVE_OTHER_AP_PINS_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_location_assignment PIN_H3 -to FLASH_D[0]
+set_location_assignment PIN_H1 -to FLASH_WP_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_WP_N
+set_location_assignment PIN_C3 -to FLASH_RST_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_RST_N
+set_location_assignment PIN_C17 -to FLASH_A[22]
+set_location_assignment PIN_C18 -to FLASH_A[23]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[22]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[23]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[25]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[24]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[21]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[20]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[19]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[18]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[17]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[16]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[15]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[14]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[13]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[12]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[11]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[10]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[9]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[8]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[7]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[6]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[5]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[4]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[3]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[2]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_A[1]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_ADV_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_CE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_CLK
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[15]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[14]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_D[13]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_OE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_WAIT
+set_instance_assignment -name IO_STANDARD "1.8 V" -to FLASH_WE_N
+set_location_assignment PIN_D17 -to FLASH_OE_N
+set_location_assignment PIN_D18 -to FLASH_WE_N
+set_location_assignment PIN_H17 -to FLASH_A[25]
+set_location_assignment PIN_B18 -to FLASH_A[21]
+set_location_assignment PIN_H14 -to FLASH_ADV_N
+set_location_assignment PIN_H13 -to FLASH_WAIT
+set_location_assignment PIN_G14 -to FLASH_A[24]
+set_location_assignment PIN_E12 -to FLASH_A[1]
+set_location_assignment PIN_B16 -to FLASH_A[3]
+set_location_assignment PIN_A15 -to FLASH_A[4]
+set_location_assignment PIN_B14 -to FLASH_A[7]
+set_location_assignment PIN_A14 -to FLASH_A[6]
+set_location_assignment PIN_B13 -to FLASH_A[9]
+set_location_assignment PIN_A12 -to FLASH_A[10]
+set_location_assignment PIN_B12 -to FLASH_A[11]
+set_location_assignment PIN_B15 -to FLASH_A[5]
+set_location_assignment PIN_B11 -to FLASH_A[13]
+set_location_assignment PIN_C10 -to FLASH_A[14]
+set_location_assignment PIN_D10 -to FLASH_A[15]
+set_location_assignment PIN_A11 -to FLASH_A[12]
+set_location_assignment PIN_A16 -to FLASH_A[2]
+set_location_assignment PIN_A13 -to FLASH_A[8]
+set_location_assignment PIN_C9 -to FLASH_A[17]
+set_location_assignment PIN_A7 -to FLASH_A[19]
+set_location_assignment PIN_A6 -to FLASH_A[20]
+set_location_assignment PIN_D9 -to FLASH_A[18]
+set_location_assignment PIN_E10 -to FLASH_A[16]
+set_location_assignment PIN_E2 -to FLASH_CE_N
+set_location_assignment PIN_D1 -to FLASH_D[1]
+set_location_assignment PIN_H4 -to FLASH_CLK
+set_location_assignment PIN_A8 -to FLASH_D[2]
+set_location_assignment PIN_B8 -to FLASH_D[3]
+set_location_assignment PIN_B7 -to FLASH_D[4]
+set_location_assignment PIN_C5 -to FLASH_D[5]
+set_location_assignment PIN_E8 -to FLASH_D[6]
+set_location_assignment PIN_A4 -to FLASH_D[7]
+set_location_assignment PIN_B4 -to FLASH_D[8]
+set_location_assignment PIN_E7 -to FLASH_D[9]
+set_location_assignment PIN_A3 -to FLASH_D[10]
+set_location_assignment PIN_B3 -to FLASH_D[11]
+set_location_assignment PIN_D5 -to FLASH_D[12]
+set_location_assignment PIN_B5 -to FLASH_D[13]
+set_location_assignment PIN_A5 -to FLASH_D[14]
+set_location_assignment PIN_B6 -to FLASH_D[15]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[15]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[14]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[12]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[10]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[8]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[7]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[6]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[5]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[4]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[3]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[1]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[13]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[11]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[9]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[2]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[22]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[21]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[20]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[19]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[18]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[17]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_A[16]
+set_location_assignment PIN_A17 -to RAM_A[1]
+set_location_assignment PIN_T18 -to RAM_A[2]
+set_location_assignment PIN_R18 -to RAM_A[3]
+set_location_assignment PIN_A1 -to RAM_A[4]
+set_location_assignment PIN_C12 -to RAM_A[5]
+set_location_assignment PIN_C16 -to RAM_A[6]
+set_location_assignment PIN_T16 -to RAM_A[7]
+set_location_assignment PIN_H18 -to RAM_A[8]
+set_location_assignment PIN_H16 -to RAM_A[9]
+set_location_assignment PIN_K18 -to RAM_A[10]
+set_location_assignment PIN_L17 -to RAM_A[11]
+set_location_assignment PIN_L18 -to RAM_A[12]
+set_location_assignment PIN_F11 -to RAM_A[13]
+set_location_assignment PIN_L16 -to RAM_A[14]
+set_location_assignment PIN_H15 -to RAM_A[15]
+set_location_assignment PIN_L14 -to RAM_A[16]
+set_location_assignment PIN_J13 -to RAM_A[17]
+set_location_assignment PIN_D16 -to RAM_A[18]
+set_location_assignment PIN_E18 -to RAM_A[19]
+set_location_assignment PIN_F10 -to RAM_A[20]
+set_location_assignment PIN_M18 -to RAM_A[21]
+set_location_assignment PIN_P18 -to RAM_D[0]
+set_location_assignment PIN_R16 -to RAM_D[1]
+set_location_assignment PIN_R17 -to RAM_D[2]
+set_location_assignment PIN_N15 -to RAM_D[3]
+set_location_assignment PIN_M14 -to RAM_D[4]
+set_location_assignment PIN_L13 -to RAM_D[5]
+set_location_assignment PIN_N16 -to RAM_D[6]
+set_location_assignment PIN_M17 -to RAM_D[7]
+set_location_assignment PIN_B17 -to RAM_D[8]
+set_location_assignment PIN_E11 -to RAM_D[9]
+set_location_assignment PIN_E14 -to RAM_D[11]
+set_location_assignment PIN_E13 -to RAM_D[12]
+set_location_assignment PIN_F12 -to RAM_D[13]
+set_location_assignment PIN_F13 -to RAM_D[14]
+set_location_assignment PIN_E17 -to RAM_D[15]
+set_location_assignment PIN_K17 -to RAM_ADV_N
+set_location_assignment PIN_T17 -to RAM_CE_N
+set_location_assignment PIN_D14 -to RAM_CLK
+set_location_assignment PIN_P17 -to RAM_CRE
+set_location_assignment PIN_A18 -to RAM_LB_N
+set_location_assignment PIN_C14 -to RAM_OE_N
+set_location_assignment PIN_D12 -to RAM_UB_N
+set_location_assignment PIN_G17 -to RAM_WAIT
+set_location_assignment PIN_L15 -to RAM_WE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_ADV_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_CE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_CLK
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_CRE
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[15]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[14]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[13]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[12]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[11]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[10]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[9]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[8]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[7]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[6]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[5]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[4]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[3]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[2]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[1]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_LB_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_OE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_UB_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_WAIT
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_WE_N
+set_instance_assignment -name IO_STANDARD "1.8 V" -to RAM_D[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_I2S_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_I2S_DATA
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_I2S_WS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_SPI_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_SPI_DATA
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AUDIO_SPI_EN
+set_location_assignment PIN_M2 -to AUDIO_CLK
+set_location_assignment PIN_L6 -to AUDIO_I2S_DATA
+set_location_assignment PIN_R5 -to AUDIO_I2S_CLK
+set_location_assignment PIN_T1 -to AUDIO_I2S_WS
+set_location_assignment PIN_M5 -to AUDIO_SPI_CLK
+set_location_assignment PIN_M1 -to AUDIO_SPI_DATA
+set_location_assignment PIN_R1 -to AUDIO_SPI_EN
+set_location_assignment PIN_U1 -to ADC_SPI_DIN
+set_location_assignment PIN_N1 -to ADC_SPI_DOUT
+set_location_assignment PIN_M6 -to ADC_SPI_CLK
+set_location_assignment PIN_N6 -to ADC_SPI_CS_N
+set_location_assignment PIN_V1 -to HSEN
+set_location_assignment PIN_U10 -to SD_DETECT_N
+set_location_assignment PIN_V2 -to USB_D[6]
+set_location_assignment PIN_V10 -to SD_PROTECT_N
+set_location_assignment PIN_U2 -to USB_D[7]
+set_location_assignment PIN_U9 -to CHRG_N
+set_location_assignment PIN_V9 -to LBO_N
+set_location_assignment PIN_N2 -to BUTTON_INT_N
+set_location_assignment PIN_F17 -to CLK_48_MHZ
+set_location_assignment PIN_R4 -to DISPLAY_CS_N
+set_location_assignment PIN_T3 -to DISPLAY_D/C_N
+set_location_assignment PIN_P2 -to DISPLAY_D[0]
+set_location_assignment PIN_L3 -to DISPLAY_D[1]
+set_location_assignment PIN_L4 -to DISPLAY_D[2]
+set_location_assignment PIN_K5 -to DISPLAY_D[3]
+set_location_assignment PIN_K1 -to DISPLAY_D[4]
+set_location_assignment PIN_K2 -to DISPLAY_D[5]
+set_location_assignment PIN_L1 -to DISPLAY_D[6]
+set_location_assignment PIN_L2 -to DISPLAY_D[7]
+set_location_assignment PIN_P1 -to DISPLAY_E/RD_N
+set_location_assignment PIN_R2 -to DISPLAY_R/W_N
+set_location_assignment PIN_L5 -to DISPLAY_RES_N
+set_location_assignment PIN_P6 -to ENABLE_12V
+set_location_assignment PIN_T6 -to SD_CLK
+set_location_assignment PIN_U14 -to SD_CMD
+set_location_assignment PIN_V16 -to SD_D0
+set_location_assignment PIN_R11 -to SD_D1
+set_location_assignment PIN_V15 -to SD_D2
+set_location_assignment PIN_V14 -to SD_D3
+set_location_assignment PIN_U12 -to UC_MISO
+set_location_assignment PIN_U13 -to UC_MOSI
+set_location_assignment PIN_P10 -to UC_SCLK
+set_location_assignment PIN_R13 -to USB_D[0]
+set_location_assignment PIN_P12 -to USB_D[1]
+set_location_assignment PIN_V13 -to USB_D[2]
+set_location_assignment PIN_N13 -to USB_D[3]
+set_location_assignment PIN_T14 -to USB_D[4]
+set_location_assignment PIN_T13 -to USB_D[5]
+set_location_assignment PIN_V18 -to USB_RD
+set_location_assignment PIN_U11 -to USB_RX
+set_location_assignment PIN_T11 -to USB_TX
+set_location_assignment PIN_U18 -to USB_WR
+set_location_assignment PIN_T2 -to USER_LED[0]
+set_location_assignment PIN_M3 -to USER_LED[1]
+set_location_assignment PIN_U8 -to USER_LED[2]
+set_location_assignment PIN_V7 -to USER_LED[3]
+set_location_assignment PIN_V6 -to USER_PB[0]
+set_location_assignment PIN_U6 -to USER_PB[1]
+set_location_assignment PIN_P9 -to USER_PB[2]
+set_location_assignment PIN_R8 -to USER_PB[3]
+set_location_assignment PIN_V5 -to USER_PB[4]
+set_location_assignment PIN_V4 -to USER_PB[5]
+set_location_assignment PIN_P11 -to USER_TB_FB[0]
+set_location_assignment PIN_N10 -to USER_TB_FB[1]
+set_location_assignment PIN_V17 -to USER_TB_FB[2]
+set_location_assignment PIN_M13 -to USER_TB_FB[3]
+set_location_assignment PIN_V12 -to USER_TB_PD[0]
+set_location_assignment PIN_U16 -to USER_TB_PD[1]
+set_location_assignment PIN_U17 -to USER_TB_PD[2]
+set_location_assignment PIN_N12 -to USER_TB_PD[3]
+set_location_assignment PIN_V11 -to USER_TB_PU[0]
+set_location_assignment PIN_U15 -to USER_TB_PU[1]
+set_location_assignment PIN_N11 -to USER_TB_PU[2]
+set_location_assignment PIN_P13 -to USER_TB_PU[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_RD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_RX
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_TX
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_WR
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_FB[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_FB[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_FB[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_FB[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PD[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PD[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PD[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PD[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PU[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PU[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PU[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_TB_PU[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ADC_SPI_DOUT
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_CS_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_D/C_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_E/RD_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_R/W_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_RES_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_LED[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_LED[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to BUTTON_INT_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ADC_SPI_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ADC_SPI_CS_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ADC_SPI_DIN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CHRG_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ENABLE_12V
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HSEN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_CLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_LED[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_LED[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LBO_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_PB[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_D1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_D2
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_D3
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_DETECT_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_CMD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_D0
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SD_PROTECT_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UC_MISO
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UC_MOSI
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to UC_SCLK
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USB_D[4]
+set_instance_assignment -name IO_STANDARD "1.8 V" -to 48_MHZ_CLK
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP "AS INPUT TRI-STATED"
+set_global_assignment -name SIMULATION_MODE FUNCTIONAL
+set_global_assignment -name SAVE_DISK_SPACE OFF
+set_location_assignment PIN_U4 -to BURST_MODE
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to BURST_MODE
+set_global_assignment -name OUTPUT_PIN_LOAD 10 -section_id "3.3-V LVTTL"
+set_global_assignment -name OUTPUT_PIN_LOAD 6 -section_id "1.8 V"
+set_global_assignment -name POWER_USE_INPUT_FILES ON
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
+set_global_assignment -name EDA_INCLUDE_VHDL_CONFIGURATION_DECLARATION OFF -section_id eda_simulation
+set_global_assignment -name EDA_MAP_ILLEGAL_CHARACTERS OFF -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT NONE -section_id eda_simulation
+set_global_assignment -name EDA_ENABLE_GLITCH_FILTERING OFF -section_id eda_simulation
+set_global_assignment -name EDA_WRITE_NODES_FOR_POWER_ESTIMATION OFF -section_id eda_simulation
+set_instance_assignment -name OUTPUT_PIN_LOAD 6 -to FLASH_A
+set_instance_assignment -name OUTPUT_PIN_LOAD 6 -to FLASH_D
+set_instance_assignment -name OUTPUT_PIN_LOAD 6 -to RAM_A
+set_instance_assignment -name OUTPUT_PIN_LOAD 6 -to RAM_D
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to DISPLAY_D
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USB_D
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_IO_
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_LED
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_PB
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_TB_FB
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_TB_PD
+set_instance_assignment -name OUTPUT_PIN_LOAD 10 -to USER_TB_PU
+set_global_assignment -name USE_TIMEQUEST_TIMING_ANALYZER OFF
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY no_file_for_top_partition -to | -section_id Top
+set_global_assignment -name ENABLE_SIGNALTAP OFF
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA ON
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_A
+set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to RAM_D
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_D
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_ADV_N
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_CE_N
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_CRE
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_LB_N
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_OE_N
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_UB_N
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_WE_N
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to RAM_WAIT
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to RAM_D
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_location_assignment PIN_V3 -to USER_IO[1]
+set_location_assignment PIN_V8 -to USER_IO[2]
+set_location_assignment PIN_T4 -to USER_IO[3]
+set_location_assignment PIN_N7 -to USER_IO[4]
+set_location_assignment PIN_U5 -to USER_IO[5]
+set_location_assignment PIN_P8 -to USER_IO[6]
+set_location_assignment PIN_U7 -to USER_IO[7]
+set_location_assignment PIN_N8 -to USER_IO[8]
+set_location_assignment PIN_N9 -to USER_IO[9]
+set_location_assignment PIN_P7 -to USER_IO[10]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[10]
+set_location_assignment PIN_U3 -to USER_IO[11]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[11]
+set_location_assignment PIN_T8 -to USER_IO[12]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[12]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to USER_IO[3]
+set_location_assignment PIN_R3 -to DISPLAY_BS1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DISPLAY_BS1
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SD_D3
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SD_CLK
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SD_CMD
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SD_D0
+set_location_assignment PIN_G18 -to RAM_D[10]
+set_location_assignment PIN_G13 -to RAM_A[22]
+set_global_assignment -name PARTITION_COLOR 2147039 -section_id Top
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name ENABLE_ADVANCED_IO_TIMING ON
+set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 1.8V
+
+set_global_assignment -name ADV_NETLIST_OPT_RETIME_CORE_AND_IO ON
+set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE ../../soclib/blockram.v
+set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
+set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_I.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_D.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_X.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_M.v"
+set_global_assignment -name VERILOG_FILE ../../soclib/dmem.v
+set_global_assignment -name VERILOG_FILE ../../soclib/peri_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/pipeconnect.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232in.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
+set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
+set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/logshiftright.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/arithshiftbidir.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/dpram.v
+set_global_assignment -name MIF_FILE ../../initmem.mif
+set_global_assignment -name MIF_FILE tags0.mif
+set_global_assignment -name MIF_FILE tags1.mif
+set_global_assignment -name MIF_FILE tags2.mif
+set_global_assignment -name MIF_FILE tags3.mif
+set_global_assignment -name CDF_FILE main.cdf
+set_global_assignment -name SIGNALTAP_FILE stp2.stp

@@ -2,10 +2,10 @@
  * This linker script was based on the nullmon.ld from the libgloss
  * (newlib) distribution.
  *
- * My MIPS implementation is assumed to have memory from 0x8000000
+ * YARI assumes to have memory from 0x8000000
  * onwards.  Typically 1MiB or 16MiB if SDRAM is used.
  *
- * My MIPS implementation memory map:
+ * The memory map:
  *
  * #0000_0000 - #7FFF_FFFF Unmapped
  * #4000_0000 - #400F_FFFF SRAM (1MiB SRAM)

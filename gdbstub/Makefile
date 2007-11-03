@@ -12,7 +12,7 @@ OBJDUMP = mips-elf-objdump
 STRIP = mips-elf-strip
 CSRC=gdb-stub.c gdb-support.c kernmisc.c
 SSRC=gdb-low.S
-OBJ=$(patsubst %.c,%.o,$(CSRC)) $(patsubst %.S,%.o,$(SSRC)) 
+OBJ=$(patsubst %.c,%.o,$(CSRC)) $(patsubst %.S,%.o,$(SSRC))
 
 gdbstub: ld.script.little $(OBJ)
 	mips-elf-ld -Tprom.ld -o gdbstub.mips gdb-stub.o gdb-support.o gdb-low.o kernmisc.o

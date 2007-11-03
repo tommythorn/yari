@@ -39,7 +39,7 @@
 0011 01ss ssst tttt iiii iiii iiii iiii ORI     -- Bitwise or immediate
 1010 00ss ssst tttt iiii iiii iiii iiii SB      -- Store byte
 1010 01ss ssst tttt iiii iiii iiii iiii SH      -- Store half word
-0000 00ss ssst tttt dddd dhhh hh00 0000 SLL     -- Shift left logical 
+0000 00ss ssst tttt dddd dhhh hh00 0000 SLL     -- Shift left logical
 0000 00ss ssst tttt dddd d--- --00 0100 SLLV    -- Shift left logical variable
 0000 00ss ssst tttt dddd d000 0010 1010 SLT     -- Set on less than (signed)
 0010 10ss ssst tttt iiii iiii iiii iiii SLTI    -- Set on less than immediate (signed)

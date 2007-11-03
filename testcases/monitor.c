@@ -1,7 +1,7 @@
 void
 skipspace(char **p)
 {
-        while (*p == ' ' || *p == '\t') { 
+        while (*p == ' ' || *p == '\t') {
                 ++p;
         }
 }
@@ -56,7 +56,7 @@ main()
 {
         unsigned scratch[128];
         char buf[99];
-        puts("Tommy's MIPS monitor version 0\n");
+        puts("Tommy's monitor version 0\n");
         puts("Hint: buffer @ %08x\n", scratch);
 
         for (;;) {
