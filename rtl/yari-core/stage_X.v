@@ -130,144 +130,144 @@ module stage_X(input  wire        clock
 
 
       case (d_opcode)
-        `REG:
-          case (d_fn)
-            `SLL: x_res <= ashift_out;
-            `SRL: x_res <= lshift_out;
-            `SRA: x_res <= ashift_out;
+      `REG:
+         case (d_fn)
+         `SLL: x_res <= ashift_out;
+         `SRL: x_res <= lshift_out;
+         `SRA: x_res <= ashift_out;
 
-            `SLLV: x_res <= ashift_out;
-            `SRLV: x_res <= lshift_out;
-            `SRAV: x_res <= ashift_out;
+         `SLLV: x_res <= ashift_out;
+         `SRLV: x_res <= lshift_out;
+         `SRAV: x_res <= ashift_out;
 
-            `JALR:
-              begin
-                 x_res <= d_npc + 4;
-                 if (d_valid) begin
-                    x_restart    <= 1;
-                    x_restart_pc <= d_op1_val;
-                 end
-              end
-            `JR:
-              if (d_valid) begin
-                 x_restart    <= 1;
-                 x_restart_pc <= d_op1_val;
-              end
-
-            // XXX BUG See the comment above with x_lo and x_hi
-            `MFHI: begin x_res <= x_hi; end
-            `MFLO: begin x_res <= x_lo; end
-            `MTHI: begin x_hi <= d_op1_val; end
-            `MTLO: begin x_lo <= d_op1_val; end
-
-            //`MULTU: reg_mul.u64 = (u_int64_t)s * (u_int64_t)t;
-            //`DIV:   reg_mul.u32[1] = (int)s % (int)t;
-            //        reg_mul.u32[0] = (int)s / (int)t; break;
-            //`DIVU:  reg_mul.u32[1] = s % t;
-            //        reg_mul.u32[0] = s / t; break;
-
-/*
-            `MULT: begin
-                   {x_hi,x_lo} <= d_op1_val * d_op2_val;
-               $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
-               end
-*/
-            // XXX BUG Trap on overflow for ADD, ADDI and SUB
-            `ADD:    x_res <= d_op1_val + d_op2_val;
-            `ADDU:   x_res <= d_op1_val + d_op2_val;
-            `SUB:    x_res <= d_op1_val - d_op2_val;
-            `SUBU:   x_res <= d_op1_val - d_op2_val;
-            `AND:    x_res <= d_op1_val & d_op2_val;
-            `OR:     x_res <= d_op1_val | d_op2_val;
-            `XOR:    x_res <= d_op1_val ^ d_op2_val;
-            `NOR:    x_res <= d_op1_val | ~d_op2_val;
-
-            `SLT:    x_res <= {{31{1'b0}}, subtracted[32]};
-            `SLTU: if (d_op1_val < d_op2_val) x_res <= 1; else x_res <= 0;
-            `BREAK:
+         `JALR:
+            begin
+               x_res <= d_npc + 4;
                if (d_valid) begin
                   x_restart    <= 1;
-                  x_restart_pc <= 'hBFC00380;
-                  x_flush_D    <= 1;
-                  cp0_status[`CP0_STATUS_EXL] <= 1;
-                  //cp0_cause.exc_code = EXC_BP;
-                  cp0_cause <= 9 << 2;
-                  // cp0_cause.bd = branch_delay_slot; // XXX DELAY SLOT HANDLING!
-                  cp0_epc <= d_pc; // XXX DELAY SLOT HANDLING!
+                  x_restart_pc <= d_op1_val;
                end
+            end
+         `JR:
+            if (d_valid) begin
+               x_restart    <= 1;
+               x_restart_pc <= d_op1_val;
+            end
+
+         // XXX BUG See the comment above with x_lo and x_hi
+         `MFHI: begin x_res <= x_hi; end
+         `MFLO: begin x_res <= x_lo; end
+         `MTHI: begin x_hi <= d_op1_val; end
+         `MTLO: begin x_lo <= d_op1_val; end
+
+         //`MULTU: reg_mul.u64 = (u_int64_t)s * (u_int64_t)t;
+         //`DIV:   reg_mul.u32[1] = (int)s % (int)t;
+         //        reg_mul.u32[0] = (int)s / (int)t; break;
+         //`DIVU:  reg_mul.u32[1] = s % t;
+         //        reg_mul.u32[0] = s / t; break;
+
+/*
+         `MULT: begin
+                  {x_hi,x_lo} <= d_op1_val * d_op2_val;
+                  $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
+                end
+*/
+         // XXX BUG Trap on overflow for ADD, ADDI and SUB
+         `ADD:    x_res <= d_op1_val + d_op2_val;
+         `ADDU:   x_res <= d_op1_val + d_op2_val;
+         `SUB:    x_res <= d_op1_val - d_op2_val;
+         `SUBU:   x_res <= d_op1_val - d_op2_val;
+         `AND:    x_res <= d_op1_val & d_op2_val;
+         `OR:     x_res <= d_op1_val | d_op2_val;
+         `XOR:    x_res <= d_op1_val ^ d_op2_val;
+         `NOR:    x_res <= d_op1_val | ~d_op2_val;
+
+         `SLT:    x_res <= {{31{1'b0}}, subtracted[32]};
+         `SLTU: if (d_op1_val < d_op2_val) x_res <= 1; else x_res <= 0;
+         `BREAK:
+            if (d_valid) begin
+               x_restart    <= 1;
+               x_restart_pc <= 'hBFC00380;
+               x_flush_D    <= 1;
+               cp0_status[`CP0_STATUS_EXL] <= 1;
+               //cp0_cause.exc_code = EXC_BP;
+               cp0_cause <= 9 << 2;
+               // cp0_cause.bd = branch_delay_slot; // XXX DELAY SLOT HANDLING!
+               cp0_epc <= d_pc; // XXX DELAY SLOT HANDLING!
+            end
 
 `ifdef SIMULATE_MAIN
-            default:
-              $display("%05dc EX: %8x:%8x unhandled REG function %x", $time,
-                       d_pc, d_instr, d_fn);
+         default:
+            $display("%05dc EX: %8x:%8x unhandled REG function %x", $time,
+                     d_pc, d_instr, d_fn);
 `endif
-          endcase
-        `REGIMM: // BLTZ, BGEZ, BLTZAL, BGEZAL
-                 if (d_valid) begin
-                    x_restart <= d_rt[0] ^ d_op1_val[31];
-                    x_res  <= d_npc + 4;
-                 end
-        `JAL:
-           if (d_valid) begin
-              x_restart <= 1;
-              x_res  <= d_npc + 4;
-           end
-        `J: if (d_valid) x_restart <= 1;
-        `BEQ:
-           if (d_valid) begin
-              x_restart <=  ops_eq;
-              $display("%05d BEQ %8x == %8x (%1d)", $time,
-                       d_op1_val, d_op2_val, ops_eq);
-           end
-        `BNE:
-           if (d_valid) begin
-              x_restart <= ~ops_eq;
-              $display("%05d BNE %8x == %8x (%1d)", $time,
-                       d_op1_val, d_op2_val, ops_eq);
-           end
+         endcase
+      `REGIMM: // BLTZ, BGEZ, BLTZAL, BGEZAL
+         if (d_valid) begin
+            x_restart <= d_rt[0] ^ d_op1_val[31];
+            x_res  <= d_npc + 4;
+         end
+      `JAL:
+         if (d_valid) begin
+            x_restart <= 1;
+            x_res  <= d_npc + 4;
+         end
+      `J: if (d_valid) x_restart <= 1;
+      `BEQ:
+         if (d_valid) begin
+            x_restart <=  ops_eq;
+            $display("%05d BEQ %8x == %8x (%1d)", $time,
+                     d_op1_val, d_op2_val, ops_eq);
+         end
+      `BNE:
+         if (d_valid) begin
+            x_restart <= ~ops_eq;
+            $display("%05d BNE %8x == %8x (%1d)", $time,
+                     d_op1_val, d_op2_val, ops_eq);
+         end
 
-        `BLEZ:
-           if (d_valid)
-              x_restart <= d_op1_val[31] || d_op1_val == 0;
-        `BGTZ:
-           // XXX Share logic
-           if (d_valid)
-              x_restart <= !d_op1_val[31] && d_op1_val != 0;
+      `BLEZ:
+         if (d_valid)
+            x_restart <= d_op1_val[31] || d_op1_val == 0;
+      `BGTZ:
+         // XXX Share logic
+         if (d_valid)
+            x_restart <= !d_op1_val[31] && d_op1_val != 0;
 
-        `ADDI: x_res <= d_op1_val + d_op2_val;
-        `ADDIU:x_res <= d_op1_val + d_op2_val;
-        `SLTI: x_res <= $signed(d_op1_val) < $signed(d_op2_val);
-        `SLTIU:x_res <= d_op1_val < d_op2_val;
-        `ANDI: x_res <= {16'b0, d_op1_val[15:0] & d_op2_val[15:0]};
-        `ORI:  x_res <= {d_op1_val[31:16], d_op1_val[15:0] | d_op2_val[15:0]};
-        `XORI: x_res <= {d_op1_val[31:16], d_op1_val[15:0] ^ d_op2_val[15:0]};
-        `LUI:  x_res <= {d_op2_val[15:0], 16'd0};
+      `ADDI: x_res <= d_op1_val + d_op2_val;
+      `ADDIU:x_res <= d_op1_val + d_op2_val;
+      `SLTI: x_res <= $signed(d_op1_val) < $signed(d_op2_val);
+      `SLTIU:x_res <= d_op1_val < d_op2_val;
+      `ANDI: x_res <= {16'b0, d_op1_val[15:0] & d_op2_val[15:0]};
+      `ORI:  x_res <= {d_op1_val[31:16], d_op1_val[15:0] | d_op2_val[15:0]};
+      `XORI: x_res <= {d_op1_val[31:16], d_op1_val[15:0] ^ d_op2_val[15:0]};
+      `LUI:  x_res <= {d_op2_val[15:0], 16'd0};
 
-        // `CP1:
+      //`CP1:
 `ifdef SIMULATE_MAIN
-        `CP2:
-           if (d_valid) begin
-              if (x_lo == 32'h87654321)
-                 $display("TEST SUCCEEDED!");
-              else
-                 $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, x_lo,
-                          d_valid, d_pc, d_instr);
-              $finish; // XXX do something more interesting for real hw.
-           end
+      `CP2:
+         if (d_valid) begin
+            if (x_lo == 32'h87654321)
+               $display("TEST SUCCEEDED!");
+            else
+               $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, x_lo,
+                        d_valid, d_pc, d_instr);
+            $finish; // XXX do something more interesting for real hw.
+         end
 `endif
-        // `BBQL:
+      //`BBQL:
 
 /*
   These are handled in Stage_ME
 
-        `LB:   x_res <= d_op1_val + d_op2_val;
-        `LBU:  x_res <= d_op1_val + d_op2_val;
-        `LH:   x_res <= d_op1_val + d_op2_val;
-        `LHU:  x_res <= d_op1_val + d_op2_val;
-        `LW:   x_res <= d_op1_val + d_op2_val;
-        `SB:   x_res <= d_op1_val + d_op2_val;
-        `SH:   x_res <= d_op1_val + d_op2_val;
-        `SW:   x_res <= d_op1_val + d_op2_val;
+      `LB:   x_res <= d_op1_val + d_op2_val;
+      `LBU:  x_res <= d_op1_val + d_op2_val;
+      `LH:   x_res <= d_op1_val + d_op2_val;
+      `LHU:  x_res <= d_op1_val + d_op2_val;
+      `LW:   x_res <= d_op1_val + d_op2_val;
+      `SB:   x_res <= d_op1_val + d_op2_val;
+      `SH:   x_res <= d_op1_val + d_op2_val;
+      `SW:   x_res <= d_op1_val + d_op2_val;
 */
 
 /*
@@ -277,107 +277,99 @@ module stage_X(input  wire        clock
  */
 `ifdef LATER
       `CP0: if (d_valid) begin
-          /* Two possible formats */
-          if (d_rs[4]) begin
-             if (d_fn == `C0_ERET) begin
-                /* Exception Return */
-                x_restart <= 1;
-                x_flush_D <= 1; // XXX BUG? Check that ERET doesn't have a delay slot!
-                if (cp0_status[`CP0_STATUS_ERL]) begin
-                   x_restart_pc <= cp0_errorepc;
-                   cp0_status[`CP0_STATUS_ERL] <= 0;
+         /* Two possible formats */
+         if (d_rs[4]) begin
+            if (d_fn == `C0_ERET) begin
+               /* Exception Return */
+               x_restart <= 1;
+               x_flush_D <= 1; // XXX BUG? Check that ERET doesn't have a delay slot!
+               if (cp0_status[`CP0_STATUS_ERL]) begin
+                  x_restart_pc <= cp0_errorepc;
+                  cp0_status[`CP0_STATUS_ERL] <= 0;
 `ifdef SIMULATE_MAIN
-                   $display("ERET ERROREPC %x", cp0_errorepc);
+                  $display("ERET ERROREPC %x", cp0_errorepc);
 `endif
-                end else begin
-                   x_restart_pc <= cp0_epc;
-                   cp0_status[`CP0_STATUS_EXL] <= 0;
+               end else begin
+                  x_restart_pc <= cp0_epc;
+                  cp0_status[`CP0_STATUS_EXL] <= 0;
 `ifdef SIMULATE_MAIN
-                   $display("ERET EPC %x", cp0_epc);
+                  $display("ERET EPC %x", cp0_epc);
 `endif
-                end
-             end
+               end
+            end
 `ifdef SIMULATE_MAIN
-             else
-                /* C1 format */
-                $display("Unhandled CP0 command %s\n",
-                         d_fn == `C0_TLBR  ? "tlbr" :
-                         d_fn == `C0_TLBWI ? "tlbwi" :
-                         d_fn == `C0_TLBWR ? "tlbwr" :
-                         d_fn == `C0_TLBP  ? "tlbp" :
-                         d_fn == `C0_ERET  ? "eret" :
-                         d_fn == `C0_DERET ? "deret" :
-                         d_fn == `C0_WAIT  ? "wait" :
-                         "???");
+            else
+               /* C1 format */
+               $display("Unhandled CP0 command %s\n",
+                        d_fn == `C0_TLBR  ? "tlbr" :
+                        d_fn == `C0_TLBWI ? "tlbwi" :
+                        d_fn == `C0_TLBWR ? "tlbwr" :
+                        d_fn == `C0_TLBP  ? "tlbp" :
+                        d_fn == `C0_ERET  ? "eret" :
+                        d_fn == `C0_DERET ? "deret" :
+                        d_fn == `C0_WAIT  ? "wait" :
+                        "???");
 `endif
-          end else begin
+         end else begin
 `ifdef SIMULATE_MAIN
-             if (d_rs[2])
+            if (d_rs[2])
                $display("MTCP0 r%d <- %x", d_rd, d_op2_val);
-             else
+            else
                $display("MFCP0 r%d", d_rd);
 
-             if (d_fn != 0) $display("d_fn == %x", d_fn);
+            if (d_fn != 0) $display("d_fn == %x", d_fn);
 `endif
-             if (d_rs[2]) begin
-                x_wbr <= 0; // XXX BUG?
-                // cp0regs[i.r.rd] = t;
-                case (d_rd)
-                  `CP0_STATUS:   begin
-                                 cp0_status   <= d_op2_val;
-`ifdef SIMULATE_MAIN
-                                 $display("STATUS <= %x", d_op2_val);
-`endif
-                                 end
-                  `CP0_CAUSE:    begin
-                                 cp0_cause <= d_op2_val;
-`ifdef SIMULATE_MAIN
-                                 $display("CAUSE <= %x", d_op2_val);
-`endif
-                                 end
-                  `CP0_EPC:      begin
-                                 cp0_epc      <= d_op2_val;
-`ifdef SIMULATE_MAIN
-                                 $display("EPC <= %x", d_op2_val);
-`endif
-                                 end
-                  `CP0_ERROREPC: begin
-                                 cp0_errorepc <= d_op2_val;
-`ifdef SIMULATE_MAIN
-                                 $display("ERROREPC <= %x", d_op2_val);
-`endif
-                                 end
-/*
-                        cp0_status.raw = t;
-                        cp0_status.res1 = cp0_status.res2 = 0;
-                        printf("Operating mode %s\n",
-                               cp0_status.ksu == 0 ? "kernel" :
-                               cp0_status.ksu == 1 ? "supervisor" :
-                               cp0_status.ksu == 2 ? "user" : "??");
-                        printf("Exception level %d\n", cp0_status.exl);
-                        printf("Error level %d\n", cp0_status.erl);
-                        printf("Interrupts %sabled\n", cp0_status.ie ? "en" : "dis");
-                        break;
-*/
-`ifdef SIMULATE_MAIN
-                  default:
-                    $display("Setting an unknown CP0 register %d", d_rd);
-`endif
-                        //case CP0_CAUSE:
-                endcase
-             end else
+            if (d_rs[2]) begin
+               x_wbr <= 0; // XXX BUG?
+               // cp0regs[i.r.rd] = t;
                case (d_rd)
-                 `CP0_STATUS:   x_res <= cp0_status;   // 12
-                 `CP0_CAUSE:    x_res <= cp0_cause;    // 13
-                 `CP0_EPC:      x_res <= cp0_epc;      // 14
-                 `CP0_ERROREPC: x_res <= cp0_errorepc; // 30
-`ifdef SIMULATE_MAIN
-                  default:
-                    $display("Accessing an unknown CP0 register %d", d_rd);
-`endif
+               `CP0_STATUS:
+                  begin
+                     cp0_status   <= d_op2_val;
+                     $display("STATUS <= %x", d_op2_val);
+                  end
+               `CP0_CAUSE:
+                  begin
+                     cp0_cause <= d_op2_val;
+                     $display("CAUSE <= %x", d_op2_val);
+                  end
+               `CP0_EPC:
+                  begin
+                     cp0_epc      <= d_op2_val;
+                     $display("EPC <= %x", d_op2_val);
+                  end
+               `CP0_ERROREPC:
+                  begin
+                  cp0_errorepc <= d_op2_val;
+                  $display("ERROREPC <= %x", d_op2_val);
+               end
+/*
+               cp0_status.raw = t;
+               cp0_status.res1 = cp0_status.res2 = 0;
+               printf("Operating mode %s\n",
+                      cp0_status.ksu == 0 ? "kernel" :
+                      cp0_status.ksu == 1 ? "supervisor" :
+                      cp0_status.ksu == 2 ? "user" : "??");
+               printf("Exception level %d\n", cp0_status.exl);
+               printf("Error level %d\n", cp0_status.erl);
+               printf("Interrupts %sabled\n", cp0_status.ie ? "en" : "dis");
+               break;
+*/
+               default:
+                  $display("Setting an unknown CP0 register %d", d_rd);
+               //case CP0_CAUSE:
                endcase
-          end
-        end
+            end else
+               case (d_rd)
+               `CP0_STATUS:   x_res <= cp0_status;   // 12
+               `CP0_CAUSE:    x_res <= cp0_cause;    // 13
+               `CP0_EPC:      x_res <= cp0_epc;      // 14
+               `CP0_ERROREPC: x_res <= cp0_errorepc; // 30
+               default:
+                  $display("Accessing an unknown CP0 register %d", d_rd);
+               endcase
+         end
+      end
 `endif
       endcase
 
@@ -393,7 +385,7 @@ module stage_X(input  wire        clock
                // load, thus DE isn't a delay slot
                $display("%05d  *** load-use hazard, restarting %8x", $time,
                         d_pc);
-         end
+            end
       end
    end
 endmodule
