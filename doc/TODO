@@ -74,11 +74,19 @@ DONE
 * Found a new home: git://repo.or.cz/yari.git
 
 
-IMPORTANT (Preferably before release)
+TODO
+
+* Write a PSRAM controller (for the LPRP).
+
+* Change makeconfig.sh to instead parse config.h (which should now be
+  written by hand). This is in preparation for moving many more
+  configurable features to the config.h
+
+* Port to Xilinx' ML401 and one of the Spartan-3 starter kits
 
 * Implement MUL
 
-* Implemnent DIV
+* Implement DIV
 
 * Move all architectual state updates to the latest stage that can
   flush the pipe (and thus annul the updates).
