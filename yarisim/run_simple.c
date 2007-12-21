@@ -239,13 +239,13 @@ void run_simple(MIPS_state_t *state)
                         case MFLO: wbv = state->lo; break;
                         case MTLO: state->lo = s; break;
                         case MULT: {
-                                u_int64_t u64 = (int64_t)s * (int64_t)t;
-                                state->lo = u64;
-                                state->hi = u64 >> 32;
+                                int64_t i64 = (int64_t)s * (int64_t)t;
+                                state->lo = i64;
+                                state->hi = i64 >> 32;
                                 break;
                         }
                         case MULTU: {
-                                u_int64_t u64 = (int64_t)s * (int64_t)t;
+                                u_int64_t u64 = (u_int64_t)s * (u_int64_t)t;
                                 state->lo = u64;
                                 state->hi = u64 >> 32;
                                 break;
