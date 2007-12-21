@@ -17,7 +17,7 @@ usage:
 
 isasim:
 	make -C testcases $(TESTPROG)-prom.mips
-	make -C yarisim VERB=$(VERB) TESTPROG=../testcases/$(TESTPROG)-prom.mips run
+	make -C yarisim FLAGS=$(VERB) TESTPROG=../testcases/$(TESTPROG)-prom.mips run
 
 rtlsim:
 	make -C testcases PROG=$(TESTPROG) promote
@@ -26,7 +26,7 @@ rtlsim:
 cosim:
 	make -C testcases PROG=$(TESTPROG) $(TESTPROG)-prom.mips promote
 	make -C rtl/target/Icarus simulate | \
-	make -C yarisim VERB="--cosim $(VERB)" TESTPROG=../testcases/$(TESTPROG)-prom.mips run
+	make -C yarisim FLAGS="--cosim $(VERB)" TESTPROG=../testcases/$(TESTPROG)-prom.mips run
 
 
 clean:

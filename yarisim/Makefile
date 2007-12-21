@@ -1,11 +1,11 @@
 CFLAGS=-g -Wall -MD -O2
 TESTPROG=please-set-TESTPROG
-VERB=
+FLAGS=
 
 all: sim
 
 run: sim
-	./sim $(VERB) $(TESTPROG)
+	./sim $(FLAGS) $(TESTPROG)
 
 tests: tests.c
 	mips-elf-gcc -O -msoft-float -Tmymips.ld $< -o $@
