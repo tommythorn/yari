@@ -70,14 +70,18 @@ module stage_X(input  wire        clock
    // as ME can flush the pipe rendering an update of state in EX
    // premature. Of course this leads to headaches with forwarding and
    // hazards on instruction depending on these... Sigh.
-   reg [31:0]         x_lo = 0, x_hi = 0;
+   reg                mult_busy = 0;
+   reg [63:0]         mult_a = 0;
+   reg [31:0]         mult_b = 0;
+   reg [31:0]         mult_lo = 0;
+   reg [31:0]         mult_hi = 0;
 
    reg [31:0]         cp0_status = 0,     // XXX -- " --
                       cp0_epc = 0,
                       cp0_errorepc = 0,
                       cp0_cause = 0;
 
-   assign             debug_byte = x_lo[7:0];
+   assign             debug_byte = mult_lo[7:0];
 
    arithshiftbidir arithshiftbidir(
         .distance(shift_dist),
@@ -129,6 +133,20 @@ module stage_X(input  wire        clock
       x_flush_D          <= 0;
 
 
+      // Radix-2 Multiplication Machine (this is not the best way to do this)
+      if (mult_busy) begin
+         //$display("MULT %x * %x + %x", mult_a, mult_b, {mult_hi,mult_lo});
+
+         if (mult_b[0])
+            {mult_hi,mult_lo} <= {mult_hi,mult_lo} + mult_a;
+         mult_a <= mult_a << 1;
+         mult_b <= mult_b >> 1;
+         if (mult_b[31:1] == 0) begin
+            mult_busy <= 0;
+            //$display("MULT = %x", mult_a + {mult_hi,mult_lo});
+         end
+      end
+
       case (d_opcode)
       `REG:
          case (d_fn)
@@ -154,11 +172,44 @@ module stage_X(input  wire        clock
                x_restart_pc <= d_op1_val;
             end
 
-         // XXX BUG See the comment above with x_lo and x_hi
-         `MFHI: begin x_res <= x_hi; end
-         `MFLO: begin x_res <= x_lo; end
-         `MTHI: begin x_hi <= d_op1_val; end
-         `MTLO: begin x_lo <= d_op1_val; end
+         // XXX BUG See the comment above with mult_lo and mult_hi
+         `MFHI:
+            if (mult_busy && d_valid) begin
+               x_flush_D    <= 1;
+               x_valid      <= 0;
+               x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+               x_restart    <= 1;
+            end else
+               x_res        <= mult_hi;
+         `MFLO:
+            if (mult_busy && d_valid) begin
+               x_flush_D    <= 1;
+               x_valid      <= 0;
+               x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+               x_restart    <= 1;
+            end else
+               x_res        <= mult_lo;
+         `MTHI:
+            if (d_valid) begin
+               if (mult_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else
+                  mult_hi      <= d_op1_val;
+            end
+         `MTLO:
+            if (d_valid) begin
+               if (mult_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else
+                  mult_lo      <= d_op1_val;
+            end
+
 
          //`MULTU: reg_mul.u64 = (u_int64_t)s * (u_int64_t)t;
          //`DIV:   reg_mul.u32[1] = (int)s % (int)t;
@@ -166,12 +217,23 @@ module stage_X(input  wire        clock
          //`DIVU:  reg_mul.u32[1] = s % t;
          //        reg_mul.u32[0] = s / t; break;
 
-/*
-         `MULT: begin
-                  {x_hi,x_lo} <= d_op1_val * d_op2_val;
+         `MULTU:
+            if (d_valid) begin
+               if (mult_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else begin
+                  mult_busy <= 1;
+                  mult_hi <= 0;
+                  mult_lo <= 0;
+                  mult_a <= d_op1_val;
+                  mult_b <= d_op2_val;
                   $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
                 end
-*/
+            end
+
          // XXX BUG Trap on overflow for ADD, ADDI and SUB
          `ADD:    x_res <= d_op1_val + d_op2_val;
          `ADDU:   x_res <= d_op1_val + d_op2_val;
@@ -247,10 +309,10 @@ module stage_X(input  wire        clock
 `ifdef SIMULATE_MAIN
       `CP2:
          if (d_valid) begin
-            if (x_lo == 32'h87654321)
+            if (mult_lo == 32'h87654321)
                $display("TEST SUCCEEDED!");
             else
-               $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, x_lo,
+               $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, mult_lo,
                         d_valid, d_pc, d_instr);
             $finish; // XXX do something more interesting for real hw.
          end
