@@ -1,7 +1,7 @@
-	.section .startup_code
-	.set noreorder
-	.globl	_start
-	.ent	_start
+        .section .startup_code
+        .set noreorder
+        .globl  _start
+        .set    noat
 _start: li      $0, 0
         li      $1, 1
         li      $2, 2
@@ -39,13 +39,16 @@ _start: li      $0, 0
         la    $28,_gp        /* Globals pointer. */
 
         /* Clear the BSS segment. */
-       	la      $8, _fbss
-	la	$9, _end
-clear:  sw	$0, ($8)
-        bne	$8,$9,clear
+        la      $8, _fbss
+        la      $9, _end
+clear:  sw      $0, ($8)
+        bne     $8,$9,clear
         addi    $8,$8,4
 
         jal   main
         nop
-	.set reorder
-	.end	_start
+
+        li $2, 0x87654321
+        mtlo $2;
+        .word 0x48000000
+        break

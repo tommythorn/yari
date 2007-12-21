@@ -1,3 +1,5 @@
+#include "standalone-common.h"
+
 #define Y return
 #define R for
 #define e while

@@ -9,9 +9,10 @@ VERB=--verb
 
 all: cosim
 
-working: fib.data testall.data testicache.data testeret-prom.data \
-	gdbstub-prom.data showtime.mips letters.mips sramtester.mips \
-	hw.txt
+working: hw.data sieve.data fib.data
+
+#        testall.data testicache.data testeret-prom.data \
+#	gdbstub-prom.data showtime.mips letters.mips sramtester.mips
 
 broken: stalls.mif \
      fail.mips test0.data test1.data testlwsw.data sieve.data sieve.mif  \
@@ -82,8 +83,8 @@ testicache-prom.data: testicache-prom.mips $(SIM)
 #%.o: %.s
 #	mips-elf-as $< -o $@
 
-%.o: %.c
-	mips-elf-gcc -DSTANDALONE -msoft-float -g -O -c $< -o $@
+%.o: %.c standalone-common.h
+	mips-elf-gcc -fno-builtin -DSTANDALONE -msoft-float -g -O -c $< -o $@
 
 .PRECIOUS: %.dis %.mips %.data %.mif
 
@@ -112,10 +113,6 @@ show: test0.mips
 muldiv.mips: muldiv.c
 	mips-elf-gcc -DSTANDALONE -msoft-float -O -c muldiv.c
 	mips-elf-ld -Tstandalone.ld muldiv.o -o muldiv.mips
-
-sieve.mips: sieve.c
-	mips-elf-gcc -DSTANDALONE -msoft-float -O -c sieve.c
-	mips-elf-ld -Tsram.ld sieve.o -o sieve.mips
 
 hello.mips: hello.c
 	mips-elf-gcc -DSTANDALONE -msoft-float -O -c hello.c
