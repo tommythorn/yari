@@ -230,7 +230,7 @@ module stage_I(input  wire        clock
 
             if (&fill_wi) begin
                $display("%05d  IF tag%d[%x] <- %x", $time,
-                        fill_set, tag_wraddress, tag_write_data);
+                        fill_set, pc_2`CSI, pc_2`CHK);
                $display("%05d  IF cache filled, back to running", $time);
 
                tag_wraddress <= pc_2`CSI;
