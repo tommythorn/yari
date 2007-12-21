@@ -45,7 +45,6 @@ set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name AUTO_RESTART_CONFIGURATION ON
 
-set_global_assignment -name FMAX_REQUIREMENT "20 MHz"
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
@@ -53,46 +52,29 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA ON
 
+# timing constraints for SRAM
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_a
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_d
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_noe
+set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to ram*_d
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_ncs
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_nwe
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_a
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_d
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_noe
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_ncs
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_nwe
+set_instance_assignment -name TSU_REQUIREMENT "2.2 ns" -to ram*_d
+
+# other default timings
+set_global_assignment -name TSU_REQUIREMENT "5 ns"
+set_global_assignment -name TCO_REQUIREMENT "10 ns"
 
 set_instance_assignment -name PARTITION_HIERARCHY no_file_for_top_partition -to | -section_id Top
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 2147039 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_global_assignment -name VERILOG_FILE main.v
-set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
-set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_I.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_D.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_X.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_M.v"
-set_global_assignment -name VERILOG_FILE ../../soclib/dmem.v
-set_global_assignment -name VERILOG_FILE ../../soclib/peri_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/pipeconnect.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232in.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
-set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
-set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/logshiftright.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/arithshiftbidir.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/dpram.v
-set_global_assignment -name MIF_FILE ../../initmem.mif
-set_global_assignment -name MIF_FILE tags0.mif
-set_global_assignment -name MIF_FILE tags1.mif
-set_global_assignment -name MIF_FILE tags2.mif
-set_global_assignment -name MIF_FILE tags3.mif
-set_global_assignment -name MIF_FILE dtags0.mif
-set_global_assignment -name MIF_FILE dtags1.mif
-set_global_assignment -name MIF_FILE dtags2.mif
-set_global_assignment -name MIF_FILE dtags3.mif
 set_location_assignment PIN_152 -to clk
 set_location_assignment PIN_47 -to fl_a[0]
 set_location_assignment PIN_20 -to fl_a[10]
@@ -270,3 +252,40 @@ set_global_assignment -name GENERATE_RBF_FILE ON
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVCMOS"
 set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
 set_global_assignment -name ON_CHIP_BITSTREAM_DECOMPRESSION OFF
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE pll.v
+set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
+set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_I.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_D.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_X.v"
+set_global_assignment -name VERILOG_FILE "../../yari-core/stage_M.v"
+set_global_assignment -name VERILOG_FILE ../../soclib/dmem.v
+set_global_assignment -name VERILOG_FILE ../../soclib/peri_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/pipeconnect.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232in.v
+set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
+set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
+set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/logshiftright.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/arithshiftbidir.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
+set_global_assignment -name VERILOG_FILE ../altera/cyclone/dpram.v
+set_global_assignment -name MIF_FILE ../../initmem.mif
+set_global_assignment -name MIF_FILE tags0.mif
+set_global_assignment -name MIF_FILE tags1.mif
+set_global_assignment -name MIF_FILE tags2.mif
+set_global_assignment -name MIF_FILE tags3.mif
+set_global_assignment -name MIF_FILE dtags0.mif
+set_global_assignment -name MIF_FILE dtags1.mif
+set_global_assignment -name MIF_FILE dtags2.mif
+set_global_assignment -name MIF_FILE dtags3.mif
+set_global_assignment -name ENABLE_CLOCK_LATENCY ON

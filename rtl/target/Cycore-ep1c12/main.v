@@ -60,7 +60,11 @@ module main(
 	output wire ramb_nub,
 	output wire ramb_nwe);
 
-   wire clock = clk;
+   wire clock;
+
+   pll pll(.inclk0(clk),    // 20 MHz on Cycore
+           .c0(clock),      // xx MHz output
+          );
 
    assign wd = rst_counter[22];
 
@@ -82,7 +86,7 @@ module main(
 
 
 
-   parameter FREQ = 20_000_000; // 20 MHz, match clock frequency
+   parameter FREQ = 40_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
    wire [ 7:0]   rs232out_d;
