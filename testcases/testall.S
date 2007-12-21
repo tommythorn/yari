@@ -110,6 +110,26 @@ $L6:	EXPECT($4,555)
 	EXPECT($4,0x00008987)
 
 
+/* Test multiplication */
+        mtlo    $4
+        mthi    $4
+
+        li      $4, 5134
+        li      $5, 2345
+        multu   $4, $5
+        mflo    $4
+        EXPECT($4,12039230)
+        mfhi    $4
+        EXPECT($4,0)
+
+        li      $4, 0xFFFFFFFF
+        move    $5, $4
+        multu   $4, $5
+        mflo    $4
+        EXPECT($4,1)
+        mfhi    $4
+        EXPECT($4,0xfffffffe)
+
 /* .... */
 
 
