@@ -130,6 +130,30 @@ $L6:	EXPECT($4,555)
         mfhi    $4
         EXPECT($4,0xfffffffe)
 
+        li      $4, -5134
+        li      $5, -2345
+        mult    $4, $5
+        mflo    $4
+        EXPECT($4,12039230)
+        mfhi    $4
+        EXPECT($4,0)
+
+        li      $4,  5134
+        li      $5, -2345
+        mult    $4, $5
+        mflo    $4
+        EXPECT($4,0xff484bc2)
+        mfhi    $4
+        EXPECT($4,0xFFFFFFFF)
+
+        li      $4, 0xFFFFFFFF
+        move    $5, $4
+        mult    $4, $5
+        mflo    $4
+        EXPECT($4,1)
+        mfhi    $4
+        EXPECT($4,0)
+
 /* .... */
 
 
@@ -157,6 +181,7 @@ $L6:	EXPECT($4,555)
 	sw	$5,  0($10)
 	sw	$2,  4($10)
 	sw	$3,  8($10)
+	ld      $3,  0($10) // Flush store buffer XXX Should I$ wait for storebuffer drain?
 	/* This only works because we know that this line misses in I$ */
 	jal	$10
 	sw	$4, 12($10)
