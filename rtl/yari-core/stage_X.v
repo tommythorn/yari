@@ -73,6 +73,7 @@ module stage_X(input  wire        clock
    reg                mult_busy = 0;
    reg [63:0]         mult_a = 0;
    reg [31:0]         mult_b = 0;
+   reg                mult_neg = 0;
    reg [31:0]         mult_lo = 0;
    reg [31:0]         mult_hi = 0;
 
@@ -135,15 +136,19 @@ module stage_X(input  wire        clock
 
       // Radix-2 Multiplication Machine (this is not the best way to do this)
       if (mult_busy) begin
-         //$display("MULT %x * %x + %x", mult_a, mult_b, {mult_hi,mult_lo});
+         $display("MULT[U] %x * %x + %x", mult_a, mult_b, {mult_hi,mult_lo});
 
          if (mult_b[0])
             {mult_hi,mult_lo} <= {mult_hi,mult_lo} + mult_a;
          mult_a <= mult_a << 1;
          mult_b <= mult_b >> 1;
-         if (mult_b[31:1] == 0) begin
-            mult_busy <= 0;
-            //$display("MULT = %x", mult_a + {mult_hi,mult_lo});
+         if (mult_b == 0) begin
+            if (mult_neg) begin
+               {mult_hi,mult_lo} <= 64'd0 - {mult_hi,mult_lo};
+               mult_neg <= 0;
+            end else
+               mult_busy <= 0;
+            $display("MULT[U] = %x", mult_a + {mult_hi,mult_lo});
          end
       end
 
@@ -210,8 +215,6 @@ module stage_X(input  wire        clock
                   mult_lo      <= d_op1_val;
             end
 
-
-         //`MULTU: reg_mul.u64 = (u_int64_t)s * (u_int64_t)t;
          //`DIV:   reg_mul.u32[1] = (int)s % (int)t;
          //        reg_mul.u32[0] = (int)s / (int)t; break;
          //`DIVU:  reg_mul.u32[1] = s % t;
@@ -225,11 +228,33 @@ module stage_X(input  wire        clock
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
                end else begin
+                  $display("MULTU %x * %x", d_op1_val, d_op2_val);
                   mult_busy <= 1;
                   mult_hi <= 0;
                   mult_lo <= 0;
                   mult_a <= d_op1_val;
                   mult_b <= d_op2_val;
+                  mult_neg <= 0;
+
+                  $display("%05dc EX: %dU * %dU", $time, d_op1_val, d_op2_val);
+                end
+            end
+
+         `MULT:
+            if (d_valid) begin
+               if (mult_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else begin
+                  $display("MULT %x * %x", d_op1_val, d_op2_val);
+                  mult_busy <= 1;
+                  mult_hi <= 0;
+                  mult_lo <= 0;
+                  mult_neg <= d_op1_val[31] ^ d_op2_val[31];
+                  mult_a <= d_op1_val[31] ? {32'd0,32'd0 - d_op1_val} : d_op1_val;
+                  mult_b <= d_op2_val[31] ?        32'd0 - d_op2_val  : d_op2_val;
                   $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
                 end
             end

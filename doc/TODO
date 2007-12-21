@@ -33,47 +33,6 @@ PIPELINE OVERVIEW:
     critical path.
 
 
-DONE
-* Once a sufficient testing structure is in place, start replacing the
-  pipeline with a high performance one. [DONE]
-* Fix the arrays that can't be inferred as RAM. Notably the register
-  file. [DONE]
-* Restart the pipeline instead of stalling [DONE]
-* Forward results instead of restarting [DONE]
-* Move configuration parameters (such as cache size, etc) to a global
-  configuration file. [DONE]
-* Wizzard generated RAM blocks (to know exactly what I get) [DONE]
-* Extend the forwarding in DE and use dual-port memory w/o bypassing
-  [DONE]
-* Handle uncached loads (uncached stores works as a side effect of the
-  write-through cache).
-
-  1. Move the x_res mux up to just after the data cache out and make
-     sure that x_res falls through the shifter network when not
-     loading [DONE]
-
-  2. Add another memory event (uncached_load), make sure it doesn't
-     accidentally writes to the data cache array or tags.
-
-  3. Make uncached loads kill the pipe and set up the uncached_load
-     event.
-
-  4. When the data for uncached_load comes in, thread it through the
-     shifter network and restart the next instruction.
-
-  5. Test by making all loads uncachable.
-[DONE]
-* Restart on load-use hazards. [DONE]
-* Restart branches whose delay slots gets delayed (ie. due to cache
-  misses) [DONE]
-
-* Fix the current strange behavior of tinymon. Fault points to a
-  serial port problem. Prefer a software workaround, as the
-  peripherals are going to get an overhaul later anyway. [DONE - it
-  was two actual bugs in the pipeline]
-* Found a new home: git://repo.or.cz/yari.git
-
-
 TODO
 
 * Write a PSRAM controller (for the LPRP).
@@ -83,8 +42,6 @@ TODO
   configurable features to the config.h
 
 * Port to Xilinx' ML401 and one of the Spartan-3 starter kits
-
-* Implement MUL
 
 * Implement DIV
 
