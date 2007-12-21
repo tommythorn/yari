@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include "elf.h"
 #include <getopt.h>
 #include "mips32.h"
