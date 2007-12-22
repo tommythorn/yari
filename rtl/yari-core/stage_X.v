@@ -101,8 +101,8 @@ module stage_X(input  wire        clock
       x_op1_val          <= d_op1_val;
       x_rt_val           <= d_rt_val;
       x_wbr              <= d_wbr;
-      x_has_delay_slot   <= d_has_delay_slot;
-      x_is_delay_slot    <= x_has_delay_slot;
+      x_has_delay_slot   <= d_has_delay_slot & d_valid;
+      x_is_delay_slot    <= x_has_delay_slot & x_valid;
 
       x_restart          <= d_restart;
       x_restart_pc       <= d_valid ? d_target : d_restart_pc;
