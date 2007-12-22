@@ -33,9 +33,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
            ,output wire `REQ   dmem_req
            ,input  wire `RES   dmem_res
-
-           ,output wire [31:0] debug_info // Can be used for anything.
-           ,output wire [ 7:0] debug_byte
            );
 
    parameter debug = 1;
@@ -93,8 +90,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire          m_kill;
    wire          m_restart;
    wire [31:0]   m_restart_pc;
-
-   assign debug_info = rst ? 32'h5555 : i_pc;
 
    reg [9:0] initialized = 0;
    always @(posedge clock) initialized <= {initialized[8:0],~rst};
@@ -207,9 +202,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
                .x_restart(x_restart),
                .x_restart_pc(x_restart_pc),
-               .x_flush_D(x_flush_D),
-
-               .debug_byte(debug_byte)
+               .x_flush_D(x_flush_D)
                );
 
    stage_M stM(.clock(clock),

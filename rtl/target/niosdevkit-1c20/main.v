@@ -180,9 +180,6 @@ module main(// Clock and reset
    wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
                  sram_res, peripheral_res, rs232_res;
 
-   wire [31:0]   debug_info;
-   wire [ 7:0]   debug_byte;
-
 `ifdef SIMULATE_MAIN
    // Flash-SRAM-Ethernet bus
    wire [22:0]   fse_a;        // Mainboard common bus address
@@ -243,11 +240,8 @@ module main(// Clock and reset
 
 
    always @(posedge clk25MHz) begin
-     divider <= divider - 1'd1; // XXX I loathe the explict sizing here.
-     rled    <= debug_byte;
+     divider <= divider - 1'd1;
    end
-
-   assign {s7_1,s7_0} = debug_info;
 
 `ifndef FASTEST
 /*
@@ -327,7 +321,7 @@ module main(// Clock and reset
                              sram_addr, sram_rdstrobe,
                              sram_wr_strobe, sram_wr_data, sram_wr_byteena,
                              sram_wait, sram_rd_data);
-`endif // NOT_SIMULATE_MAIN
+`endif
 
    yari yari_inst(
          .clock(clk)
@@ -336,8 +330,6 @@ module main(// Clock and reset
         ,.imem_res(imem_res)
         ,.dmem_req(dmem_req)
         ,.dmem_res(dmem_res)
-        ,.debug_info(debug_info)
-        ,.debug_byte(debug_byte)
         );
 
    vga vga(clk, rst,
@@ -400,7 +392,7 @@ module main(// Clock and reset
                        .sram_be_n(sram_be_n),
                        .sram_oe_n(sram_oe_n),
                        .sram_we_n(sram_we_n));
-`endif // BLOCKRAM
+`endif
 
 
    rs232out #(115200,25000000)

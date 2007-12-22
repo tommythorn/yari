@@ -106,11 +106,6 @@ module main(
    wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
                  sram_res, peripheral_res, rs232_res;
 
-   wire [31:0]   debug_info;
-   wire [ 7:0]   debug_byte;
-
-//   assign        USER_LED = debug_byte[3:0];
-
    yari yari_inst(
          .clock(clock)
         ,.rst(rst)
@@ -118,8 +113,6 @@ module main(
         ,.imem_res(imem_res)
         ,.dmem_req(dmem_req)
         ,.dmem_res(dmem_res)
-        ,.debug_info(debug_info)
-        ,.debug_byte(debug_byte)
         );
 
    bus_ctrl bus_ctrl(.clk(clock),

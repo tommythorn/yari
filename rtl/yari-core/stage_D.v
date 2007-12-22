@@ -153,8 +153,8 @@ module stage_D(input  wire        clock
 
       // Determine write-back register.  We set this to 0 for
       // unrecognized instructions so avoid unintended effects. (Valid
-      // registers are remapped to 32 - 63 to avoid having to test
-      // five bits for zero).
+      // registers are remapped to 32 - 63 to avoid having to make a
+      // special case for r0 in the bypass network.
       case (i_opcode[5:3])
       0: case (i_opcode[2:0])
          `REG:    d_wbr <= {|i_rd[4:0],i_rd[4:0]};

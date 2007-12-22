@@ -41,7 +41,7 @@ module stage_X(input  wire        clock
               ,input  wire [ 5:0] m_wbr
 
               ,output reg         x_valid         = 0
-              ,output reg  [31:0] x_instr         = 0   // XXX for debugging only
+              ,output reg  [31:0] x_instr         = 0 // XXX for debugging only
               ,output reg         x_is_delay_slot = 0
               ,output reg  [31:0] x_pc            = 0
               ,output reg  [ 5:0] x_opcode        = 0
@@ -53,8 +53,6 @@ module stage_X(input  wire        clock
               ,output reg         x_restart       = 0
               ,output reg  [31:0] x_restart_pc    = 0
               ,output reg         x_flush_D       = 0
-
-              ,output wire [ 7:0] debug_byte
               );
 
    parameter debug = 0;
@@ -82,8 +80,6 @@ module stage_X(input  wire        clock
                       cp0_errorepc = 0,
                       cp0_cause = 0;
 
-   assign             debug_byte = mult_lo[7:0];
-
    arithshiftbidir arithshiftbidir(
         .distance(shift_dist),
         .data(d_op2_val),
@@ -94,26 +90,6 @@ module stage_X(input  wire        clock
         .distance(shift_dist),
         .data(d_op2_val),
         .result(lshift_out));
-
-   /*
-   wire               d_mult_strobe =
-                      d_opcode == `REG && (d_fn == `MULT || d_fn == `MULTF);
-
-   mult mult(.clock(clock),
-
-             .op1 (d_op1_val),
-             .op2 (d_op2_val),
-             .go  (d_mult_strobe),
-
-             .hold(x_mult_hold),
-             .res (x_mult_res));
-    */
-
-   // Simulate FU busy conditions
-   reg [32:0] lfsr = 0;
-   always @(posedge clock)
-     lfsr <= {lfsr[31:0], ~lfsr[32] ^ lfsr[19]};
- //  assign x_hazard = 0 & ~lfsr[31];
 
    reg x_has_delay_slot = 0;
 
