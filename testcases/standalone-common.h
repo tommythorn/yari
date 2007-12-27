@@ -70,6 +70,8 @@ int puts(char *s)
     while (*s)
         putchar(*s++), ++n;
 
+    putchar('\n');
+
     return n;
 }
 
