@@ -9,7 +9,7 @@ VERB=--verb
 
 all: cosim
 
-working: hw.data sieve.data fib.data
+working: hw.txt sieve.txt fib.txt lievaart2.txt
 
 #        testall.data testicache.data testeret-prom.data \
 #	gdbstub-prom.data showtime.mips letters.mips sramtester.mips
