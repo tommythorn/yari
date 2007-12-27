@@ -45,10 +45,19 @@ clear:  sw      $0, ($8)
         bne     $8,$9,clear
         addi    $8,$8,4
 
-        jal   main
+        li      $4,1
+        la      $5,argv
+        jal     main
         nop
 
         li $2, 0x87654321
         mtlo $2;
         .word 0x48000000
         break
+
+        .rdata
+        .align  2
+argv:	.word	argv0
+	.word	0
+argv0:	.ascii  "prog\000"
+
