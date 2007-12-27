@@ -1,5 +1,4 @@
 #ifdef STANDALONE
-#include <stdarg.h>
 
 #define RS232IN_DATA (*(volatile unsigned *) 0xFF000004)
 #define RS232IN_TAG  (*(volatile unsigned *) 0xFF000008)
@@ -48,8 +47,6 @@ int putchar(unsigned ch)
     return 1;
 }
 
-void print_hex2(unsigned char);
-
 int getchar(void)
 {
     unsigned char tag, ch;
@@ -61,11 +58,8 @@ int getchar(void)
     ch = serial_buffer[serial_buffer_rp++];
     serial_buffer_rp &= BUF_SIZE-1;
 
-    /*
-      serial_out('<');
-      print_hex2(ch);
-      serial_out('>');
-    */
+    // Local echo
+    putchar(ch);
 
     return ch;
 }
@@ -78,7 +72,17 @@ int puts(char *s)
 
     return n;
 }
+
+int exit(int v)
+{
+    asm("li $2, 0x87654321");
+    asm("mtlo $2");
+    asm(".word 0x48000000");
+}
+
 #endif
+
+#include <stdarg.h>
 
 /* Division-free integer printing */
 static void put_unsigned(unsigned n)
@@ -118,7 +122,6 @@ static void put_unsigned(unsigned n)
     }
 }
 
-#ifdef STANDALONE
 /* Hokey printf substitute */
 int printf(char *fmt, ...)
 {
@@ -139,9 +142,12 @@ int printf(char *fmt, ...)
                 put_unsigned((unsigned) value);
                 break;
             }
-            case 's':
-                puts(va_arg(ap, char *));
+            case 's': {
+                char *s = va_arg(ap, char *);
+                while (*s)
+                    putchar(*s++);
                 break;
+            }
             default:
                 putchar(*fmt);
                 break;
@@ -238,4 +244,114 @@ int scanf(char *fmt, ...)
         }
 }
 
-#endif
+int strlen(char *s)
+{
+    int n;
+
+    for (n = 0; *s; ++n, ++s)
+        ;
+
+    return n;
+}
+
+int abs(int v) { return v < 0 ? -v : v; }
+
+int atoi(char *s)
+{
+    int neg = 0;
+    int value = 0;
+
+    while (*s && (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r'))
+        ++s;
+
+    if (*s == '-')
+        neg = 1, ++s;
+
+    while ('0' <= *s && *s <= '9') {
+        value = value * 10 + _lookahead - '0';
+        ++s;
+    }
+
+    if (neg)
+        value = -value;
+
+    return value;
+}
+
+typedef char *FILE;
+
+FILE *fopen(char *name, char *mode)
+{
+    static FILE f =
+"#include <stdio.h>\n"
+"#define X(s) (!(s&3)-((s&3)==2))\n"
+"#define W while\n"
+"char Z[82][82],A,B,f,g=26;z(q){return atoi(q);}m(d,l){return\n"
+"Z[   B       +    X      (   f     +\n"
+"3) * d+l *X(f+ 2 )][ A+X ( f ) * d +\n"
+"l* X           (     f     + 3 ) ] ;}int\n"
+"h= 0;D(p,s)char*s; {W(h>>3<p>> 3 ) {putchar('\\t'\n"
+");           h =       (       h   +8\n"
+")&~7 ;}W(h < p ){putchar(' ');++h; }(void)printf(\n"
+"\"%s\"   ,   s                 )     ;h+=strlen(s);}main(x,a)char **a; {\n"
+"# define P(x) (x?(5-(x))*(6-(x ))/2:11)\n"
+"int b; { char b[256],i,  j=0;  FILE*F;F=fopen(x-1?a[1]:\"buzzard.c\",\"r\");W(\n"
+"fgets( b ,256 ,F)){for(i=0;b[ i];++ i)\n"
+"Z[j][i ] =( b [     i   ]     ==' '?1:2*(b[i]==(x>2?*a[2]:'\\\\')));++j;}fclose\n"
+"(F);}A   =4 ; B = 3 ; f = 1;x >3? A=z(a[3]),B=z(a[4]):0;b='\\n';do{if(b=='\\n'\n"
+"){int y ,     s , d , p   , q       ,i;for\n"
+"(y=-11; y<= 11;++ y){ for(s = 1 ,d=0;s+3;s-=2){for\n"
+"(;d!=2    +       3   * s     ;     d+=s){\n"
+"if(m(d,0) !=1 ){p=P (d) ;if (abs( y )\n"
+"   <p&&   !   m       (       d   , 0 )||abs(y)>p)break;for\n"
+"(i  =-p;i<p;++i)D(g+i*2,\"--\");D(0,\"-\");break;}if(d==5)continue;\n"
+"p=P(d+1);q=P(d);if\n"
+"(abs(y)         >q)continue;if \n"
+"(abs(y)         <p)D(g-s*(2*p+1),\"|\");else if(m(d,s)){if\n"
+"(abs(y)         <=p)for(i=(s==1?-q:p);i!=(s==1?-p:q);\n"
+"(abs(y)         ),++i)D(g+2*i+(s==-1),\"--\");}else if\n"
+"(abs(y)         ==p)D(g-s*(2*p+1),\"|\");else D(g-\n"
+"(abs(y)         *s*2),(s==1)^(y>0)?\"\\\\\":\"/\");}d-=s;}puts(\n"
+"\"\");h=0;}}f+=(b=='r')-(b=='l');f&=3;if(b=='f'){if(!m(1,0))continue;\n"
+"A+=X(f);B+=X(f-1);}}W((b=getchar())!=-1&&m(0,0)==1);return 0;}\n"
+;
+
+    return &f;
+}
+
+#define NULL ((void *) 0)
+
+int fclose(FILE *f) {}
+char *fgets(char *str, int size, FILE *f)
+{
+    char *s = str;
+    char *fp = *f;
+
+    if (!*fp)
+        return NULL;
+
+    while (1 < size && *fp) {
+        *s++ = *fp++;
+        --size;
+        if (fp[-1] == '\n')
+            break;
+    }
+
+    if (s != str && size)
+        *s = '\0';
+
+    *f = fp;
+    return str;
+}
+
+unsigned random(void)
+{
+    // Not all that random
+    unsigned a = 123;
+    unsigned b = 23451;
+
+    a *= 7;
+    b *= 11;
+
+    return (a + b) >> 1;
+}
