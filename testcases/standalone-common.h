@@ -32,17 +32,24 @@ void check_serial_input(void)
         }
 }
 
+static int _column = 0;
 int putchar(unsigned ch)
 {
-    check_serial_input();
-
-    if (ch == '\n')
+    if (ch == '\n') {
         putchar('\r');
+        _column = -1;
+    } else if (ch == '\t') {
+        do
+            putchar(' ');
+        while (_column & 7);
+        return 1;
+    }
 
     check_serial_input();
     while (SER_OUTBUSY())
         check_serial_input();
     SER_OUT(ch);
+    ++_column;
 
     return 1;
 }
@@ -60,6 +67,9 @@ int getchar(void)
 
     // Local echo
     putchar(ch);
+
+    if (ch == '\r')
+        ch = '\n';
 
     return ch;
 }
