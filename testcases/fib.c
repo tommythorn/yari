@@ -12,12 +12,8 @@ int main()
 {
     int i;
 
-    puts("Fibonacci numbers:\n");
+    printf("Fibonacci numbers:\n");
 
-    for (i = 1; i < 8; ++i) {
-        put_unsigned(i);
-        puts(": ");
-        put_unsigned(fib(i));
-        puts("\n");
-    }
+    for (i = 1; i < 8; ++i)
+        printf("%d: %d\n", i, fib(i));
 }

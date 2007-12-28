@@ -24,7 +24,7 @@ void sieve(unsigned *cand, unsigned max)
             } else
                 putchar(' ');
 
-            put_unsigned(p);
+            printf("%d", p);
             // Remove 3p 5p 7p 9p ...
             // 3p ~ cand[(3p - 3)/2] = cand[(6i+9-3)/2] = cand[3i+3]
             // 5p ~ cand[(5p - 3)/2] = cand[(10i+15-3)/2] = cand[5i+6]
@@ -43,6 +43,8 @@ void sieve(unsigned *cand, unsigned max)
 
         }
     }
+
+    printf("\n");
 }
 
 main()
