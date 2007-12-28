@@ -1,4 +1,4 @@
-#include "standalone-common.h"
+#include <stdio.h>
 #define X(s) (!(s&3)-((s&3)==2))
 #define W while
 char Z[82][82],A,B,f,g=26;z(q){return atoi(q);}m(d,l){return

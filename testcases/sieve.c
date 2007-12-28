@@ -1,4 +1,4 @@
-#include "standalone-common.h"
+#include <stdio.h>
 
 #define NCAND 20
 
