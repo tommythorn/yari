@@ -1,0 +1,15 @@
+As far as I can tell, this code is due to John Tromp as found on
+http://homepages.cwi.nl/~tromp/go.html
+
+-----
+
+Solving 2x2 go
+
+This program solves the game of Go played on a 2x2 board using area
+rules and positional superko. It demonstrates the enormous importance
+of good move ordering in exhaustive alpha beta search. With the given
+ordering of passing last, as many as 19397529 nodes are searched, up
+to a depth of 58. But putting passes first requires the search of only
+1446 nodes, to a depth of no more than 22. Minimax, which doesn't
+depend on move ordering, takes over a week while searching a few
+trillion nodes.
