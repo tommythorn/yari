@@ -38,8 +38,8 @@ module stage_M(input  wire        clock
               ,input  wire [ 5:0] x_wbr
               ,input  wire [31:0] x_res
 
-               // Connectionn to the dcache
-              ,output wire `REQ   dmem_req
+               // Connectionn to main memory and peripherals
+              ,output reg  `REQ   dmem_req = 0
               ,input  wire `RES   dmem_res
 
                // Stage output
@@ -239,21 +239,8 @@ module stage_M(input  wire        clock
    /*
     * Memory interface
     */
-   reg  [31:0] address;
-   reg         read = 0;
-   reg         write = 0;
-   reg  [31:0] writedata;
-   reg  [ 3:0] writedatabe;
    reg         readdatavalid = 0;
    reg         m_restart_filled = 0;
-
-   wire        waitrequest = dmem_res`HOLD;
-   assign      dmem_req`A   = address;
-   assign      dmem_req`R   = read;
-   assign      dmem_req`W   = write;
-   assign      dmem_req`WD  = writedata;
-   assign      dmem_req`WBE = writedatabe;
-   wire [31:0] readdata = dmem_res`RD;
 
    assign      m_restart = m_restart_filled | m_restart_full;
 
@@ -288,7 +275,7 @@ module stage_M(input  wire        clock
                  .rddata_a(dc_q),
 
                  .address_b({fill_set,fill_csi,fill_wi}),
-                 .byteena_b(4'hF), .wrdata_b(readdata),
+                 .byteena_b(4'hF), .wrdata_b(dmem_res`RD),
                  .wren_b(readdatavalid & ~uncached_load_data),
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
@@ -373,13 +360,13 @@ module stage_M(input  wire        clock
                   dc_q);
 
       m_restart_filled <= 0;
-      readdatavalid <= read & ~waitrequest;
+      readdatavalid <= dmem_req`R & ~dmem_res`HOLD;
 
       if (readdatavalid) begin
          $display("%05d  D$ got [{%1d,%1d,%1d] <- %8x", $time,
-                  fill_set, fill_csi, fill_wi, readdata);
+                  fill_set, fill_csi, fill_wi, dmem_res`RD);
          if (uncached_load_data) begin
-            m_res_alu <= readdata;
+            m_res_alu <= dmem_res`RD;
             m_load <= 0; // Guide the mux
             uncached_load_data <= 0;
             m_restart_filled <= 1;
@@ -398,15 +385,15 @@ module stage_M(input  wire        clock
          end
       end
 
-      if (~waitrequest) begin
-         read <= 0;
-         write <= 0;
+      if (~dmem_res`HOLD) begin
+         dmem_req`R <= 0;
+         dmem_req`W <= 0;
 
          if (store_buffer_rp != store_buffer_wp) begin
-            address     <= store_buffer_addr[store_buffer_rp];
-            write       <= 1;
-            writedata   <= store_buffer_data[store_buffer_rp];
-            writedatabe <= store_buffer_be[store_buffer_rp];
+            dmem_req`A   <= store_buffer_addr[store_buffer_rp];
+            dmem_req`W   <= 1;
+            dmem_req`WD  <= store_buffer_data[store_buffer_rp];
+            dmem_req`WBE <= store_buffer_be[store_buffer_rp];
             store_buffer_rp <= store_buffer_rp_1;
             $display("%05d  D$ issue store %8x <- %8x/%x", $time,
                      store_buffer_addr[store_buffer_rp],
@@ -416,8 +403,8 @@ module stage_M(input  wire        clock
             uncached_load      <= 0; // Only issue one
             uncached_load_data <= uncached_load; // Next data is uncached
 
-            read         <= 1'd1;
-            address      <= fill_address;
+            dmem_req`R <= 1'd1;
+            dmem_req`A <= fill_address;
             fill_address <= fill_address + 4;
             $display("%05d  D$ issue load %8x", $time, fill_address);
             if (&fill_address[DC_WORD_INDEX_BITS+1:2]) begin
