@@ -22,7 +22,7 @@ implementation currently comprises:
   + a 4-way associative write-through data cache (default 16 KiB)
   + a store buffer
   + all of the integer user-level instructions supported (current
-    missing MUL* and DIV*).
+    missing DIV*).
 
   Peripherals (depending on the target)
   + SRAM interface
@@ -58,7 +58,7 @@ There are a few prerequisites for full YARI enjoyment:
 - For simulation: Icarus Verilog.  Great stuff.  Get the most recent
   version from http://www.icarus.com/eda/verilog
 
-- For synthesis: currently I've only tested with Quartus 7.2.  Get it
+- For synthesis: currently I've only tested with Quartus 7.2sp1.  Get it
   for free from http://www.altera.com (alas, only works with Windows,
   whereas everything else here expects Linux).
 
@@ -68,6 +68,14 @@ With the Icarus Verilog installed you should be able to simply run
 
 and see the trace of instructions as the Verilog implementation makes
 it through a small self-checking regression test.
+
+For more interesting workloads, try
+
+  make -C testcases VERB= PROG=buzzard isasim
+
+or try co-simulation
+
+  make -C testcases VERB= PROG=fib cosim
 
 
 Tommy

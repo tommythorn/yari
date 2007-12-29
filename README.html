@@ -30,7 +30,7 @@ An RTL (Verilog) implementation
     a store buffer
     </li><li>
     all of the integer user-level instructions supported (current
-    missing MUL* and DIV*).
+    missing DIV*).
     </li></ul>
 
   Peripherals (depending on the target)
@@ -72,9 +72,9 @@ There are a few prerequisites for full YARI enjoyment:
 </li><li>For simulation: Icarus Verilog.  Great stuff.  Get the most recent
   version from http://www.icarus.com/eda/verilog
 
-For synthesis: currently I've only tested with Quartus 7.2.  Get it
+For synthesis: currently I've only tested with Quartus 7.2sp1.  Get it
 for free from http://www.altera.com (alas, only works with Windows,
-whereas everything else here expects Linux).
+whereas everything else here expects Unix, Linux, or MacOSX).
 </li></ul>
 
 With the Icarus Verilog installed you should be able to simply run
@@ -83,7 +83,21 @@ With the Icarus Verilog installed you should be able to simply run
 </pre>
 
 and see the trace of instructions as the Verilog implementation makes
-it through a small self-checking regression test.
+it through a small self-checking regression test. <p>
+
+For more interesting workloads, try
+
+<pre>
+  make -C testcases VERB= PROG=buzzard isasim
+</pre>
+
+or try co-simulation
+
+<pre>
+  make -C testcases VERB= PROG=fib cosim
+</pre>
+
+
 
 <br></br>
 <br></br>
