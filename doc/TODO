@@ -117,6 +117,22 @@ TODO
 
 
 OTHER:
+* Collect interesting workloads (SPECint, EEMBC, MiBench, ...)
+
+* Dynamically collect detailed statistics
+
+  - for each restart cause count the number of restart and number of
+    cycles lost to it
+
+  - for each stage count the number of valid instructions (to generate
+    a temperature strip of which stages are hot)
+
+  - (Optionally simulator only) Distances between the address
+    generation and the using load instruction, the load instruction
+    and the corresponding use.
+
+  - Bypass utilization staticstics
+
 * Improve documentation, notably how to build and port the RTL
 
 * Restructure the RTL so that it matches the actual pipeline better

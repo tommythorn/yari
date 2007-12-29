@@ -83,7 +83,7 @@ testicache-prom.data: testicache-prom.mips $(SIM)
 #%.o: %.s
 #	mips-elf-as $< -o $@
 
-%.o: %.c standalone-common.h
+%.o: %.c stdio.h
 	mips-elf-gcc -fno-builtin -I. -DSTANDALONE -msoft-float -g -O -c $< -o $@
 
 .PRECIOUS: %.dis %.mips %.data %.mif

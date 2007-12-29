@@ -154,6 +154,11 @@ int printf(char *fmt, ...)
                 put_unsigned((unsigned) value);
                 break;
             }
+            case 'c': {
+                char c = va_arg(ap, int);
+                putchar(c);
+                break;
+            }
             case 's': {
                 char *s = va_arg(ap, char *);
                 while (*s)
