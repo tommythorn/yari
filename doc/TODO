@@ -199,11 +199,6 @@ OTHER:
 
 * Add a small ROM to the RTL implementation (maybe)
 
-* Matching IO behaviour like I do now is unsustainable. As a general
-  principle, while cosimulating, higher level models could take the IO
-  events from the lower levels (which can ultimately be the running
-  FPGA).
-
 
 
 

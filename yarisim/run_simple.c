@@ -88,39 +88,33 @@ int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
 
 }
 
-void note_commit(unsigned pc, unsigned wbr, unsigned wbv)
+// return 1 if divergence detected, 2 if EOF, 0 otherwise
+int note_commit(unsigned io,
+                unsigned pc, unsigned wbr, unsigned *wbv,
+                unsigned *rtl_pc, unsigned *rtl_wbr, unsigned *rtl_wbv)
 {
         // if co-simulating, get the next commit event from the RTL
         // trace and compare
 
         if (enable_cosimulation) {
-                unsigned rtl_cycle, rtl_pc, rtl_wbr, rtl_wbv;
-                int r = get_rtl_commit(&rtl_cycle, &rtl_pc, &rtl_wbr, &rtl_wbv);
+                unsigned rtl_cycle;
+                int r = get_rtl_commit(&rtl_cycle, rtl_pc, rtl_wbr, rtl_wbv);
                 n_cycle = rtl_cycle;
 
-                if (!r) {
-                        printf("RTL trace ended at this point\n");
-                        exit(0);
-                }
+                if (!r)
+                        return 2;
 
-                if (rtl_pc != pc || rtl_wbr != wbr || rtl_wbv != wbv) {
-                        printf("Divergence detected\n");
+                // Co-simulation takes all RTL IO at face value as
+                // it's too hard keeping the two models in accordance
+                if (io)
+                        *wbv = *rtl_wbv;
 
-                        printf("ISA %08x: r%d <- %08x\n", pc, wbr, wbv);
-                        printf("RTL %08x: r%d <- %08x\n", rtl_pc, rtl_wbr, rtl_wbv);
-
-                        printf("RTL output leading up to this:\n");
-
-                        unsigned i;
-                        for (i = 0; i < KEEP_LINES; ++i) {
-                                unsigned k = (i + last_p) % KEEP_LINES;
-                                if (last[k])
-                                        printf("%s", last[k]);
-                        }
-
-                        exit(1);
+                if (*rtl_pc != pc || *rtl_wbr != wbr || *rtl_wbv != *wbv) {
+                        return 1;
                 }
         }
+
+        return 0;
 }
 
 void print_coverage(void)
@@ -197,6 +191,8 @@ void run_simple(MIPS_state_t *state)
                 t = state->r[i.r.rt];
                 wbr = i.r.rt;
                 wbv = 0xDEADBEEF; // Never used, but have to shut up gcc.
+                unsigned address = s + i.i.imm;
+
 
                 ++coverage[i.j.opcode == REG    ? 64 + i.r.funct :
                            i.j.opcode == REGIMM ? 128 + i.r.rt :
@@ -204,11 +200,11 @@ void run_simple(MIPS_state_t *state)
 
                 // Grab the old store value for comparison, but avoid IO
                 st_old = 0; // IO accesses defaults to this
-                if (enable_disass && ((s + i.i.imm) >> 24) != 0xFF)
+                if (enable_disass && ((address) >> 24) != 0xFF)
                         switch (i.j.opcode) {
-                        case SB:   st_old = LD8(s + i.i.imm); break;
-                        case SH:   st_old = LD16(s + i.i.imm); break;
-                        case SW:   st_old = LD32(s + i.i.imm); break;
+                        case SB:   st_old = LD8(address); break;
+                        case SH:   st_old = LD16(address); break;
+                        case SW:   st_old = LD32(address); break;
                         }
 
                 switch (i.j.opcode) {
@@ -229,9 +225,9 @@ void run_simple(MIPS_state_t *state)
 
                         case SYSCALL:
                                 // XXX FATAL!
-                                exit(0);
                                 fatal("%08x:syscall(%d) not handled\n",
                                        pc_prev, state->r[2]);
+                                exit(0);
                                 break;
 
                         case MFHI: wbv = state->hi; break;
@@ -266,10 +262,10 @@ void run_simple(MIPS_state_t *state)
                                         // XXX What is supposed to happen here?
                                 }
                                 break;
-                        case ADD:  fprintf(stderr, "Instruction ADD not supported\n"), exit(1);
+                        case ADD:  fatal("Instruction ADD not supported\n");
                                    wbv = s + t; break; // XXX Ignore the trap on overflow for now
                         case ADDU: wbv = s + t; break;
-                        case SUB:  fprintf(stderr, "Instruction SUB not supported\n"), exit(1);
+                        case SUB:  fatal("Instruction SUB not supported\n");
                                    wbv = s - t; break;
                         case SUBU: wbv = s - t; break;
                         case AND:  wbv = s & t; break;
@@ -355,8 +351,8 @@ void run_simple(MIPS_state_t *state)
                         branch_delay_slot_next = 1;
                         break;
 
-                case ADDI: wbv = (int) s + i.i.imm; break;
-                case ADDIU:wbv =       s + i.i.imm; break;
+                case ADDI: wbv = (int) address; break;
+                case ADDIU:wbv =       address; break;
                 case SLTI: wbv = (int) s < (int) i.i.imm; break; // !!!
                 case SLTIU:wbv = s < (unsigned) i.i.imm; break;
                 case ANDI: wbv = s & i.u.imm; break;
@@ -483,14 +479,14 @@ void run_simple(MIPS_state_t *state)
                                 exit(1);
                         }
 
-                case LB:   wbv = EXT8(LD8(s + i.i.imm)); break;
-                case LH:   wbv = EXT16(LD16(s + i.i.imm)); break;
-                case LBU:  wbv = LD8(s + i.i.imm); break;
-                case LHU:  wbv = LD16(s + i.i.imm); break;
-                case LW:   wbv = LD32(s + i.i.imm); break;
-                case SB:   wbr = 0; ST8(s + i.i.imm,t); break;
-                case SH:   wbr = 0; ST16(s + i.i.imm,t); break;
-                case SW:   wbr = 0; ST32(s + i.i.imm,t); break;
+                case LB:   wbv = EXT8(LD8(address)); break;
+                case LH:   wbv = EXT16(LD16(address)); break;
+                case LBU:  wbv = LD8(address); break;
+                case LHU:  wbv = LD16(address); break;
+                case LW:   wbv = LD32(address); break;
+                case SB:   wbr = 0; ST8(address,t); break;
+                case SH:   wbr = 0; ST16(address,t); break;
+                case SW:   wbr = 0; ST32(address,t); break;
                 case CP1:  {
                         if (i.r.rs == 16 /* S */)
                                 fatal("%08x:%08x, opcode 0x%x.s not handled\n",
@@ -509,7 +505,7 @@ void run_simple(MIPS_state_t *state)
                 case BEQL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case BNEL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case LWC1: // XXX how are we going to cosimulate this? Extend the wbr address space?
-                           state->f[wbr] = LD32(s + i.i.imm);
+                           state->f[wbr] = LD32(address);
                            wbr = 0;
                            break;
 
@@ -523,6 +519,16 @@ void run_simple(MIPS_state_t *state)
 
                 // Statistics
                 ++n_issue;
+
+                unsigned rtl_pc = 0, rtl_wbr = 0, rtl_wbv = 0;
+                int r = 0;
+                if (wbr) {
+                        int is_load = (i.j.opcode >> 3) == 4;
+                        int is_io_space = (address >> 24) == 0xFF;
+                        r = note_commit(is_load && is_io_space,
+                                        pc_prev, wbr, &wbv,
+                                        &rtl_pc, &rtl_wbr, &rtl_wbv);
+                }
 
                 if (wbr) {
                         state->r[wbr] = wbv;
@@ -541,15 +547,15 @@ void run_simple(MIPS_state_t *state)
                         case LH:
                         case LBU:
                         case LHU:
-                        case LW:   printf(" [%08x]", s + i.i.imm); break;
+                        case LW:   printf(" [%08x]", address); break;
                         case SB:   printf("[%08x] <- %02x (was %02x)",
-                                          s + i.i.imm, t & 0xFF, st_old);
+                                          address, t & 0xFF, st_old);
                                    break;
                         case SH:   printf("[%08x] <- %04x (was %04x)",
-                                          s + i.i.imm, t & 0xFFFF, st_old);
+                                          address, t & 0xFFFF, st_old);
                                    break;
                         case SW:   printf("[%08x] <- %08x (was %08x)",
-                                          s + i.i.imm, t, st_old);
+                                          address, t, st_old);
                                    break;
                         default:
                                 if (!enable_regwrites || !wbr)
@@ -558,8 +564,27 @@ void run_simple(MIPS_state_t *state)
                         printf("\n");
                 }
 
-                if (wbr)
-                        note_commit(pc_prev, wbr, wbv);
+                if (r == 1) {
+                        printf("Divergence detected\n");
+
+                        printf("ISA %08x: r%d <- %08x\n", pc_prev, wbr, wbv);
+                        printf("RTL %08x: r%d <- %08x\n", rtl_pc, rtl_wbr, rtl_wbv);
+
+                        printf("RTL output leading up to this:\n");
+
+                        unsigned i;
+                        for (i = 0; i < KEEP_LINES; ++i) {
+                                unsigned k = (i + last_p) % KEEP_LINES;
+                                if (last[k])
+                                        printf("%s", last[k]);
+                        }
+
+                        exit(1);
+                } else if (r == 2) {
+                        printf("RTL trace ended at this point\n");
+                        exit(0);
+                }
+
         }
 // END:;
 
