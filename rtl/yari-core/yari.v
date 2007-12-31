@@ -90,7 +90,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [ 5:0]   m_wbr;
    wire [31:0]   m_res;
 
-   wire          m_kill;
    wire          m_restart;
    wire [31:0]   m_restart_pc;
 
@@ -101,16 +100,16 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    // it with the interrupt mechanism (still to come)
    wire        boot = initialized[7] & ~initialized[8];
 
-   wire        restart = ~m_kill & (x_restart | m_restart | boot);
+   wire        restart = x_restart | m_restart | boot;
    wire [31:0] restart_pc = (boot ? 'hBFC00000 :
                              m_restart ? m_restart_pc :
                              /*********/ x_restart_pc);
-   wire        flush_I = m_kill | restart;
-   wire        flush_D = m_kill | m_restart | x_flush_D;
-   wire        flush_X = m_kill | m_restart | d_flush_X;
+   wire        flush_I = restart;
+   wire        flush_D = m_restart | x_flush_D;
+   wire        flush_X = m_restart | d_flush_X;
 
    stage_I stI(.clock(clock)
-              ,.kill(~initialized[8] | m_kill)
+              ,.kill(~initialized[8])
               ,.restart(restart)
               ,.restart_pc(restart_pc)
 
@@ -237,7 +236,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .m_wbr(m_wbr),
                .m_res(m_res),
 
-               .m_kill(m_kill),
                .m_restart(m_restart),
                .m_restart_pc(m_restart_pc)
                );
@@ -254,9 +252,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
          else if (x_restart)
             $display("%05d        from stage EX", $time);
       end
-
-      if (m_kill)
-         $display("%05d  flush pipe", $time);
 
       $display(
 "%05dz %x %x/0 I %8x %8x D %8x:%8x X %8x:%8x:%8x>%2x M %8x:%8x>%2x W %8x:%8x>%2x",

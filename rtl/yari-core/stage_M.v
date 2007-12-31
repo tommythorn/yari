@@ -53,7 +53,6 @@ module stage_M(input  wire        clock
               ,output reg  [ 5:0] m_wbr   = 0
               ,output reg  [31:0] m_res   = 0
 
-              ,output reg         m_kill  = 0 // flush the pipeline up to and including ME
               ,output reg         m_restart = 0
               ,output reg  [31:0] m_restart_pc
               );
