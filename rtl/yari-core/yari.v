@@ -33,6 +33,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
            ,output wire `REQ   dmem_req
            ,input  wire `RES   dmem_res
+
+           ,output wire `REQ   peripherals_req
+           ,input  wire `RES   peripherals_res
            );
 
    parameter debug = 1;
@@ -162,7 +165,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_simm(d_simm),
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
-               .d_flush_X(d_flush_X)
+               .d_flush_X(d_flush_X),
+
+               .flush_D(flush_D)
                );
 
    stage_X stX(.clock(clock),
@@ -223,6 +228,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .dmem_req(dmem_req),
                .dmem_res(dmem_res),
 
+               .peripherals_req(peripherals_req),
+               .peripherals_res(peripherals_res),
+
                .m_valid(m_valid),
                .m_instr(m_instr),
                .m_pc(m_pc),
@@ -263,7 +271,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                i2_valid ? i2_pc : 'hZ,
 
                // DE
-               i_pc, i_valid ? i_instr : 'hZ,
+               i_pc, i_valid & ~flush_I ? i_instr : 'hZ,
 
                // EX
                d_pc, d_valid & ~flush_D ? d_op1_val : 'hZ,

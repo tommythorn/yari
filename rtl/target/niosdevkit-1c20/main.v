@@ -13,37 +13,7 @@
 // Main module
 
 
-/* 1000 words:
-
-   YARI
-
-   _________
-  |         |
-  | Stage_I |<=============\
-  |_________|              \\
-       |                    \\
-   ____v____                 \\
-  |         |                 \\
-  | Stage D |                  \\
-  |_________|                   \\
-       |                         \\
-   ____v____                      \\           Targets
-  |         |                      \\
-  | Stage X |                       \|
-  |_________|                       ||master
-       |                            ||
-   ____v____                     __\||/___      _________
-  |         |           master  |         |/   |         |
-  | Stage M |<=================>| Bus Ctrl|<==>| Periph. |
-  |_________|                   |___  ____|\   |_________|
-       |                           /||\    \\   _________
-   ____v____                  master||      \\ |         |
-  |         |                    ___||____   \>|SRAM ctrl|
-  | Stage W |                   |         |    |_________|
-  |_________|                   | VGA FB  |
-                                |_________|
-
-
+/*
   4000_0000 - 400F_FFFF Extern SRAM (1 MiB)
   BFC0_0000 - BFC0_3FFF Boot ROM (16 KiB) (Preloaded I$ cache)
   FF00_0000 - FF00_1FFF Peripherals
@@ -55,7 +25,7 @@
  */
 
 `timescale 1ns/10ps
-`include "pipeconnect.h"
+`include "../../soclib/pipeconnect.h"
 
 module main(// Clock and reset
              input  wire        clkin        // K5  PLL1 input clock (50 MHz)
@@ -330,6 +300,8 @@ module main(// Clock and reset
         ,.imem_res(imem_res)
         ,.dmem_req(dmem_req)
         ,.dmem_res(dmem_res)
+        ,.peripherals_req(rs232_req)
+        ,.peripherals_res(rs232_res)
         );
 
    vga vga(clk, rst,
@@ -362,17 +334,8 @@ module main(// Clock and reset
                      .target1_res(sram_res),
 
                      .target2_req(peripheral_req),
-                     .target2_res(peripheral_res)
+                     .target2_res(0)
                      );
-
-   peri_ctrl peri_ctrl(.clk(clk),
-                       .rst(rst),
-
-                       .peripheral_req(peripheral_req),
-                       .peripheral_res(peripheral_res),
-
-                       .rs232_req(rs232_req),
-                       .rs232_res(rs232_res));
 
 `ifdef BLOCKRAM
    blockram blockram_inst(.clock(clk),

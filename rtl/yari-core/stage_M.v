@@ -38,24 +38,29 @@ module stage_M(input  wire        clock
               ,input  wire [ 5:0] x_wbr
               ,input  wire [31:0] x_res
 
-               // Connectionn to main memory and peripherals
+              // Connection to main memory
               ,output reg  `REQ   dmem_req = 0
               ,input  wire `RES   dmem_res
 
-               // Stage output
+              // Connection to peripherals
+              ,output reg  `REQ   peripherals_req = 0
+              ,input  wire `RES   peripherals_res
+
+              // Stage output
               ,output reg         m_valid = 0
               ,output reg  [31:0] m_instr = 0
               ,output reg  [31:0] m_pc    = 0 // XXX for debugging only
               ,output reg  [ 5:0] m_wbr   = 0
               ,output reg  [31:0] m_res   = 0
 
-              ,output reg         m_kill  = 0
-              ,output wire        m_restart
+              ,output reg         m_kill  = 0 // flush the pipeline up to and including ME
+              ,output reg         m_restart = 0
               ,output reg  [31:0] m_restart_pc
               );
    parameter debug = 1;
 `ifdef SIMULATE_MAIN
    pipechecker check("stage_M", clock, dmem_req, dmem_res);
+   pipechecker check2("stage_M", clock, peripherals_req, peripherals_res);
 `endif
 
 `include "config.h"
@@ -188,7 +193,6 @@ module stage_M(input  wire        clock
    wire [31:0]                dc_q;
    wire [31:0]                q            = m_load ? dc_q : m_res_alu;
    reg  [31:0]                m_res_alu    = 0;
-   reg                        m_restart_full = 0;
 
 
    // Store buffer
@@ -203,8 +207,6 @@ module stage_M(input  wire        clock
 
    reg [31:0]                   fill_address;
    reg                          fill_cache = 0;
-   reg                          uncached_load = 0;
-   reg                          uncached_load_data = 0;
    reg [DC_WORD_INDEX_BITS-1:0] fill_wi;
    reg [DC_LINE_INDEX_BITS-1:0] fill_csi;
    reg [TAG_BITS-1:0]           fill_chk;
@@ -239,30 +241,28 @@ module stage_M(input  wire        clock
    /*
     * Memory interface
     */
-   reg         readdatavalid = 0;
-   reg         m_restart_filled = 0;
-
-   assign      m_restart = m_restart_filled | m_restart_full;
+   reg         dmem_readdatavalid = 0;
+   reg         peripherals_readdatavalid = 0;
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag0")
       tag0_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag0),
                .wraddress(fill_csi), .wrdata(fill_chk),
-               .wren(readdatavalid && &fill_wi && fill_set == 0));
+               .wren(dmem_readdatavalid && &fill_wi && fill_set == 0));
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag1")
       tag1_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag1),
                .wraddress(fill_csi), .wrdata(fill_chk),
-               .wren(readdatavalid && &fill_wi && fill_set == 1));
+               .wren(dmem_readdatavalid && &fill_wi && fill_set == 1));
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag2")
       tag2_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag2),
                .wraddress(fill_csi), .wrdata(fill_chk),
-               .wren(readdatavalid && &fill_wi && fill_set == 2));
+               .wren(dmem_readdatavalid && &fill_wi && fill_set == 2));
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag3")
       tag3_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag3),
                .wraddress(fill_csi), .wrdata(fill_chk),
-               .wren(readdatavalid && &fill_wi && fill_set == 3));
+               .wren(dmem_readdatavalid && &fill_wi && fill_set == 3));
 
    dpram #(32, CACHE_BITS -2, "dcache")
       dcache_ram(.clock(clock),
@@ -276,13 +276,26 @@ module stage_M(input  wire        clock
 
                  .address_b({fill_set,fill_csi,fill_wi}),
                  .byteena_b(4'hF), .wrdata_b(dmem_res`RD),
-                 .wren_b(readdatavalid & ~uncached_load_data),
+                 .wren_b(dmem_readdatavalid),
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
 
+
+   reg         outstanding_cache_miss = 0;
+   reg         got_uncached_data = 0;
+   reg         uncached_load_pending = 0;
+   reg [31:0]  uncached_data = 0;
+
    always @(posedge clock) begin
-      m_valid   <= x_valid;
-      m_res_alu <= x_res;
+      if (~peripherals_res`HOLD) begin
+         // Only issue one
+         peripherals_req`R <= 0;
+         peripherals_req`W <= 0;
+         if (peripherals_req`R | peripherals_req`W)
+            $display("%05d  ME uncached request [%x] taken", $time, peripherals_req`A);
+      end
+
+      m_valid <= x_valid;
 
       // Stalling for uncached_loads
       if (x_valid) begin
@@ -294,6 +307,7 @@ module stage_M(input  wire        clock
          m_load    <= x_load;
          m_opcode  <= x_opcode;
          m_wbr     <= x_wbr;
+         m_res_alu <= x_res;
       end
 
       m_chk     <= x_chk;
@@ -301,16 +315,37 @@ module stage_M(input  wire        clock
       m_csi     <= x_csi;
       m_wi      <= x_wi;
 
-      m_restart_full <= 0;
+      // ****** Store ******
+
+      // Uncache stores
+      if (x_store && x_address[31:24] == 8'hFF) begin
+         $display("%05d   uncached store %8x <- %8x/%1d", $time,
+                  x_address, x_store_data, x_byteena);
+
+         if (~peripherals_res`HOLD) begin
+            peripherals_req`A   <= x_address;
+            peripherals_req`W   <= 1;
+            peripherals_req`WD  <= x_store_data;
+            peripherals_req`WBE <= x_byteena;
+         end else begin
+            // Another peripheral transaction is pending, restart the store
+            m_restart    <= 1;
+            m_valid      <= 0;
+            m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            $display("%05d     peripherals busy, restarting %x", $time,
+                     x_pc - 4 * x_is_delay_slot);
+         end
+      end
 
       // Write-through caches only write to caches on hits, but go to
       // memory in all cases
-      if (x_store) begin
+      if (x_store && x_address[31:24] != 8'hFF) begin
          // Write to store buffer, and stall/restart if buffer is full
          if (store_buffer_wp_1 == store_buffer_rp) begin
             $display("%05d  ME store buffer full, restarting pipe", $time);
-            m_restart_full <= 1;
-            m_restart_pc <= x_pc;
+            m_restart    <= 1;
+            m_valid      <= 0;
+            m_restart_pc <= x_pc - 4 * x_is_delay_slot;
          end else begin
             store_buffer_addr[store_buffer_wp] <= x_address;
             store_buffer_data[store_buffer_wp] <= x_store_data;
@@ -321,37 +356,66 @@ module stage_M(input  wire        clock
          end
       end
 
-      if (x_load)
-         if (x_address[31:24] == 8'hFF) begin
-            uncached_load <= 1;
-            fill_address <= x_address;
-            fill_wi <= 0; // Avoid tag writes fills
 
-            m_valid <= 0;
-            m_kill <= 1;
-            // We'll restart after this instruction once we're done
-            m_restart_pc <= x_pc + 4;
-            $display("%05d  ME uncached load", $time);
-         end else if (x_miss) begin
-            m_valid <= 0;
-            m_kill <= 1;
+      // ****** Load ******
+
+
+      // Uncached loads
+      if (x_load && x_address[31:24] == 8'hFF) begin
+         if (got_uncached_data) begin
+            got_uncached_data     <= 0;
+            uncached_load_pending <= 0;
+            m_res_alu             <= uncached_data;
+            m_load                <= 0; // Guide the mux
+            $display("%05d  ME uncached load [%x] final value %x", $time,
+                     x_address, uncached_data);
+         end else begin
+            peripherals_req`A <= x_address;
+
+            // Have to be careful here as it could just have been
+            // cleared above
+            if (!uncached_load_pending) begin
+               $display("%05d  ME new uncached load [%x]", $time, x_address);
+               peripherals_req`R <= 1;
+            end else
+               $display("%05d  ME repeat uncached load [%x], still no uncached data",
+                        $time, x_address);
+            uncached_load_pending <= 1;
+
+            // Keep the pipe killed until the load until fulfilled
+            m_restart    <= 1;
+            m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
-
-            fill_cache   <= 1;
-            fill_address <= {x_address[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}};
-            fill_wi      <= 0;
-            fill_csi     <= x_csi;
-            fill_chk     <= x_chk;
-            fill_set     <= fill_set + 1'd1; // XXX: Need a better replacement algorithm.
-
-            $display("%05d  ME load miss the cache, restarting %8x", $time,
-                     x_pc - 4 * x_is_delay_slot);
+         end
       end
 
-      if (x_load)
+
+      // Cache loads
+      if (x_load && x_address[31:24] != 8'hFF) begin
          $display("%05d  ME %8x:load %8x hits %x in cache (set %d, csi %d, wi %d ; tags %x %x %x %x)", $time,
                   x_pc, x_address, x_hits, x_set, x_csi, x_wi,
                   x_tag0, x_tag1, x_tag2, x_tag3);
+
+         if (x_miss) begin
+            // Keep restarting the load until fulfilled
+            m_restart    <= 1;
+            m_valid      <= 0;
+            m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            outstanding_cache_miss <= 1;
+
+            if (!outstanding_cache_miss) begin
+               fill_cache   <= 1;
+               fill_address <= {x_address[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}};
+               fill_wi      <= 0;
+               fill_csi     <= x_csi;
+               fill_chk     <= x_chk;
+               fill_set     <= fill_set + 1'd1; // XXX: Need a better replacement algorithm.
+            end
+
+            $display("%05d  ME load miss the cache, restarting %8x", $time,
+                     x_pc - 4 * x_is_delay_slot);
+         end
+      end
 
       if (m_load & m_valid)
          $display("%05d  ME load %8x -> %8x (%8x, %1d, %1d, %1d) [cache_q %8x]", $time,
@@ -359,30 +423,27 @@ module stage_M(input  wire        clock
                   q, m_set, m_csi, m_wi,
                   dc_q);
 
-      m_restart_filled <= 0;
-      readdatavalid <= dmem_req`R & ~dmem_res`HOLD;
-
-      if (readdatavalid) begin
+      dmem_readdatavalid <= dmem_req`R & ~dmem_res`HOLD;
+      if (dmem_readdatavalid) begin
          $display("%05d  D$ got [{%1d,%1d,%1d] <- %8x", $time,
                   fill_set, fill_csi, fill_wi, dmem_res`RD);
-         if (uncached_load_data) begin
-            m_res_alu <= dmem_res`RD;
-            m_load <= 0; // Guide the mux
-            uncached_load_data <= 0;
-            m_restart_filled <= 1;
-            m_valid <= 1;
-            m_kill <= 0;
-         end else begin
-            fill_wi <= fill_wi + 1'd1;
-            if (&fill_wi) begin
-               // Last one, so update tags
-               m_restart_filled <= 1;
-               m_kill <= 0;
-
-               $display("%05d  ME fill done, restarting %8x", $time,
-                        m_restart_pc);
-            end
+         fill_wi <= fill_wi + 1'd1;
+         if (&fill_wi) begin
+            outstanding_cache_miss <= 0;
+            m_restart <= 0;
+            // Last one, so update tags
+            $display("%05d  ME fill done, restarting %8x", $time,
+                     m_restart_pc);
          end
+      end
+
+      peripherals_readdatavalid <= peripherals_req`R & ~peripherals_res`HOLD;
+      if (peripherals_readdatavalid) begin
+         $display("%05d  ME uncached load [%x] served %x", $time,
+                  peripherals_req`A, peripherals_res`RD);
+         got_uncached_data <= 1;
+         uncached_data <= peripherals_res`RD;
+         m_restart <= 0;
       end
 
       if (~dmem_res`HOLD) begin
@@ -399,10 +460,7 @@ module stage_M(input  wire        clock
                      store_buffer_addr[store_buffer_rp],
                      store_buffer_data[store_buffer_rp],
                      store_buffer_be[store_buffer_rp]);
-         end else if (fill_cache | uncached_load) begin
-            uncached_load      <= 0; // Only issue one
-            uncached_load_data <= uncached_load; // Next data is uncached
-
+         end else if (fill_cache) begin
             dmem_req`R <= 1'd1;
             dmem_req`A <= fill_address;
             fill_address <= fill_address + 4;

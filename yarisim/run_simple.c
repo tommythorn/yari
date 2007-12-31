@@ -55,7 +55,7 @@ char *inst_name[64+64+32] = {
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
 
-#define KEEP_LINES 50
+#define KEEP_LINES 50000
 #define RTL_MAX_LINE 200
 char last[KEEP_LINES][RTL_MAX_LINE];
 unsigned last_p = 0;

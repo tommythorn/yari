@@ -60,6 +60,8 @@ module stage_D(input  wire        clock
               ,output reg         d_restart       = 0
               ,output reg  [31:0] d_restart_pc    = 0
               ,output reg         d_flush_X       = 0
+
+              ,input  wire        flush_D
               );
 
    parameter debug = 0;
@@ -278,7 +280,7 @@ module stage_D(input  wire        clock
        * doesn't have this property.
        */
 
-      if (d_valid & d_has_delay_slot & ~i_valid) begin
+      if (d_valid & ~flush_D & d_has_delay_slot & ~i_valid) begin
          $display("%05d  *** Taken-branch w/bubble delay slot, restarting branch at %8x",
                   $time, d_pc);
          d_valid      <= 0;
