@@ -642,12 +642,18 @@ static void tinymon_cmd(unsigned char cmd, unsigned val)
 {
         unsigned char chk = cmd;
         int i;
+        int leading_zero = 1;
 
         putchar(cmd);
         for (i = 0; i < 8; ++i) {
                 unsigned char c = "0123456789abcdef"[val >> 28];
-                chk += c;
-                putchar(c);
+
+                if ((val >> 28) != 0 || !leading_zero || i == 7) {
+                        leading_zero = 0;
+
+                        chk += c;
+                        putchar(c);
+                }
                 val <<= 4;
         }
         putchar(' ');
