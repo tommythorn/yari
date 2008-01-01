@@ -82,7 +82,7 @@ int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
                 if (r != 4)
                         continue;
 
-                *cycle = time / 10;
+                *cycle = time / 100;
                 return 1;
         }
 
