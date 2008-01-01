@@ -8,20 +8,20 @@
 
 #define BUF_SIZE 1024 // must be a power of two
 
-unsigned last_serial_tag;
-char serial_buffer[BUF_SIZE];
-unsigned serial_buffer_wp;
-unsigned serial_buffer_rp;
-unsigned char c, chk;
+char _serial_buffer[BUF_SIZE];
+unsigned _serial_buffer_wp;
+unsigned _serial_buffer_rp;
 
 void check_serial_input(void)
 {
+        static unsigned last_serial_tag;
+
         unsigned char tag = RS232IN_TAG;
         if (tag != last_serial_tag) {
-                serial_buffer[serial_buffer_wp++] = RS232IN_DATA;
-                serial_buffer_wp &= BUF_SIZE-1;
+                _serial_buffer[_serial_buffer_wp++] = RS232IN_DATA;
+                _serial_buffer_wp &= BUF_SIZE-1;
                 last_serial_tag = tag;
-                if (serial_buffer_wp == serial_buffer_rp) {
+                if (_serial_buffer_wp == _serial_buffer_rp) {
                         while (SER_OUTBUSY());
                         SER_OUT('<');
                         while (SER_OUTBUSY());
@@ -60,10 +60,10 @@ int getchar(void)
 
     do
         check_serial_input();
-    while (serial_buffer_wp == serial_buffer_rp);
+    while (_serial_buffer_wp == _serial_buffer_rp);
 
-    ch = serial_buffer[serial_buffer_rp++];
-    serial_buffer_rp &= BUF_SIZE-1;
+    ch = _serial_buffer[_serial_buffer_rp++];
+    _serial_buffer_rp &= BUF_SIZE-1;
 
     // Local echo
     putchar(ch);
@@ -359,16 +359,4 @@ char *fgets(char *str, int size, FILE *f)
 
     *f = fp;
     return str;
-}
-
-unsigned random(void)
-{
-    // Not all that random
-    unsigned a = 123;
-    unsigned b = 23451;
-
-    a *= 7;
-    b *= 11;
-
-    return (a + b) >> 1;
 }

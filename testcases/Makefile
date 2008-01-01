@@ -93,8 +93,8 @@ testicache-prom.data: testicache-prom.mips $(SIM)
 
 crt0.o: crt0.S
 
-%.mips: %.o Makefile crt0.o
-	mips-elf-ld -Tsram.ld crt0.o $< -o $@
+%.mips: %.o Makefile random.o crt0.o
+	mips-elf-ld -Tsram.ld crt0.o random.o $< -o $@
 	-mips-elf-objdump -d -M reg-names=numeric $@ > $(basename $@).dis
 	-mips-elf-nm $@ | sort > $(basename $@).nm
 
