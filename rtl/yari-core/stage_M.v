@@ -285,7 +285,11 @@ module stage_M(input  wire        clock
    reg         uncached_load_pending = 0;
    reg [31:0]  uncached_data = 0;
 
+   reg [32:0]  lfsr = 0;
+
    always @(posedge clock) begin
+      lfsr <= {lfsr[31:0], ~lfsr[32] ^ lfsr[19]};
+
       if (~peripherals_res`HOLD) begin
          // Only issue one
          peripherals_req`R <= 0;
@@ -408,7 +412,7 @@ module stage_M(input  wire        clock
                fill_wi      <= 0;
                fill_csi     <= x_csi;
                fill_chk     <= x_chk;
-               fill_set     <= fill_set + 1'd1; // XXX: Need a better replacement algorithm.
+               fill_set     <= lfsr[1:0];
             end
 
             $display("%05d  ME load miss the cache, restarting %8x", $time,
