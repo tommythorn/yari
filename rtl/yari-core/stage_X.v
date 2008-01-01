@@ -69,7 +69,7 @@ module stage_X(input  wire        clock
    // premature. Of course this leads to headaches with forwarding and
    // hazards on instruction depending on these... Sigh.
    reg                mult_busy = 0;
-   reg [63:0]         mult_a = 0;
+   reg [63:0]         mult_a = 0, mult_3a = 0;
    reg [31:0]         mult_b = 0;
    reg                mult_neg = 0;
    reg [31:0]         mult_lo = 0;
@@ -109,7 +109,30 @@ module stage_X(input  wire        clock
       x_res              <= 'hDEADBEEF;
       x_flush_D          <= 0;
 
+`define MULT_RADIX_4 1
+`ifdef MULT_RADIX_4
+      // Radix-2 Multiplication Machine (this is not the best way to do this)
+      if (mult_busy) begin
+         $display("MULT[U] %x * %x + %x", mult_a, mult_b, {mult_hi,mult_lo});
 
+         case (mult_b[1:0])
+         1: {mult_hi,mult_lo} <= {mult_hi,mult_lo} + mult_a;
+         2: {mult_hi,mult_lo} <= {mult_hi,mult_lo} + (mult_a << 1);
+         3: {mult_hi,mult_lo} <= {mult_hi,mult_lo} + mult_3a;
+         endcase
+         mult_a <= mult_a << 2;
+         mult_3a <= mult_3a << 2;
+         mult_b <= mult_b >> 2;
+         if (mult_b == 0) begin
+            if (mult_neg) begin
+               {mult_hi,mult_lo} <= 64'd0 - {mult_hi,mult_lo};
+               mult_neg <= 0;
+            end else
+               mult_busy <= 0;
+            $display("MULT[U] = %x", mult_a + {mult_hi,mult_lo});
+         end
+      end
+`else
       // Radix-2 Multiplication Machine (this is not the best way to do this)
       if (mult_busy) begin
          $display("MULT[U] %x * %x + %x", mult_a, mult_b, {mult_hi,mult_lo});
@@ -127,6 +150,7 @@ module stage_X(input  wire        clock
             $display("MULT[U] = %x", mult_a + {mult_hi,mult_lo});
          end
       end
+`endif
 
       case (d_opcode)
       `REG:
@@ -210,6 +234,7 @@ module stage_X(input  wire        clock
                   mult_lo <= 0;
                   mult_a <= d_op1_val;
                   mult_b <= d_op2_val;
+                  mult_3a <= 3 * d_op1_val;
                   mult_neg <= 0;
 
                   $display("%05dc EX: %dU * %dU", $time, d_op1_val, d_op2_val);
@@ -230,7 +255,8 @@ module stage_X(input  wire        clock
                   mult_lo <= 0;
                   mult_neg <= d_op1_val[31] ^ d_op2_val[31];
                   mult_a <= d_op1_val[31] ? {32'd0,32'd0 - d_op1_val} : d_op1_val;
-                  mult_b <= d_op2_val[31] ?        32'd0 - d_op2_val  : d_op2_val;
+                  mult_3a <= d_op1_val[31] ? 3 * {32'd0,32'd0-d_op1_val} : 3 * d_op1_val;
+                  mult_b <= d_op2_val[31] ? 32'd0 - d_op2_val  : d_op2_val;
                   $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
                 end
             end
