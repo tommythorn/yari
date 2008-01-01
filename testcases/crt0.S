@@ -41,10 +41,62 @@ _start: li      $0, 0
         /* Clear the BSS segment. */
         la      $8, _fbss
         la      $9, _end
-clear:  sw      $0, ($8)
-        bne     $8,$9,clear
-        addi    $8,$8,4
 
+        /* 32-word align */
+        subu    $4, $9, $8
+        andi    $4, $4, 31 << 2
+        beq     $4, $0, clear32_tail
+
+clear1:
+        addi    $4, $4, -4
+        sw      $0, ($8)
+        bne     $4, $0, clear1
+        addi    $8, $8, 4
+
+        beq     $8, $9, done_clearing
+        nop
+
+clear32:
+        sw      $0,   ($8)
+        sw      $0,  4($8)
+        sw      $0,  8($8)
+        sw      $0, 12($8)
+        sw      $0, 16($8)
+        sw      $0, 20($8)
+        sw      $0, 24($8)
+        sw      $0, 28($8)
+        sw      $0, 32($8)
+        sw      $0, 36($8)
+        sw      $0, 40($8)
+        sw      $0, 44($8)
+        sw      $0, 48($8)
+        sw      $0, 52($8)
+        sw      $0, 56($8)
+        sw      $0, 60($8)
+
+        sw      $0, 64($8)
+        sw      $0, 68($8)
+        sw      $0, 72($8)
+        sw      $0, 76($8)
+        sw      $0, 80($8)
+        sw      $0, 84($8)
+        sw      $0, 88($8)
+        sw      $0, 92($8)
+        sw      $0, 96($8)
+        sw      $0,100($8)
+        sw      $0,104($8)
+        sw      $0,108($8)
+        sw      $0,112($8)
+        sw      $0,116($8)
+        sw      $0,120($8)
+        sw      $0,124($8)
+        addi    $8,$8,4*32
+
+clear32_tail:
+        bne     $8,$9,clear32
+        nop
+
+done_clearing:
         li      $4,1
         la      $5,argv
         jal     main
@@ -57,7 +109,7 @@ clear:  sw      $0, ($8)
 
         .rdata
         .align  2
-argv:	.word	argv0
-	.word	0
-argv0:	.ascii  "prog\000"
+argv:   .word   argv0
+        .word   0
+argv0:  .ascii  "prog\000"
 
