@@ -1,0 +1,7 @@
+flush_cache_all
+restore_flags
+save_and_cli
+set_except_vector
+strcpy
+strlen
+trap_low

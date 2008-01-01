@@ -1,0 +1,112 @@
+/*
+ *   These are the low-level serial IO routines for the GDB stub
+ *   This is platform-specific, since it deals with the serial registers directly
+ */
+
+#include <linux/serial_reg.h>
+
+#define NEC41XX_SIU_BASE  (0x0c000000 + 0xa0000000)
+
+#define NEC41XX_UART_RX  (UART_RX  + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_TX  (UART_TX  + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_DLL (UART_DLL + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_DLM (UART_DLM + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_IER (UART_IER + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_IIR (UART_IIR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_FCR (UART_FCR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_LCR (UART_LCR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_MCR (UART_MCR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_LSR (UART_LSR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_MSR (UART_MSR + NEC41XX_SIU_BASE)
+#define NEC41XX_UART_IRSEL      (8 + NEC41XX_SIU_BASE)
+
+#define NEC41XX_CMU_CLKMSK  (0x0b000060 + 0xa0000000)
+#define NEC41XX_CMU_CLKMSK_MSKFFIR  0x0400
+#define NEC41XX_CMU_CLKMSK_MSKSHSP  0x0200
+#define NEC41XX_CMU_CLKMSK_MSKSSIU  0x0100
+#define NEC41XX_CMU_CLKMSK_MSKDSIU  0x0020
+#define NEC41XX_CMU_CLKMSK_MSKFIR   0x0010
+#define NEC41XX_CMU_CLKMSK_MSKKIU   0x0008
+#define NEC41XX_CMU_CLKMSK_MSKAIU   0x0004
+#define NEC41XX_CMU_CLKMSK_MSKSIU   0x0002
+#define NEC41XX_CMU_CLKMSK_MSKPIU   0x0001
+
+#define NEC41XX_GIU_PODATL  (0x0b0001cc + 0xa0000000)
+#define NEC41XX_GIU_PODATL_GPIO47  0x8000
+#define NEC41XX_GIU_PODATL_GPIO46  0x4000
+#define NEC41XX_GIU_PODATL_GPIO45  0x2000
+#define NEC41XX_GIU_PODATL_GPIO44  0x1000
+#define NEC41XX_GIU_PODATL_GPIO43  0x0800
+#define NEC41XX_GIU_PODATL_GPIO42  0x0400
+#define NEC41XX_GIU_PODATL_GPIO41  0x0200
+#define NEC41XX_GIU_PODATL_GPIO40  0x0100
+#define NEC41XX_GIU_PODATL_GPIO39  0x0080
+#define NEC41XX_GIU_PODATL_GPIO38  0x0040
+#define NEC41XX_GIU_PODATL_GPIO37  0x0020
+#define NEC41XX_GIU_PODATL_GPIO36  0x0010
+#define NEC41XX_GIU_PODATL_GPIO35  0x0008
+#define NEC41XX_GIU_PODATL_GPIO34  0x0004
+#define NEC41XX_GIU_PODATL_GPIO33  0x0002
+#define NEC41XX_GIU_PODATL_GPIO32  0x0001
+
+void DbgInitSerial(void);
+
+static int initialized = 0;
+
+void DbgInitSerial(void)
+{
+	unsigned char dummy;
+
+		/* turn on the clocks to the serial port */
+ 	*(unsigned short*)NEC41XX_CMU_CLKMSK |= NEC41XX_CMU_CLKMSK_MSKSSIU |
+								 NEC41XX_CMU_CLKMSK_MSKSIU;
+
+	*(unsigned char*)NEC41XX_UART_IRSEL = 0;	/* set for RS232C, not IrDA */
+
+	*(unsigned char*)NEC41XX_UART_LCR = UART_LCR_DLAB;	/* prepare to set baud rate */
+	*(unsigned char*)NEC41XX_UART_DLL = 10;
+	*(unsigned char*)NEC41XX_UART_DLM = 0;			/* hardcoded: set to 115200 */
+	*(unsigned char*)NEC41XX_UART_LCR = UART_LCR_WLEN8;	/* clear DLAB, set up for 8N1 */
+
+	*(unsigned char*)NEC41XX_UART_IER = 0;			/* disable interrupts */
+
+	*(unsigned char*)NEC41XX_UART_FCR = UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT;
+	*(unsigned char*)NEC41XX_UART_FCR = 0;			/* clear FIFO and disable it */
+
+        *(unsigned char*)NEC41XX_UART_MCR = UART_MCR_RTS | UART_MCR_DTR;  /* set RTS and DTR */
+
+	dummy = *(unsigned char *)NEC41XX_UART_RX;		/* clear any pending ints */
+	dummy = *(unsigned char *)NEC41XX_UART_MSR;
+	dummy = *(unsigned char *)NEC41XX_UART_IIR;
+
+	while ( *(unsigned char*)NEC41XX_UART_LSR & UART_LSR_DR ) /* clear the receive buffer */
+		dummy = *(unsigned char *)NEC41XX_UART_RX;	/* (and finish clearing ints) */
+}
+
+
+int putDebugChar(unsigned char c)
+{
+	if (!initialized) { 		/* need to init device first */
+		DbgInitSerial();
+		initialized = 1;
+	}
+
+	while ( !(*(unsigned char*)NEC41XX_UART_LSR & UART_LSR_THRE) ) ;
+
+	*(unsigned char *)NEC41XX_UART_TX = c;
+
+	return 1;
+}
+
+
+char getDebugChar(void)
+{
+	if (!initialized) { 		/* need to init device first */
+		DbgInitSerial();
+		initialized = 1;
+	}
+
+	while ( !(*(unsigned char*)NEC41XX_UART_LSR & UART_LSR_DR) ) ;
+
+	return(*(char *)NEC41XX_UART_RX);
+}

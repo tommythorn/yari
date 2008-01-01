@@ -1,0 +1,53 @@
+NOTE: Running this code on your PalmPC or HandheldPC may cause it to lose
+data.  No warranty of any sort is provided.  Proceed at your own risk.
+That being said, pressing the reset button will usually return the device
+into WinCE as it normally does.  This being (part of) a debugger, though,
+it is very possible to corrupt sections of WinCE user data.  No safeguards
+are taken against that in the code.  You've been warned (twice).
+
+The following files were taken from the Linux-MIPS kernel source:
+
+gdb-stub.c		Slightly modified to remove some include files
+gdb-low.S		Part of the exception handler
+ld.script.little	Link script for the kernel
+
+The other source files are:
+
+entry.S			Entry point
+gdb-support.c		Low-level serial IO routines
+kernmisc.c		Some more stuff from the kernel that gdb-stub.c
+			depends on
+
+There are two versions of gdb-support.c. gdb-supoort.c.clio is specific
+to the Vadem Clio.  gdb-support.c.freestyle is specific to the Everex
+Freestyle, but should work on any VR4102 or higher based WinCE device
+that doesn't have additional power management features on the serial port
+beyond what is built into the CPU.  Rename the appropriate file to
+gdb-support.c before running make.
+
+Most of the include files are from the Linux kernel include dir, make
+sure your cross-developement environment is set up to find them correctly.
+This is usually done by making symbolic links to the linux and asm-mips
+(link as asm) directories in a directory that is in the include path.
+
+The Makefile assumes you have the mipsel cross-development tools
+somewhere in path.  Note that these files must be compiled without
+optimization (which the Makefile does) to insure the peripheral register
+writes go in the correct order.  The code could have been modified to
+make it optimization-safe (for example, all the registers should be cast
+as volatile), but that would make it less clear.
+
+Exceptions are not currently implemented, despite the presence of the part
+in gdb-low.S.  The code in gdb-stub.c really wants to run as part of the
+kernel, so I decided not to worry about exception handling until the Linux
+CE kernel is in actual existence.  As a result of this, breakpoints are
+not handled.  They can be set, but they will probably just cause a lock-up.
+
+By the way, if you take a look at the code, I'm sure you'll realize what
+an utter hack-job it is.  I don't want to hear it.  This is really only a
+stopgap effort until the kernel is working, at which point gdb-stub.c
+should be a lot happier.
+
+
+Mike Klar
+wyldfier@iname.com

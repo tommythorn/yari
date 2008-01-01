@@ -1,0 +1,193 @@
+Notes from my dabbling with remote GDB.  I'll be written up properly
+once that start becoming useful.
+
+
+# MASTER: GDB side
+mips-elf-gdb
+target remote /dev/ptya1
+(now start runmips)
+load /home/tommy/projects/onnama/testcases/count10
+si
+
+# SLAVE: MIPS side
+runmips --verb -s /dev/ttya1 ../gdbstub/gdbstub.mips  OR
+(./runmips --verb -s  /dev/ttya1 ../gdbstub/gdbstub.mips > /dev/null)|grep PUT
+
+This is the initial communication (OUTPUT is from slave, INPUT from master)
+
+OUTPUT: $
+INPUT : +$Hc-1#09
+OUTPUT: T0125:00000000;48:00000000;1d:00000000;#fc+$#00
+
+(Hc??)
+Initial trap information from the stub: Signal 0x1 = ??, EPC [0x25] (r37) = 0, FP (r72) = 0,
+SP (r29) = 0?
+
+INPUT : +$qC#b4
+OUTPUT: +$#00
+
+qC is get current thread (we ignore this)
+
+INPUT : +$qOffsets#4b
+OUTPUT: +$#00
+
+get offsets (we ignore this)
+
+INPUT : +$?#3f
+OUTPUT: +$S01#b4
+
+Query for status (last sigval was 1)
+
+INPUT : +$Hg0#df
+OUTPUT: +$#00
+
+Set thread 0 (we ignore this)
+
+INPUT : +$g#67
+OUTPUT: +$000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000801000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800ffe800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000#ba
+
+Return the value of the CPU registers
+  90 registers reported = 32 int reg + 6 cp0 + 32 fp + 2 cp1 + 2 framepointer (?) + 16 cp0_idex
+
+INPUT : +$Xffffffff80020000,0:#a8
+OUTPUT: +$#00
+
+Check Binary download (which we don't support)
+
+INPUT : +$M80020000,b8:3c1c0000379c00003c040000348400003c05000034a500003c1d000037bdfff0ac8000000085182a1460fffd248400040c008023000000000800800e341affff341b002ea35b0000341a0001401b700003600008409a600003e00008408460003405ffff03e00008a0a400003405ffff8086000010c00003248400011000fffca0a6000003e0000834020000000018258f8280100000000000621021af828010246300012862000a1440fff90000000003e0000800000000#8d
+OUTPUT: +$OK#9a
+
+Upload bytes
+
+INPUT : +$P25=80020000#7e
+OUTPUT: +$#00
+
+Set r37 (EPC)
+
+INPUT : +$G000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000801000000000000000000000000000000000000000000000000000000000000000000000000000008002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800ffe800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000#0b
+OUTPUT: +$#00
+INPUT : +
+
+New register values (then why the previous command?)
+
+After the load, the "si" results in
+
+INPUT  '$vCont?#49'
+OUTPUT '+$#00'
+
+Check vCont support?  (we have no clue)
+
+INPUT  '+$Hc0#db'
+OUTPUT '+$#00'
+
+Something related to threads we don't support
+
+INPUT  '+$S01#b4'
+OUTPUT '+$#00'
+
+Something related to Step that we don't' support
+
+INPUT  '+$s#73'
+OUTPUT '+'
+
+Hah! Step one!
+
+
+
+STATUS 
+
+bfc004c0 8fa20168 lw    r2,360(r29)
+                                        r2 = 0x00000000
+bfc004c4 8fa30158 lw    r3,344(r29)
+                                        r3 = 0x00000000
+bfc004c8 40825000 mtc0  r2,r10 (sel 0, rs 4)
+Setting an unknown CP0 register 10
+bfc004cc 40833000 mtc0  r3,r6 (sel 0, rs 4)
+Setting an unknown CP0 register 6
+bfc004d0 8fa20154 lw    r2,340(r29)
+bfc004d4 8fa3014c lw    r3,332(r29)
+bfc004d8 40822800 mtc0  r2,r5 (sel 0, rs 4)
+Setting an unknown CP0 register 5
+bfc004dc 40831800 mtc0  r3,r3 (sel 0, rs 4)
+Setting an unknown CP0 register 3
+bfc004e0 8fa20148 lw    r2,328(r29)
+bfc004e4 8fa30140 lw    r3,320(r29)
+bfc004e8 40821000 mtc0  r2,r2 (sel 0, rs 4)
+Setting an unknown CP0 register 2
+bfc004ec 8fa20150 lw    r2,336(r29)
+bfc004f0 40830000 mtc0  r3,r0 (sel 0, rs 4)
+Setting an unknown CP0 register 0
+bfc004f4 40822000 mtc0  r2,r4 (sel 0, rs 4)
+Setting an unknown CP0 register 4
+bfc004f8 40086000 mfc0  r8,r12 (sel 0, rs 0)
+bfc004fc 3508001f ori   r8,r8,0x001f
+                                        r8 = 0x1000001f
+bfc00500 3908001f xori  r8,r8,0x001f
+                                        r8 = 0x10000000
+bfc00504 40886000 mtc0  r8,r12 (sel 0, rs 4)
+Interrupts disabled
+Exception level 0
+Operating mode kernel
+bfc00508 8fa20098 lw    r2,152(r29)
+bfc0050c 8fa300ac lw    r3,172(r29)
+                                        r3 = 0x80020000
+bfc00510 40826000 mtc0  r2,r12 (sel 0, rs 4)
+Interrupts disabled
+Exception level 0
+Operating mode kernel
+bfc00514 40837000 mtc0  r3,r14 (sel 0, rs 4)
+Setting an unknown CP0 register 14
+bfc00518 8fa200a0 lw    r2,160(r29)
+bfc0051c 8fa3009c lw    r3,156(r29)
+                                        r3 = 0x00000000
+bfc00520 00400011 mthi  r2
+bfc00524 00400013 mtlo  r2
+bfc00528 8fbf0094 lw    r31,148(r29)
+                                        r31 = 0x00000000
+bfc0052c 8fbe0090 lw    r30,144(r29)
+bfc00530 8fbc0088 lw    r28,136(r29)
+bfc00534 8fbb0084 lw    r27,132(r29)
+bfc00538 8fba0080 lw    r26,128(r29)
+bfc0053c 8fb9007c lw    r25,124(r29)
+bfc00540 8fb80078 lw    r24,120(r29)
+bfc00544 8fb70074 lw    r23,116(r29)
+bfc00548 8fb60070 lw    r22,112(r29)
+bfc0054c 8fb5006c lw    r21,108(r29)
+bfc00550 8fb40068 lw    r20,104(r29)
+bfc00554 8fb30064 lw    r19,100(r29)
+bfc00558 8fb20060 lw    r18,96(r29)
+bfc0055c 8fb1005c lw    r17,92(r29)
+bfc00560 8fb00058 lw    r16,88(r29)
+bfc00564 8faf0054 lw    r15,84(r29)
+bfc00568 8fae0050 lw    r14,80(r29)
+bfc0056c 8fad004c lw    r13,76(r29)
+bfc00570 8fac0048 lw    r12,72(r29)
+bfc00574 8fab0044 lw    r11,68(r29)
+bfc00578 8faa0040 lw    r10,64(r29)
+bfc0057c 8fa9003c lw    r9,60(r29)
+                                        r9 = 0x00000000
+bfc00580 8fa80038 lw    r8,56(r29)
+                                        r8 = 0x00000000
+bfc00584 8fa70034 lw    r7,52(r29)
+                                        r7 = 0x00000000
+bfc00588 8fa60030 lw    r6,48(r29)
+                                        r6 = 0x00000000
+bfc0058c 8fa5002c lw    r5,44(r29)
+                                        r5 = 0x00000000
+bfc00590 8fa40028 lw    r4,40(r29)
+                                        r4 = 0x00000000
+bfc00594 8fa30024 lw    r3,36(r29)
+bfc00598 8fa20020 lw    r2,32(r29)
+bfc0059c 8fa1001c lw    r1,28(r29)
+                                        r1 = 0x00000000
+bfc005a0 8fbd008c lw    r29,140(r29)
+                                        r29 = 0x00000000
+bfc005a4 42000018 eret
+Unhandled CP0 command eret
+bfc005a8 27bdfff8 addiu r29,r29,-8
+                                        r29 = 0xfffffff8
+bfc005ac 00801021 addu  r2,r4,r0
+bfc005b0 a3a20000 sb    r2,(r29)
+        storing outside memory 0xfffffff8
+runmips: support.c:486: store: Assertion `0' failed.
+Aborted

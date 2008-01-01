@@ -1,0 +1,59 @@
+0000 00ss ssst tttt dddd d000 0010 0000 ADD     -- Add
+0010 00ss ssst tttt iiii iiii iiii iiii ADDI    -- Add immediate
+0010 01ss ssst tttt iiii iiii iiii iiii ADDIU   -- Add immediate unsigned
+0000 00ss ssst tttt dddd d000 0010 0001 ADDU    -- Add unsigned
+0000 00ss ssst tttt dddd d000 0010 0100 AND     -- Bitwise and
+0011 00ss ssst tttt iiii iiii iiii iiii ANDI    -- Bitwise and immediate
+0001 00ss ssst tttt iiii iiii iiii iiii BEQ     -- Branch on equal
+0000 01ss sss0 0001 iiii iiii iiii iiii BGEZ    -- Branch on greater than or equal to zero
+0000 01ss sss1 0001 iiii iiii iiii iiii BGEZAL  -- Branch on greater than or equal to zero and link
+0001 11ss sss0 0000 iiii iiii iiii iiii BGTZ    -- Branch on greater than zero
+0001 10ss sss0 0000 iiii iiii iiii iiii BLEZ    -- Branch on less than or equal to zero
+0000 01ss sss0 0000 iiii iiii iiii iiii BLTZ    -- Branch on less than zero
+0000 01ss sss1 0000 iiii iiii iiii iiii BLTZAL  -- Branch on less than zero and link
+0001 01ss ssst tttt iiii iiii iiii iiii BNE     -- Branch on not equal
+0000 00cc cccc cccc cccc cccc cc00 1101 BREAK   -- Cause a Breakpoint exception
+0000 00ss ssst tttt 0000 0000 0001 1010 DIV     -- Divide
+0000 00ss ssst tttt 0000 0000 0001 1011 DIVU    -- Divide unsigned
+0000 10ii iiii iiii iiii iiii iiii iiii J       -- Jump
+0000 11ii iiii iiii iiii iiii iiii iiii JAL     -- Jump and link
+0000 00ss sss0 0000 dddd dhhh hh00 1001 JALR    -- Jump and link register
+0000 00ss sss0 0000 0000 0000 0000 1000 JR      -- Jump register
+1000 00ss ssst tttt iiii iiii iiii iiii LB      -- Load byte
+1001 00ss ssst tttt iiii iiii iiii iiii LBU     -- Load byte unsigned
+1000 01ss ssst tttt iiii iiii iiii iiii LH      -- Load half word
+1001 01ss ssst tttt iiii iiii iiii iiii LHU     -- Load half word unsigned
+0011 11-- ---t tttt iiii iiii iiii iiii LUI     -- Load upper immediate
+1000 11ss ssst tttt iiii iiii iiii iiii LW      -- Load word
+1000 10ss ssst tttt iiii iiii iiii iiii LWL     -- Load word left
+1001 10ss ssst tttt iiii iiii iiii iiii LWL     -- Load word right
+0000 0000 0000 0000 dddd d000 0001 0000 MFHI    -- Move from HI
+0000 0000 0000 0000 dddd d000 0001 0010 MFLO    -- Move from LO
+0000 00ss sss0 0000 0000 0000 0001 0001 MTHI    -- Move to HI
+0000 00ss sss0 0000 0000 0000 0001 0011 MTLO    -- Move to LO
+0000 00ss ssst tttt 0000 0000 0001 1000 MULT    -- Multiply
+0000 00ss ssst tttt 0000 0000 0001 1001 MULTU   -- Multiply unsigned
+0000 0000 0000 0000 0000 0000 0000 0000 NOP     -- no operation
+0000 00ss ssst tttt dddd d000 0010 0111 NOR     -- Bitwise nor
+0000 00ss ssst tttt dddd d000 0010 0101 OR      -- Bitwise or
+0011 01ss ssst tttt iiii iiii iiii iiii ORI     -- Bitwise or immediate
+1010 00ss ssst tttt iiii iiii iiii iiii SB      -- Store byte
+1010 01ss ssst tttt iiii iiii iiii iiii SH      -- Store half word
+0000 00ss ssst tttt dddd dhhh hh00 0000 SLL     -- Shift left logical 
+0000 00ss ssst tttt dddd d--- --00 0100 SLLV    -- Shift left logical variable
+0000 00ss ssst tttt dddd d000 0010 1010 SLT     -- Set on less than (signed)
+0010 10ss ssst tttt iiii iiii iiii iiii SLTI    -- Set on less than immediate (signed)
+0010 11ss ssst tttt iiii iiii iiii iiii SLTIU   -- Set on less than immediate unsigned
+0000 00ss ssst tttt dddd d000 0010 1011 SLTU    -- Set on less than unsigned
+0000 00-- ---t tttt dddd dhhh hh00 0011 SRA     -- Shift right arithmetic
+0000 00-- ---t tttt dddd dhhh hh00 0111 SRAV    -- Shift Right Arithmetic
+0000 00-- ---t tttt dddd dhhh hh00 0010 SRL     -- Shift Right Logical
+0000 00ss ssst tttt dddd d000 0000 0110 SRLV    -- Shift Right Logical Variable
+0000 00ss ssst tttt dddd d000 0010 0010 SUB     -- Subtract
+0000 00ss ssst tttt dddd d000 0010 0011 SUBU    -- Subtract Unsigned
+1010 11ss ssst tttt iiii iiii iiii iiii SW      -- Store Word
+1010 10ss ssst tttt iiii iiii iiii iiii SWL     -- Store Word Left
+1011 10ss ssst tttt iiii iiii iiii iiii SWR     -- Store Word Right
+0000 00-- ---- ---- ---- ---- --00 1100 SYSCALL -- System call
+0000 00ss ssst tttt dddd d--- --10 0110 XOR     -- Bitwise exclusive or
+0011 10ss ssst tttt iiii iiii iiii iiii XORI    -- Bitwise exclusive or immediate

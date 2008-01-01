@@ -1,0 +1,73 @@
+              ONNAMA -- Oh NO! Not Another M*PS *AGAIN*!
+
+Last update: 2007-10-14
+
+INTRODUCTION
+
+Onnama is yet another implementation of one of those classic RISC
+microprocessors (not one of the patented one of course - I don't want
+to be sued).
+
+I can almost promised that this README will be out of date at the time
+you read this, but currently this comprises:
+
+- A MIPS reference simulator which closely matches the RTL
+  implementation (in fact they co-simulate).
+
+- A few regression and tests programs
+- An RTL (Verilog) implementation
+
+  Core features:
+  + a 7 stage pipeline (forwarding/bypassing is intentionally not yet
+    implemented to better exercise the hazard handling).
+  + all of the integer user-level instructions supported (current
+    missing MUL* and DIV*).
+  + a 4-way set associative 16 KiB instruction cache (the replacement
+    policy is pretty bad currently), half of which is locked with a
+    preloaded gdb stub.
+
+  Peripherals
+  + SRAM interface
+  + 640x480x1 video interface
+  + Serial in/out
+  + 8 LED out put for debugging.
+
+  Simulation
+  + Enough support to fully simulate the RTL with Icarus Verilog.
+
+  Synthesis
+  + Targeted at the Altera Nios Dev Kit, Cyclone edition, but more in
+    future.
+  + Runs (last it ran) happily at 70 MHz.
+
+- A Tinymon boot strapper pre-loaded into the I$ - will load programs
+  over the serial port.
+
+- Assorted tools to turn the elf binaries into ROM and RAM images.
+
+
+
+GETTING STARTED
+
+There are a few prerequisites for full Onnama enjoyment:
+
+- For building any test programs: Cross compilation tool much be built
+  (mips-elf-gcc, etc).  The script xtools/BUILD is what I used to
+  build them
+
+- For simulation: Icarus Verilog.  Great stuff.  Get the most recent
+  version from http://www.icarus.com/eda/verilog
+
+- For synthesis: currently I've only tested with Quartus 7.2.  Get it
+  for free from http://www.altera.com (alas, only works with Windows,
+  whereas everything else here expects Linux).
+
+With the Icarus Verilog installed you should be able to simply run
+
+  make rtlsim
+
+and see the trace of instructions as the Verilog implementation makes
+it through a small self-checking regression test.
+
+
+Tommy

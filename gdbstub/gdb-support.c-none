@@ -1,0 +1,21 @@
+/*
+ *   These are the low-level serial IO routines for the GDB stub
+ *   This is platform-specific, since it deals with the serial registers directly
+ */
+
+#include <stdio.h>
+
+int
+putDebugChar(unsigned char ch)
+{
+	putchar(ch);
+
+	return 1;
+}
+
+char
+getDebugChar(void)
+{
+	return getchar();
+}
+

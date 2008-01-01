@@ -1,0 +1,201 @@
+2007-10-14
+
+    Start Onnama-2007
+
+2007-09-24
+
+    Don't kill the sim on div-by-zero and other changes
+
+2007-09-22
+
+    swsim: new option --disass-usercode
+    load multiple elf files
+    Simulator: Factored out the architectural MIPS state
+    Initialize memory now matching endianess
+    Speed stats.
+
+2007-09-22  Tommy Thorn  <tommy@silver.local>
+
+	* swsim: more prepping for cp0 and cp1 support.
+
+	* swsim: can load multiple elf files at once.
+
+        * swsim: Factored out the architectural MIPS state. Preparing
+          for more CP0 and CP1 support.
+
+        * swsim: Rough speed statistics
+
+          Numbers from one test run: ISA simulation is close to twice
+          as fast as real time, which ISA/RTL cosimulation is about
+          16,000 times slower. 4% of the instructions are JAL and it
+          averaged 2.65 CPI.
+
+2007-09-15
+
+    Be more explicit about unhandled instructions. Don't double load
+    from IO space
+
+2007-09-14
+
+    Status update
+
+2007-09-11
+
+    Handle little-endian. Disassemble regs as $31 instead of r31, etc
+    Prune unused code
+
+2007-09-10
+
+    Fixed a bad bug in the I$ interface. Now the "showtime" graphical
+    demo loads with tinymon and executes correctly. Bring out the
+    champagne.
+
+
+2007-09-09
+
+    The IO event counter is only 8-bit
+    Easy control over verbosity
+    Fix think-o in the simulated IO
+    No timeouts on RTL simulations
+    runmips was loading too many sections
+    Minor build cleanup
+    Minor cleanup
+    Handle stalls directly
+    Updated (and tested) the cross tool build script
+    Emit the last 32 RTL traces upon divergence
+
+2007-09-07
+
+    Make ISA and RTL simulations match on IO behaviour
+
+2007-09-06
+
+    First feable ISA/RTL co-simulation running
+    Dump all sections of ELF files
+
+2007-09-04
+
+    Changes needed for Mac OS X
+    Make swsim not depend on system elf.h
+    Silly re-indentation
+
+2007-09-03
+
+    Stupid bug in tinymon
+    Verbosity killed the transfer. Silence is gold
+    Updated .mif file for the quick hack
+    Quick hack to see what's going on with my serial transmissions
+    More small examples
+    Example program changes
+
+    Runmips knows about firmware simulation but still supports
+    reformatting MIPS ELF files
+
+    Tinymon more verbose about errors
+    ISA simulation simulate uninitialized SRAM
+    Firmware must initialize all data itself
+    Better serial IO simulation in RTL
+    _gp bugfix and Don't Drop Serial Input
+    Much improved simulator tracing
+    Stuff destined for read-only firmware needs to allocate data in
+    SRAM
+
+2007-09-02
+
+    Cleaner clean
+    Tinymon support readback
+    Cleaner clean
+    Deal more gracefully with DOS line conventions
+
+2007-09-01
+
+    Added emulated serial input to the RTL simulation and fixed a
+    silly bug in tinymon.c
+
+    Fixed a tricky bug in the cache line fetch
+
+    Clearly my interconnect structure is too tricky for even me. I
+    managed to use it incorrectly (Repeat after me: data is valid the
+    cycle after strobe is set and wait is clear). This will all be
+    replaced eventually.
+
+    Fix indentation
+    Add self-checking to Tinymon
+    Debug message adjustment
+    Null workload
+    Remove a 4096 fudge factor - rationale lost in time
+    Buglet fixed
+
+2007-08-26
+
+    Life is difficult without a writable text segment
+    Broken checksums
+    Make tinymon more tolerant
+    ugh, are we dropping serial bytes?
+    typo fix
+    Even more feedback from tinymon
+    More feedback from tinymon
+    Add precompiled test case
+    Promote tinymon to be the new default firmware.
+    Fixed few minor issues.
+
+    A functional tinymon and support in runmips to generate the
+    format. Changes to runmips to support serial input from files.
+
+    Update the serial interface (now 57600 bps)
+
+2007-08-25
+
+    Small fixes to the simulator, small fixes to testall.S
+
+2007-08-23
+
+    Fix a simulation problem and move toward a synchronous register file
+
+    AFAICT, Icarus Verilog mistreats non-blocking assignments when mixed
+    with blocking assignments, but the logic worked in Quartus II 7.1.
+    Never the less, the rewritten Verilog is clearer and being able to
+    test with Icarus is important.
+
+    Minor changes:
+    - Use the numeric registers when dissassembling.
+    - A vain attempt to move towards a synchronous register file.
+      Alas, it will take a significant rewrite to fix this. Punting on
+      that as the whole pipeline will be replace "soon".
+
+2007-08-22
+
+    Fixed a compilation issue. *THIS* one sent to Martin
+
+2007-08-22
+
+    sent to Martin Schoeberl
+
+2007-08-22
+
+    Removed more junk
+
+2007-08-21
+
+    Cleaned up a bit
+
+2007-08-21
+
+    Onnama-2006 as it was left
+    Development has resumed using GIT as the SCM.
+
+0.19 2005-06-24
+        - many moons later, started keeping Onnama under Hg which
+          forces me to be more disciplined about what I write.
+        - Check the README for the current state of affairs.
+
+0.2 2004-01-30
+        - signed/unsigned byte/short loads and stores implemented
+        - first semi-public release
+
+0.1 2004-01-28
+        - Shifts were broken, but now Sieve works with bit strings!
+
+0.0
+        - Yeah, Sieve runs, spitting out primes on the serial port!
+

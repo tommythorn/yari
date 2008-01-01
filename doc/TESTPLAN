@@ -1,0 +1,22 @@
+-*- indented-text -*-
+
+Self-checking test apps
+  Directed tests (spectrum of manual and generated tests)
+
+Cosimulation
+  Real applications
+  Random code
+
+
+---
+
+1. For self-checking tests needs a protocol to report results that
+   works equally well for ISA simulation, RTL simulation, and FPGA
+   execution.
+
+2. Cosimulation is between ISA and RTL simulation. What is compared?
+   pc, updated registers? A more general framework would run N
+   instructions and compare state.
+
+Focus initially on minimal effort, highest return approaches => auto
+generated directed self-tests?

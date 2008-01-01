@@ -1,0 +1,168 @@
+* Reconsider cosimulating against gxemul. I'd obviously need to fill
+  in the gaps where gxemul takes a shortcut (such as providing a real
+  firmware). Q: how to deal with the IO?
+
+* Make the RTL simulation snapshotable and restartable. Only way to
+  deal with the 250 inst/sec performance. (This is a generalization of
+
+    "Find a way to preload the RTL simulated SRAM (loading the kernel
+     with the bootloader under RTL simulation takes *WAY* too
+     long).").
+
+
+* Write the dummy firmware expected by the linux kernel for the
+  DECstation. (See gxemul/src/machines/machine_pmax.c and
+  gxemul/src/promemul/dec_prom.c)
+
+* Add a small ROM to the RTL implementation
+
+* Matching IO behaviour like I do now is unsustainable. As a general
+  principle, while cosimulating, higher level models could take the IO
+  events from the lower levels (which can ultimately be the running
+  FPGA).
+
+* Once a sufficient testing structure is in place, start replacing the
+  pipeline with a high performance one.
+
+
+
+
+Old stuff below pending clean up .....
+
+FEATURES
+0. Get GDBstub running for loading and starting programs [DONE]
+
+   0a. Solve the bootstrapping problem: how to populate the data
+       segment from the bootprom (preloaded cache from which stage ME
+       can't access data). [DONE]
+
+   0b. Implement I$ cache flushing.  Limited isasim support.  Full
+       RTL.
+
+1. Debugging with the GDB stub:
+
+   1a. Interrupts support
+       ISASIM: Implement the CP0 registers and UART interrupts
+       RTL:    -- " -- + bind a Dev board button to break
+
+   1b. Get single stepping working (GDB stub work mostly).
+
+1.5. More flexible I$ locking control under sw control.
+
+
+
+
+2. Implement MUL* and DIV*.
+3. SDRAM support.
+
+4. Better infrastructure for peripherals
+5. CF support.
+6. Ethernet.
+7. PS/2 Keyboard
+8. Sound output.
+9. Flash RAM support.
+A. PS/2 Mouse.
+
+B. Ports to ML401, XSA-100, ...
+
+C. (MAYBE) Exploit the R-modify-W mode of the SRAM to create a "smart"
+   framebuffer.  Probably only worthwhile if the SRAM is dedicated to
+   the framebuffer.
+
+PERFORMANCE
+- Make the SRAM interface much faster (fewer cycles)
+
+- (ADV) Rethink the internal memory bus.  Notably, it's silly for the
+  I$ to be able to access the (slow) peripheral bus.
+
+- Make the I$ filling faster (fewer cycles).
+
+- (ADV) Don't block while filling the I$.  Not obvious how to achieve
+  this without inserting logic between the I$ ram and the decode
+  stage.
+
+- Implement by-passing/forwarding.  Easy.
+
+- (ADV) Non-blocking loads.  For a single outstanding load it's
+  actually not too hard, but we'll have to stall the pipe if the
+  write-back stage is busy when the memory comes back to us.  Multiple
+  outstanding are probably not worth the trouble.
+
+- Tune logic to meet 20 ns cycle time.
+
+OTHER
+
+0. Make a "normal.ld" linker script that places programs in SRAM +
+   write a little boot loader that copies it from the boot rom to
+   sram. (MAYBE)
+
+4. Consistent naming convention (FOREVER ONGOING)
+
+    * nets are prefixed with the module that produces them (mostly
+      already the case).
+
+    * nets include an underscore `_' after the module prefix if
+      they're one cycle delayed from the source registers.  Nearly all
+      clocked registers applies.
+
+  + Convert more assigns to un-clocked registers (always @*'s) -- it's
+    easier to read (DEBATABLE)
+
+  + Minimize the amount of logic after registers (D'OH!)
+
+  + Use a valid bit and just pass the instruction unaltered from I to
+    D).  Or extend the opcode with an extra invalid bit.  Then an
+    invalid instruction would trivially never match a valid
+    opcode. (ONGOING)
+
+  + Consider the use of literate Verilog.
+
+    * Pros: better documentation and more readable code.
+    * Cons: lack of tool support (notably emacs)
+
+   + Add a section somewhere with roughly (see mipscore.v)
+
+      "The pipeline would be fairly simple and efficient if it wasn't
+       for the need to handle: stalls, bubbles, hazards, flushes,
+       freezes, and by-passing.  Some of these are related:
+
+       * A WAR hazard occurs when the decoding/register-read stage
+         tries to read register values from the register file while
+         instructions are in flight that will end up updating that
+         register.  The pipeline must stall until either the correct
+         value has been written to the register file or the correct
+         value have been calculated and can be forwarded.
+
+       * In our world a stall refers to the flushing of a stage and
+         freezing of all preceeding stages, in effect inserting
+         "bubbles" into the pipeline.
+
+       * When a pipeline flush occur (due to a branch and thus
+         mispredicted direction) only the front end of the pipe is
+         affected and the instructions there are replaced with NOPs.
+         Whether only I or both I and D are flushed depends upon where
+         the control transfer was resolved and where the branch delay
+         slot is in the pipe (a previous stall could mean that it's
+         still in the fetch stage)..
+
+      Part of making this hard is the conflict between minimizing the
+      amount of logic between registers and the desire to react as
+      early as possible to conditions that can lead to instructions
+      being flushed from pipeline stages."
+
+
+Lessons learned
+- if (....) begin
+  end if (....) begin
+  end
+
+  The missing else between "end if" doesn't cause compilation error
+  and can be hard to find.
+
+- Make the simulation as close to the real hardware as absolutely
+  possible.  REALLY CLOSE!
+
+- Don't assign the same net multiple times.
+
+- Misspelled registers are silently assumed to be implicitly declared
+  nets.
