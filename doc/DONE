@@ -1,4 +1,22 @@
 DONE
+
+* Rewrote and chopped off early history. George Orwell would have been
+  proud.
+
+* Separate the memory bus from the peripheral bus.
+
+  Things gets interesting with peripherals that need DMA-like access
+  to memory, such as video interfaces.
+
+  A consequence would be that Flash etc would be on the peripheral
+  bus, so if we wish to cache this, we'd have to distinguish IO from
+  uncachable.
+
+* Find a way to preload the RTL simulated SRAM (loading the kernel
+  with the bootloader under RTL simulation takes *WAY* too long).
+
+
+
 * Once a sufficient testing structure is in place, start replacing the
   pipeline with a high performance one. [DONE]
 * Fix the arrays that can't be inferred as RAM. Notably the register

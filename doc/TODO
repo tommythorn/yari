@@ -77,15 +77,6 @@ TODO
 
 * Trap on ADD[I] and SUB overflow
 
-* Separate the memory bus from the peripheral bus.
-
-  Things gets interesting with peripherals that need DMA-like access
-  to memory, such as video interfaces.
-
-  A consequence would be that Flash etc would be on the peripheral
-  bus, so if we wish to cache this, we'd have to distinguish IO from
-  uncachable.
-
 * Merge fpgaMMIX and YARI, incl. the Avalon-like interconnect (for
   peripherals). Automate the generation of the interconnection.
 
@@ -188,11 +179,6 @@ OTHER:
 * Make the RTL simulation snapshotable and restartable. Only way to
   deal with the 250 inst/sec performance. (This is a generalization of
 
-    "Find a way to preload the RTL simulated SRAM (loading the kernel
-     with the bootloader under RTL simulation takes *WAY* too
-     long).").
-
-
 * Write the dummy firmware expected by the linux kernel for the
   DECstation. (See gxemul/src/machines/machine_pmax.c and
   gxemul/src/promemul/dec_prom.c)
@@ -227,7 +213,7 @@ FEATURES
 
 
 
-2. Implement MUL* and DIV*.
+2. Implement DIV*.
 3. SDRAM support.
 
 4. Better infrastructure for peripherals

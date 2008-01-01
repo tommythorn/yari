@@ -22,12 +22,13 @@ module blockram(
         input  wire `REQ   sram_ctrl_req,
         output wire `RES   sram_ctrl_res);
 
-   parameter size  = 10;
+   parameter size  = 18; // 4 * 2^18 = 1 MiB
+   parameter INIT_FILE = "";
 
    wire [31:0] a  = sram_ctrl_req`A;
    wire [31:0] q;
 
-   wire        sel = a[31:16] == 'h4000;
+   wire        sel = a[31:28] == 'h4;
 
    reg         sel_ = 0; always @(posedge clock) sel_ <= sel;
    reg         read_ = 0; always @(posedge clock) read_ <= sram_ctrl_req`R;
@@ -50,7 +51,8 @@ module blockram(
 
    defparam
            memory.DATA_WIDTH = 32,
-           memory.ADDR_WIDTH = size;
+           memory.ADDR_WIDTH = size,
+           memory.INIT_FILE  = INIT_FILE;
 
 `ifdef DEBUG_BLOCKRAM
    reg [31:0] a_  = 0;

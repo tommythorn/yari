@@ -5,7 +5,7 @@ FLAGS=
 all: sim
 
 run: sim
-	./sim $(FLAGS) $(TESTPROG)
+	./sim $(FLAGS) $(TESTPROG) $(FIRMWARE)
 
 tests: tests.c
 	mips-elf-gcc -O -msoft-float -Tmymips.ld $< -o $@

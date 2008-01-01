@@ -27,6 +27,8 @@
 `timescale 1ns/10ps
 `include "../../soclib/pipeconnect.h"
 
+`define BLOCKRAM 1
+
 module main(// Clock and reset
              input  wire        clkin        // K5  PLL1 input clock (50 MHz)
             ,output wire        pld_clkout   // L8  Clock to zero-skew buffer Lancelot board
@@ -161,10 +163,12 @@ module main(// Clock and reset
    wire          sram_oe_n;    // SRAM OE#
    wire          sram_we_n;    // SRAM WE#
 
+`ifndef BLOCKRAM
    idt71v416s10 u35(fse_d[15: 0], fse_a[19:2], sram_we_n, sram_oe_n, sram_cs_n,
                     sram_be_n[0], sram_be_n[1]); // Yep, strange order...
    idt71v416s10 u36(fse_d[31:16], fse_a[19:2], sram_we_n, sram_oe_n, sram_cs_n,
                     sram_be_n[2], sram_be_n[3]);
+`endif
 `endif
 
    assign        flash_cs_n = 1;  // Disable flash ROM
@@ -343,6 +347,8 @@ module main(// Clock and reset
 
                           .sram_ctrl_req(sram_req),
                           .sram_ctrl_res(sram_res));
+
+   defparam blockram_inst.INIT_FILE="`SRAM_INIT";
 `else
    sram_ctrl sram_ctrl(.clk(clk),
 

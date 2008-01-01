@@ -101,8 +101,8 @@ crt0.o: crt0.S
 %.mif: %.mips $(SIM)
 	-$(SIM) --mif $< > $@
 
-%.data: %.mips %.dis %.mif bootloader.data $(SIM)
-	-(cat bootloader.data; $(SIM) --data $< $(HEAD)) > $@
+%.data: %.mips $(SIM)
+	-$(SIM) --data $< $(HEAD) > $@
 
 #%.data: %.mips %.dis %.mif bootloader.data
 #	-$(SIM) --data $< $(HEAD) > $@
@@ -157,17 +157,19 @@ hw2.mips: hw2.S
 	mips-elf-gcc -DSTANDALONE -msoft-float -O -c hw2.S
 	mips-elf-ld -Tsram.ld hw2.o -o hw2.mips
 
-rtlsim: $(PROG).txt $(TINYMON).data
-	cp $< ../rtl/target/Icarus/input.txt
-	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data simulate
+rtlsim: $(PROG).txt $(PROG).data $(TINYMON).data
+	grep -A99999 ^e $< > ../rtl/target/Icarus/input.txt
+	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate
 
 isasim: $(PROG).txt $(SIM) $(TINYMON).mips
-	make -C ../yarisim FLAGS="-i ../testcases/$(PROG).txt "$(VERB) TESTPROG=$(TINYMON).mips run
+	grep -A99999 ^e $< > input.txt
+	make -C ../yarisim FLAGS="-i ../testcases/input.txt "$(VERB) FIRMWARE=$(TINYMON).mips TESTPROG=../testcases/$(PROG).mips run
 
-cosim:  $(PROG).txt $(SIM) $(TINYMON).mips $(TINYMON).data
-	cp $< ../rtl/target/Icarus/input.txt
-	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data simulate | \
-	make -C ../yarisim FLAGS="-i ../testcases/$(PROG).txt --cosim "$(VERB) TESTPROG=$(TINYMON).mips run
+cosim:  $(PROG).txt $(PROG).data $(SIM) $(TINYMON).mips $(TINYMON).data
+	grep -A99999 ^e $< > ../rtl/target/Icarus/input.txt
+	grep -A99999 ^e $< > input.txt
+	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate | \
+	make -C ../yarisim FLAGS="-i ../testcases/input.txt --cosim $(VERB)" FIRMWARE=$(TINYMON).mips TESTPROG=../testcases/$(PROG).mips run
 
 $(SIM):
 	make -C ../yarisim

@@ -10,6 +10,8 @@
 #
 # -----------------------------------------------------------------------
 
+SRAM_INIT=somefile
+
 IC_LINE_INDEX_BITS=7    # Each set has 128 lines
 IC_WORD_INDEX_BITS=2    # Each line has 4 32-bit words (128 bits)
 DC_LINE_INDEX_BITS=8    # Each set has 256 lines
@@ -29,7 +31,7 @@ PRIMSRC:=simpledpram.v dpram.v
 TARGETSRC:=\
     ../niosdevkit-1c20/main.v \
     pll.v altsyncram.v \
-    arithshiftbidir.v logshiftright.v idt71v416s10.v
+    arithshiftbidir.v logshiftright.v
 
 SRC:=$(patsubst %,../../yari-core/%,$(YARISRC)) \
      $(patsubst %,../../soclib/%,$(SYSTEMSRC)) \
@@ -46,7 +48,7 @@ config.h: Makefile ../../makeconfig.sh
 		$(DC_LINE_INDEX_BITS) $(DC_WORD_INDEX_BITS)
 
 simulate: $(SRC) config.h Makefile
-	iverilog -o main.test $(IVERILOGOPTS) -DSIMULATE_MAIN -DTRACE_SERIAL $(SRC)
+	iverilog -o main.test $(IVERILOGOPTS) -DSIMULATE_MAIN -DTRACE_SERIAL -DSRAM_INIT=$(SRAM_INIT) $(SRC)
 	./main.test
 
 mult:
