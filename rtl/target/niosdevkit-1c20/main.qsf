@@ -302,7 +302,7 @@ set_location_assignment PIN_R9 -to vga_vs
 # Analysis & Synthesis Assignments
 # ================================
 set_global_assignment -name FAMILY Cyclone
-set_global_assignment -name TOP_LEVEL_ENTITY yari
+set_global_assignment -name TOP_LEVEL_ENTITY main
 
 # Fitter Assignments
 # ==================

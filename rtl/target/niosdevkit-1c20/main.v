@@ -27,7 +27,9 @@
 `timescale 1ns/10ps
 `include "../../soclib/pipeconnect.h"
 
+`ifdef SIMULATE_MAIN
 `define BLOCKRAM 1
+`endif
 
 module main(// Clock and reset
              input  wire        clkin        // K5  PLL1 input clock (50 MHz)
@@ -105,21 +107,6 @@ module main(// Clock and reset
             // Audio
             // Ethernet
             // Flash memory
-
-            // Simulation output
-`ifdef EXTERNAL_SIMULATION_
-            ,output             clk25MHz
-            ,output             clk
-            ,output             rst
-
-            ,output             target
-            ,output             i_invalid
-            ,output             i_delayed
-            ,output      [25:0] divider
-            ,output      [31:0] i_instr
-            ,output      [31:0] i_npc
-            ,output      [31:0] d_npc
-`endif
             );
    // ------------------------------------------------------------------------
    //  Reset
@@ -141,11 +128,6 @@ module main(// Clock and reset
 
    wire [ 7:0]   rs232in_data;
    wire          rs232in_attention;
-
-   wire [17:0]   port1_addr;
-   wire          port1_rd_strobe;
-   wire [31:0]   port1_rd_data;
-   wire          port1_wait;
 
    wire `REQ     vga_req, dmem_req, imem_req, master2_req, dc_ctrl_req,
                  sram_req, peripheral_req, rs232_req;
@@ -187,79 +169,18 @@ module main(// Clock and reset
         .e0(pld_clkout)         // External only output x1/2 = 25 MHz
         );
 
-`ifdef TOMMY_MADE_VGA_ACTUALLY_USE_THE_RIGHT_CLOCK
-   // pld_clkfb is pld_clkout routed externally through a zero-skew buffer
-   pll2 pll2 (
-        .inclk0(pld_clkfb),     // 25 MHz input clock
-        .c0(video_clk)
-        );
-`endif // TOMMY_MADE_VGA_ACTUALLY_USE_THE_RIGHT_CLOCK
-
    assign  led = {rled[0],rled[1],rled[2],rled[3],rled[4],rled[5],rled[6],rled[7]};
    reg  [7:0] rled = 0;
 
 
    reg [25:0] divider = 0;
-   reg        go_fast = 0;
-
-`ifdef SLOW
-`ifdef EXTERNAL_SIMULATION
-   wire       clk = divider[1];
-`else
-   wire       clk = go_fast ? divider[4] : divider[25];
-`endif // EXTERNAL_SIMULATION
-`else
    wire       clk = clk25MHz;
-`endif // SLOW
 
 
    always @(posedge clk25MHz) begin
      divider <= divider - 1'd1;
    end
 
-`ifndef FASTEST
-/*
-   always @(posedge clk25MHz) begin
-     if (rst)
-       go_fast <= 0;
-     case (~{sw[0],sw[1],sw[2],sw[3]})
-       4'b0000: rled <= 0;
-                        // {clk,rst, 3'b0,                   i_invalid};
-       4'b0001: rled <= {d_jump,d_stall,1'b0,1'b0,  x_jump,x_stall,2'b00};
-       4'b0010: rled <= d_opcode;
-       4'b0011: rled <= d_fn;
-
-       4'b0100: go_fast <= 1;
-       4'b0101: rled <= {ttyb_txd, rs232out_busy, rs232out_w};
-       4'b0110: rled <= rs232out_d;
-       4'b0111: rled <= divider[25:18];
-
-       4'b1000: rled <= d_npc[ 7: 0];
-       4'b1001: rled <= d_npc[15: 8];
-       4'b1010: rled <= d_npc[23:16];
-       4'b1011: rled <= d_npc[31:24];
-
-       4'b1100: rled <= i_instr[ 7: 0];
-       4'b1101: rled <= i_instr[15: 8];
-       4'b1110: rled <= i_instr[23:16];
-       4'b1111: rled <= i_instr[31:24];
-     endcase
-   end
-
-   hexledx hex1(.value(d_npc[7:4]),
-                .blank(d_npc == 0),
-                .minus(0),
-                .s7(s7_1[6:0]));
-
-   hexledx hex0(.value(d_npc[3:0]),
-                .blank(d_npc == 0),
-                .minus(0),
-                .s7(s7_0[6:0]));
-
-//   assign s7_1[7] = ~clk;
-   assign s7_0[7] = ~d_stall;
-*/
-`endif // FASTEST
 `endif // SIMULATE_MAIN
 
    reg  [ 3:0] reset_count_up = 0;
@@ -269,33 +190,14 @@ module main(// Clock and reset
    wire        rst = ~reset_n /*reset_count_up != 15*/;
 `endif
 
-   always @(posedge clk) begin
+   always @(posedge clk)
       if (~reset_n)
         reset_count_up <= 0;
       else if (rst) begin
          if (reset_count_up == 14)
-`ifdef SIMULATE_MAIN
            $display("Reset count %d", reset_count_up);
-`endif
          reset_count_up <= reset_count_up + 1'd1;
       end
-   end
-
-   assign port1_addr = 0;
-   assign port1_rd_strobe = 0;
-
-
-
-`ifdef NOT_SIMULATE_MAIN
-   pipechecker #(18,32) chk_port1(clk,
-                             fb_rdaddr, fb_rdstrobe, 0, 32'h0, 4'h0,
-                             fb_wait, fb_rddata);
-
-   pipechecker #(18,32) chk_port3(clk,
-                             sram_addr, sram_rdstrobe,
-                             sram_wr_strobe, sram_wr_data, sram_wr_byteena,
-                             sram_wait, sram_rd_data);
-`endif
 
    yari yari_inst(
          .clock(clk)
@@ -341,7 +243,7 @@ module main(// Clock and reset
                      .target2_res(0)
                      );
 
-`ifdef BLOCKRAM
+`ifdef SIMULATE_MAIN
    blockram blockram_inst(.clock(clk),
                           .rst(rst),
 
