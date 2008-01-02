@@ -284,6 +284,7 @@ module stage_M(input  wire        clock
    reg         got_uncached_data = 0;
    reg         uncached_load_pending = 0;
    reg [31:0]  uncached_data = 0;
+   reg         sb_was_full = 0;
 
    reg [32:0]  lfsr = 0;
 
@@ -299,6 +300,10 @@ module stage_M(input  wire        clock
       end
 
       m_valid <= x_valid;
+
+      if (sb_was_full)
+         m_restart <= 0;
+      sb_was_full <= 0;
 
       // Stalling for uncached_loads
       if (x_valid) begin
@@ -345,10 +350,12 @@ module stage_M(input  wire        clock
       if (x_store && x_address[31:24] != 8'hFF) begin
          // Write to store buffer, and stall/restart if buffer is full
          if (store_buffer_wp_1 == store_buffer_rp) begin
-            $display("%05d  ME store buffer full, restarting pipe", $time);
+            $display("%05d  ME store buffer full, restarting %x", $time,
+                     x_pc - 4 * x_is_delay_slot);
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            sb_was_full  <= 1;
          end else begin
             store_buffer_addr[store_buffer_wp] <= x_address;
             store_buffer_data[store_buffer_wp] <= x_store_data;
