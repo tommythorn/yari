@@ -144,6 +144,7 @@ OTHER:
 
 * (PERF) Better cache replacement strategy (at least use pseudo
   random, but investigate how hard pseudo-LRU would be to implement)
+  Done for D$, but not yet for I$ (cache locking is an issue).
 
 * Support more of CP2 and move it to a later stage (cf. correct
   handling of pipeline flushes)
@@ -185,7 +186,16 @@ OTHER:
 
 * Add a small ROM to the RTL implementation (maybe)
 
+* (PERF) IO load performance could be dramatically sped up if we can
+  require that peripherals can respond with zero latency. This is
+  probably not very hard for a small system, but it's a strong
+  constraint.
 
+  The current cost is so high because we have to restart the load
+  (just like with a D$ miss). If we could stall the cost would be
+  lower, but stalling is way too costly this late in the
+  pipeline. Besides, does the cost of IO loads really matter that
+  much?
 
 
 

@@ -77,12 +77,6 @@ unsigned char serial_in_lowercase(void)
         ch = serial_buffer[serial_buffer_rp++];
         serial_buffer_rp &= BUF_SIZE-1;
 
-        /*
-        serial_out('<');
-        print_hex2(ch);
-        serial_out('>');
-        */
-
         set_leds(ch);
 
         if (ch == '\r')
@@ -149,7 +143,7 @@ int main()
 
         /* This is run out of the I$, which in practice means a ROM
          * that cannot even be read. We must manually initialize all
-         * data.
+         * data and we can't use strings!
          */
 
         last_serial_tag = RS232IN_TAG;
@@ -159,9 +153,9 @@ int main()
         serial_out('\n');
         out4('Tiny');
         out4('mon ');
-        out4('2007');
-        out4('-09-');
-        out4('03\n');
+        out4('2008');
+        out4('-01-');
+        out4('05\n');
 
         /*
          * Very simple protocol
@@ -191,7 +185,7 @@ int main()
                 while (c == '\n' || c == '\r' || c == ' ');
 
                 /* Skip cruft until a command is encountered. */
-                while (c != 'c' && c != 'l' && c != 'w' && c != 'r' && c != 'e')
+                while (c != 'c' && c != 'l' && c != 'w' && c != 'r' && c != 'e' && c != 't')
                         c = serial_in_lowercase();
 
                 chk = cmd = c;
@@ -232,7 +226,7 @@ int main()
                         }
                 }
 
-                if (in_error && cmd != 'c')
+                if (in_error && cmd != 'c' && cmd != 't')
                         continue;
 
                 if (cmd == 'c')
@@ -256,6 +250,45 @@ int main()
                         out4('\nE!\n');
                         ((func_t)arg)();
                         goto restart;
+                }
+                else if (cmd == 't') {
+                    out4('Mem ');
+                    out4('test');
+                    serial_out('\n');
+
+                    /* Simple memory tester */
+                    for (addr  = (unsigned *) 0x40000000;
+                         addr != (unsigned *) 0x400E0000;
+                         addr += 16) {
+
+                        addr[0] = ((unsigned) addr >> 13) ^~ (unsigned) addr;
+                        addr[1] = ~ (unsigned) addr;
+                        addr[2] = 42 + (unsigned) addr;
+                        addr[3] = - (unsigned) addr;
+                    }
+
+                    for (addr  = (unsigned *) 0x40000000;
+                         addr != (unsigned *) 0x400E0000;
+                         addr += 16) {
+
+                        unsigned a, b, c, d;
+                        a = ((unsigned) addr >> 13) ^~ (unsigned) addr;
+                        b = ~ (unsigned) addr;
+                        c = 42 + (unsigned) addr;
+                        d = - (unsigned) addr;
+
+                        if (a != addr[0] || b != addr[1] || c != addr[2] || d != addr[3]) {
+                            out4('Memo');
+                            out4('ry e');
+                            out4('rror');
+                            out4(' at ');
+                            print_hex8((unsigned) addr);
+                            serial_out('\n');
+                            goto restart;
+                        }
+                    }
+                    out4('Ok!\n');
+                    continue;
                 }
 
                 serial_out('.');
