@@ -27,13 +27,11 @@ module blockram(
 
    wire [31:0] a  = sram_ctrl_req`A;
    wire [31:0] q;
-
    wire        sel = a[31:28] == 'h4;
 
-   reg         sel_ = 0; always @(posedge clock) sel_ <= sel;
+   reg         sel_  = 0; always @(posedge clock) sel_  <= sel;
    reg         read_ = 0; always @(posedge clock) read_ <= sram_ctrl_req`R;
-
-   reg         ready = 0;
+   reg         ready = 0; always @(posedge clock) ready <= sram_ctrl_res`HOLD;
 
    assign      sram_ctrl_res`HOLD = !ready & (sram_ctrl_req`R | sram_ctrl_req`W);
    assign      sram_ctrl_res`RD   = read_ & sel_ ? q : 0;
@@ -55,12 +53,6 @@ module blockram(
            memory.DATA_WIDTH = 32,
            memory.ADDR_WIDTH = size,
            memory.INIT_FILE  = INIT_FILE;
-
-   always @(posedge clock) begin
-      ready <= 0;
-      if (sram_ctrl_req`R | sram_ctrl_req`W)
-         ready <= !ready;
-   end
 
 `ifdef DEBUG_BLOCKRAM
    reg [31:0] a_  = 0;
