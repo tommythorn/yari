@@ -30,7 +30,6 @@
  */
 
 `timescale 1ns/10ps
-`include "../soclib/pipeconnect.h"
 
 module stage_I(input  wire        clock
               ,input  wire        kill             // Empty the pipeline
@@ -38,9 +37,12 @@ module stage_I(input  wire        clock
               ,input  wire        restart          // Target is next PC.
               ,input  wire [31:0] restart_pc
 
-               // SRAM ports
-              ,output wire `REQ   imem_req
-              ,input  wire `RES   imem_res
+               // Memory access
+              ,input              imem_waitrequest
+              ,output reg  [29:0] imem_address
+              ,output reg         imem_read = 0
+              ,input       [31:0] imem_readdata
+              ,input              imem_readdatavalid
 
                // Outputs
               ,output wire        i1_valid
@@ -123,11 +125,6 @@ module stage_I(input  wire        clock
 
    reg [IC_SET_INDEX_BITS-1:0]  fill_set       = 2; // !! XXX
    reg [31:0]                   state          = S_RUNNING;
-
-   reg [CACHEABLE_BITS-3:0]     fill_address   = 0;
-   reg                          fill_read      = 0;
-   reg                          fill_datavalid = 0;
-   reg [IC_WORD_INDEX_BITS:0]   fill_cnt       = ~0; // An MSB counter
    reg [IC_WORD_INDEX_BITS-1:0] fill_wi;
 
    assign i_npc   = pc_2;
@@ -145,14 +142,6 @@ module stage_I(input  wire        clock
              default:set_2 = 'hX;
              endcase
 
-   assign imem_req`A   = {fill_address,2'd0};
-   assign imem_req`R   = fill_read;
-   assign imem_req`W   = 0;
-   assign imem_req`WD  = 0;
-   assign imem_req`WBE = 0;
-   wire        fill_wait = imem_res`HOLD;
-   wire [31:0] fill_data = imem_res`RD;
-
    reg [IC_LINE_INDEX_BITS-1:0] tag_wraddress;
    reg [TAG_BITS-1:0]        tag_write_data;
    reg [3:0]                 tag_write_ena;
@@ -164,8 +153,8 @@ module stage_I(input  wire        clock
       icache_ram(.clock(clock),
                  .rdaddress({set_2,pc_2`CSI,pc_2`WDX}), .rddata(i_instr),
                  .wraddress({fill_set | 2'd2,pc_2`CSI,fill_wi}),
-                 .wrdata(fill_data),
-                 .wren(state == S_FILLING && fill_datavalid));
+                 .wrdata(imem_readdata),
+                 .wren(state == S_FILLING && imem_readdatavalid));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag0")
       tag0_ram(.clock(clock), .rdaddress(pc_1`CSI), .rddata(tag0),
@@ -191,6 +180,11 @@ module stage_I(input  wire        clock
    always @(posedge clock) begin
       tag_write_ena <= 0;
 
+      if (~imem_waitrequest & imem_read) begin
+         $display("%05d  I$ done issueing", $time);
+         imem_read <= 0;
+      end
+
       case (state)
       S_RUNNING:
          // INV: pc_1`CSI === pc_1`CSI
@@ -212,10 +206,9 @@ module stage_I(input  wire        clock
             i_valid      <= 0;
             valid_2      <= 0;
 
-            fill_cnt     <= (1 << IC_WORD_INDEX_BITS) - 2; // An MSB counter
             fill_wi      <= 0;
-            fill_address <= {pc_2[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS - 2){1'd0}}};
-            fill_read    <= 1;
+            imem_address <= {pc_2[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS - 2){1'd0}}};
+            imem_read    <= 1;
             $display("%05d  I$ begin fetching from %8x", $time,
                      {pc_2[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}});
 
@@ -223,8 +216,8 @@ module stage_I(input  wire        clock
          end
 
       S_FILLING:
-         if (fill_datavalid) begin
-            $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time, fill_set, pc_2`CSI, fill_wi, fill_data);
+         if (imem_readdatavalid) begin
+            $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time, fill_set, pc_2`CSI, fill_wi, imem_readdata);
 
             fill_wi <= fill_wi + 1'd1;
 
@@ -233,7 +226,7 @@ module stage_I(input  wire        clock
                         fill_set, pc_2`CSI, pc_2`CHK);
                $display("%05d  IF cache filled, back to running", $time);
 
-               tag_wraddress <= pc_2`CSI;
+               tag_wraddress  <= pc_2`CSI;
                tag_write_data <= pc_2`CHK;
                tag_write_ena  <= 1 << (fill_set | 2'd2);
 
@@ -250,18 +243,6 @@ module stage_I(input  wire        clock
          // This lame pause is to keep the tags interface simple (for now)
          state <= S_RUNNING;
       endcase
-
-      fill_datavalid <= fill_read & ~fill_wait;
-      if (~fill_wait & fill_read)
-         if (fill_cnt[IC_WORD_INDEX_BITS]) begin
-            if (fill_read) $display("%05d  I$ done issueing", $time);
-            fill_read <= 0;
-         end else begin
-            fill_address <= fill_address + 1'd1;
-            fill_cnt     <= fill_cnt     - 1'd1;
-            $display("%05d  I$ fetching from %8x (cnt = %d)", $time, {fill_address + 30'd1,2'd0},
-                     fill_cnt);
-         end
 
       // Keep the restart & kill handling down here to take priority
       if (restart) begin

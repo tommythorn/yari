@@ -129,6 +129,16 @@ module main(// Clock and reset
    wire [ 7:0]   rs232in_data;
    wire          rs232in_attention;
 
+   wire          mem_waitrequest;
+   wire    [1:0] mem_id;
+   wire   [29:0] mem_address;
+   wire          mem_read;
+   wire          mem_write;
+   wire   [31:0] mem_writedata;
+   wire    [3:0] mem_writedatamask;
+   wire   [31:0] mem_readdata;
+   wire    [1:0] mem_readdataid;
+
    wire `REQ     vga_req, dmem_req, imem_req, master2_req, dc_ctrl_req,
                  sram_req, peripheral_req, rs232_req;
    wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
@@ -202,10 +212,17 @@ module main(// Clock and reset
    yari yari_inst(
          .clock(clk)
         ,.rst(rst)
-        ,.imem_req(imem_req)
-        ,.imem_res(imem_res)
-        ,.dmem_req(dmem_req)
-        ,.dmem_res(dmem_res)
+
+        ,.mem_waitrequest(mem_waitrequest)
+        ,.mem_id(mem_id)
+        ,.mem_address(mem_address)
+        ,.mem_read(mem_read)
+        ,.mem_write(mem_write)
+        ,.mem_writedata(mem_writedata)
+        ,.mem_writedatamask(mem_writedatamask)
+        ,.mem_readdata(mem_readdata)
+        ,.mem_readdataid(mem_readdataid)
+
         ,.peripherals_req(rs232_req)
         ,.peripherals_res(rs232_res)
         );

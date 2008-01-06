@@ -28,11 +28,16 @@ endmodule
 module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
            ,input  wire        rst
 
-           ,output wire `REQ   imem_req
-           ,input  wire `RES   imem_res
-
-           ,output wire `REQ   dmem_req
-           ,input  wire `RES   dmem_res
+            // Memory access
+           ,input              mem_waitrequest
+           ,output       [1:0] mem_id
+           ,output      [29:0] mem_address
+           ,output             mem_read
+           ,output             mem_write
+           ,output      [31:0] mem_writedata
+           ,output       [3:0] mem_writedatamask
+           ,input       [31:0] mem_readdata
+           ,input        [1:0] mem_readdataid
 
            ,output wire `REQ   peripherals_req
            ,input  wire `RES   peripherals_res
@@ -47,6 +52,12 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   i_instr;
    wire [31:0]   i_pc;
    wire [31:0]   i_npc;
+
+   wire          imem_waitrequest;
+   wire [29:0]   imem_address;
+   wire          imem_read;
+   wire [31:0]   imem_readdata;
+   wire          imem_readdatavalid;
 
    wire          d_valid;
    wire [31:0]   d_instr;
@@ -93,6 +104,15 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire          m_restart;
    wire [31:0]   m_restart_pc;
 
+   wire          dmem_waitrequest;
+   wire [29:0]   dmem_address;
+   wire          dmem_read;
+   wire          dmem_write;
+   wire [31:0]   dmem_writedata;
+   wire [ 3:0]   dmem_writedatamask;
+   wire [31:0]   dmem_readdata;
+   wire          dmem_readdatavalid;
+
    reg [9:0] initialized = 0;
    always @(posedge clock) initialized <= {initialized[8:0],~rst};
 
@@ -113,8 +133,11 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
               ,.restart(restart)
               ,.restart_pc(restart_pc)
 
-              ,.imem_req(imem_req)
-              ,.imem_res(imem_res)
+              ,.imem_waitrequest(imem_waitrequest)
+              ,.imem_address(imem_address)
+              ,.imem_read(imem_read)
+              ,.imem_readdata(imem_readdata)
+              ,.imem_readdatavalid(imem_readdatavalid)
 
               // Outputs
               ,.i1_valid(i1_valid)
@@ -222,11 +245,18 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_op1_val(x_op1_val),
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
-               .x_res(x_res),
+               .x_res(x_res)
 
-               .dmem_req(dmem_req),
-               .dmem_res(dmem_res),
+              ,.dmem_waitrequest(dmem_waitrequest)
+              ,.dmem_address(dmem_address)
+              ,.dmem_read(dmem_read)
+              ,.dmem_write(dmem_write)
+              ,.dmem_writedata(dmem_writedata)
+              ,.dmem_writedatamask(dmem_writedatamask)
+              ,.dmem_readdata(dmem_readdata)
+              ,.dmem_readdatavalid(dmem_readdatavalid)
 
+               ,
                .peripherals_req(peripherals_req),
                .peripherals_res(peripherals_res),
 

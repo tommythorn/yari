@@ -21,7 +21,6 @@
 //
 
 `timescale 1ns/10ps
-`include "../soclib/pipeconnect.h"
 
 module stage_M(input  wire        clock
 
@@ -39,8 +38,14 @@ module stage_M(input  wire        clock
               ,input  wire [31:0] x_res
 
               // Connection to main memory
-              ,output reg  `REQ   dmem_req = 0
-              ,input  wire `RES   dmem_res
+              ,input              dmem_waitrequest
+              ,output reg  [29:0] dmem_address
+              ,output reg         dmem_read = 0
+              ,output reg         dmem_write = 0
+              ,output reg  [31:0] dmem_writedata
+              ,output reg   [3:0] dmem_writedatamask
+              ,input       [31:0] dmem_readdata
+              ,input              dmem_readdatavalid
 
               // Connection to peripherals
               ,output reg  `REQ   peripherals_req = 0
@@ -57,10 +62,6 @@ module stage_M(input  wire        clock
               ,output reg  [31:0] m_restart_pc
               );
    parameter debug = 1;
-`ifdef SIMULATE_MAIN
-   pipechecker check("stage_M", clock, dmem_req, dmem_res);
-   pipechecker check2("stage_M", clock, peripherals_req, peripherals_res);
-`endif
 
 `include "config.h"
 
@@ -196,7 +197,7 @@ module stage_M(input  wire        clock
 
    // Store buffer
    reg  [31:0]                 store_buffer_data[0:(1 << STORE_BUFFER_BITS) - 1];
-   reg  [31:0]                 store_buffer_addr[0:(1 << STORE_BUFFER_BITS) - 1];
+   reg  [29:0]                 store_buffer_addr[0:(1 << STORE_BUFFER_BITS) - 1];
    reg  [ 3:0]                 store_buffer_be[0:(1 << STORE_BUFFER_BITS) - 1];
    reg  [STORE_BUFFER_BITS-1:0] store_buffer_wp = 0;
    reg  [STORE_BUFFER_BITS-1:0] store_buffer_rp = 0;
@@ -240,7 +241,6 @@ module stage_M(input  wire        clock
    /*
     * Memory interface
     */
-   reg         dmem_readdatavalid = 0;
    reg         peripherals_readdatavalid = 0;
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag0")
@@ -274,7 +274,7 @@ module stage_M(input  wire        clock
                  .rddata_a(dc_q),
 
                  .address_b({fill_set,fill_csi,fill_wi}),
-                 .byteena_b(4'hF), .wrdata_b(dmem_res`RD),
+                 .byteena_b(4'hF), .wrdata_b(dmem_readdata),
                  .wren_b(dmem_readdatavalid),
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
@@ -357,7 +357,7 @@ module stage_M(input  wire        clock
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
             sb_was_full  <= 1;
          end else begin
-            store_buffer_addr[store_buffer_wp] <= x_address;
+            store_buffer_addr[store_buffer_wp] <= x_address[31:2];
             store_buffer_data[store_buffer_wp] <= x_store_data;
             store_buffer_be[store_buffer_wp] <= x_byteena;
             store_buffer_wp <= store_buffer_wp_1;
@@ -407,7 +407,21 @@ module stage_M(input  wire        clock
                   x_tag0, x_tag1, x_tag2, x_tag3);
 
          if (x_miss) begin
-            // Keep restarting the load until fulfilled
+
+            /*
+             * There are several things going on here so we have to
+             * be more careful and that translates into higher latency.
+             * First, as designed, loads can come in and miss while
+             * we are filling a line. In such cases we must ignore and
+             * restart the miss.
+             * Second, there may be pending stores in the store buffer
+             * so we cannot simply issue the read here, but signal it
+             * with fill_cache which is then picked up below (we _could_
+             * and probably _should_ start it here if the store buffer is
+             * empty, but it's just one cycle out of many, not a big
+             * deal.).
+             */
+
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
@@ -415,7 +429,7 @@ module stage_M(input  wire        clock
 
             if (!outstanding_cache_miss) begin
                fill_cache   <= 1;
-               fill_address <= {x_address[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}};
+               fill_address <= {x_address[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS-2){1'd0}}};
                fill_wi      <= 0;
                fill_csi     <= x_csi;
                fill_chk     <= x_chk;
@@ -433,10 +447,9 @@ module stage_M(input  wire        clock
                   q, m_set, m_csi, m_wi,
                   dc_q);
 
-      dmem_readdatavalid <= dmem_req`R & ~dmem_res`HOLD;
       if (dmem_readdatavalid) begin
          $display("%05d  D$ got [{%1d,%1d,%1d] <- %8x", $time,
-                  fill_set, fill_csi, fill_wi, dmem_res`RD);
+                  fill_set, fill_csi, fill_wi, dmem_readdata);
          fill_wi <= fill_wi + 1'd1;
          if (&fill_wi) begin
             outstanding_cache_miss <= 0;
@@ -456,29 +469,31 @@ module stage_M(input  wire        clock
          m_restart <= 0;
       end
 
-      if (~dmem_res`HOLD) begin
-         dmem_req`R <= 0;
-         dmem_req`W <= 0;
+      if (~dmem_waitrequest) begin
+
+         dmem_read <= 0;
+         dmem_write <= 0;
 
          if (store_buffer_rp != store_buffer_wp) begin
-            dmem_req`A   <= store_buffer_addr[store_buffer_rp];
-            dmem_req`W   <= 1;
-            dmem_req`WD  <= store_buffer_data[store_buffer_rp];
-            dmem_req`WBE <= store_buffer_be[store_buffer_rp];
-            store_buffer_rp <= store_buffer_rp_1;
+
+            dmem_address       <= store_buffer_addr[store_buffer_rp];
+            dmem_write         <= 1;
+            dmem_writedata     <= store_buffer_data[store_buffer_rp];
+            dmem_writedatamask <= store_buffer_be[store_buffer_rp];
+            store_buffer_rp    <= store_buffer_rp_1;
+
             $display("%05d  D$ issue store %8x <- %8x/%x", $time,
-                     store_buffer_addr[store_buffer_rp],
+                     {store_buffer_addr[store_buffer_rp],2'd0},
                      store_buffer_data[store_buffer_rp],
                      store_buffer_be[store_buffer_rp]);
+
          end else if (fill_cache) begin
-            dmem_req`R <= 1'd1;
-            dmem_req`A <= fill_address;
-            fill_address <= fill_address + 4;
+
+            dmem_address <= fill_address;
+            dmem_read    <= 1;
+            fill_cache   <= 0;
+
             $display("%05d  D$ issue load %8x", $time, fill_address);
-            if (&fill_address[DC_WORD_INDEX_BITS+1:2]) begin
-               fill_cache <= 0;
-               $display("%05d  D$ done issueing", $time);
-            end
          end
       end
    end
