@@ -5,13 +5,13 @@
 <p>YARI is an high performance softcore RISC implementation, binary
 compatible with a subset of MIPS R3000.</p>
 
-This README will be out of date at the time you read this, but the
-implementation currently comprises:
+YARI is still under active development, but the implementation
+currently comprises:
 
 <ul>
 <li>
-A reference simulator which closely matches the RTL implementation
-  (in fact they co-simulate).
+A reference simulator which can check the RTL implementation through
+co-simulation.
 
 </li><li>
 
@@ -23,7 +23,7 @@ An RTL (Verilog) implementation
     <ul><li>
     an eight stage pipeline.
     </li><li>
-    a 4-way associative write-through instruction cache (default 8 KiB)
+    a 4-way associative instruction cache (default 8 KiB)
     </li><li>
     a 4-way associative write-through data cache (default 16 KiB)
     </li><li>
@@ -48,9 +48,9 @@ An RTL (Verilog) implementation
 
   Synthesis
   <ul><li>
-  Targeted at the Altera Nios Dev Kit, Cyclone edition, Cycore, and the LPRP, but more in future.
+  Targeted at the Altera Nios Dev Kit (Cyclone ed.), Cycore, and the LPRP, but more in future.
   </li><li>
-  Runs (last it ran) happily at 50+ MHz.
+  Runs at around 50+ MHz (soon 70+ MHz) in a EP1C20.
   </li></ul>
 
   </li><li>A boot loader pre-loaded into the I$ - will load programs over the
