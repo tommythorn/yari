@@ -55,7 +55,7 @@ char *inst_name[64+64+32] = {
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
 
-#define KEEP_LINES 50000
+#define KEEP_LINES 2500
 #define RTL_MAX_LINE 200
 char last[KEEP_LINES][RTL_MAX_LINE];
 unsigned last_p = 0;
@@ -64,12 +64,18 @@ int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
 {
         char buf[RTL_MAX_LINE];
         unsigned time = ~0;
+        unsigned watchdog = 1000;
 
         for (;;) {
                 int r;
                 char *p = fgets(buf, sizeof buf, stdin);
                 if (!p)
                         return 0;
+
+                if (--watchdog == 0) {
+                        fprintf(stderr, "No commits found in quite a long run, bailing\n");
+                        return 0;
+                }
 
                 strncpy(last[last_p++], buf, sizeof last[0]);
                 if (last_p == KEEP_LINES)
@@ -83,6 +89,7 @@ int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
                         continue;
 
                 *cycle = time / 100;
+
                 return 1;
         }
 
