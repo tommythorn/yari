@@ -261,11 +261,19 @@ module main(// Clock and reset
                      );
 
 `ifdef SIMULATE_MAIN
-   blockram blockram_inst(.clock(clk),
-                          .rst(rst),
-
-                          .sram_ctrl_req(sram_req),
-                          .sram_ctrl_res(sram_res));
+   blockram blockram_inst
+      (.clock(clk)
+      ,.rst(rst)
+      ,.mem_waitrequest(mem_waitrequest)
+      ,.mem_id(mem_id)
+      ,.mem_address(mem_address)
+      ,.mem_read(mem_read)
+      ,.mem_write(mem_write)
+      ,.mem_writedata(mem_writedata)
+      ,.mem_writedatamask(mem_writedatamask)
+      ,.mem_readdata(mem_readdata)
+      ,.mem_readdataid(mem_readdataid)
+      );
 
    defparam blockram_inst.INIT_FILE="`SRAM_INIT";
 `else
