@@ -271,6 +271,43 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                );
 
 
+   /*
+    * Memory arbitration. "Hopefully so simple that I can do it all
+    * right here".
+    * Static priority - bad idea in general, but ok here.
+    * Key decision: dmem port gets priority. Why? Imagine it was
+    * the other way around and both miss in their caches. IF will
+    * keep emitting bubbles while filling, but ME will repeatedly
+    * restart the load and flush the pipe. At least with ME filling
+    * first, we get to execute the few instructions already in the
+    * pipe while waiting for IF. One of them could be a MUL!
+    */
+   parameter   ID_DC              = 1;
+   parameter   ID_IC              = 2;
+   wire        dmem_strobe        = dmem_read | dmem_write;
+
+   assign      mem_id             = dmem_strobe ? ID_DC        : ID_IC;
+   assign      mem_address        = dmem_strobe ? dmem_address : imem_address;
+   assign      mem_read           = dmem_strobe ? dmem_read    : imem_read;
+   assign      mem_write          = dmem_write;
+   assign      mem_writedata      = dmem_writedata;
+   assign      mem_writedatamask  = dmem_writedatamask;
+
+   assign      dmem_waitrequest   = mem_waitrequest;
+   assign      dmem_readdata      = mem_readdata;
+   assign      dmem_readdatavalid = mem_readdataid == ID_DC;
+
+   assign      imem_waitrequest   = mem_waitrequest | dmem_strobe;
+   assign      imem_readdata      = mem_readdata;
+   assign      imem_readdatavalid = mem_readdataid == ID_IC;
+
+
+   always @(posedge clock)
+      if (imem_read)
+         $display("I$ read  MR %d MA %x WR %d   (D$ R %d W %d)",
+                  mem_read, mem_address, mem_waitrequest,
+                  dmem_read, dmem_write);
+
 `ifdef SIMULATE_MAIN
    always @(posedge clock) if (debug) begin
       if (restart) begin
