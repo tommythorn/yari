@@ -139,10 +139,8 @@ module main(// Clock and reset
    wire   [31:0] mem_readdata;
    wire    [1:0] mem_readdataid;
 
-   wire `REQ     vga_req, dmem_req, imem_req, master2_req, dc_ctrl_req,
-                 sram_req, peripheral_req, rs232_req;
-   wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
-                 sram_res, peripheral_res, rs232_res;
+   wire `REQ     rs232_req;
+   wire `RES     rs232_res;
 
 `ifdef SIMULATE_MAIN
    // Flash-SRAM-Ethernet bus
@@ -181,16 +179,7 @@ module main(// Clock and reset
 
    assign  led = {rled[0],rled[1],rled[2],rled[3],rled[4],rled[5],rled[6],rled[7]};
    reg  [7:0] rled = 0;
-
-
-   reg [25:0] divider = 0;
    wire       clk = clk25MHz;
-
-
-   always @(posedge clk25MHz) begin
-     divider <= divider - 1'd1;
-   end
-
 `endif // SIMULATE_MAIN
 
    reg  [ 3:0] reset_count_up = 0;
@@ -226,39 +215,6 @@ module main(// Clock and reset
         ,.peripherals_req(rs232_req)
         ,.peripherals_res(rs232_res)
         );
-
-   vga vga(clk, rst,
-           // Lancelot VGA interface
-           vga_r, vga_g, vga_b, vga_m1, vga_m2,
-           vga_sync_n, vga_sync_t,
-           vga_blank_n, vga_hs, vga_vs,
-
-           'h400E_6A00, // FB start addr (may move)
-
-           // Video memory port
-           vga_req, vga_res);
-
-
-   bus_ctrl bus_ctrl(.clk(clk),
-                     .rst(rst),
-
-                     // Master ports
-                     .master1_req(vga_req),  // VGA highest priority!
-                     .master1_res(vga_res),
-
-                     .master2_req(imem_req),
-                     .master2_res(imem_res),
-
-                     .master3_req(dmem_req),
-                     .master3_res(dmem_res),
-
-                     // Target ports
-                     .target1_req(sram_req),
-                     .target1_res(sram_res),
-
-                     .target2_req(peripheral_req),
-                     .target2_res(0)
-                     );
 
 `ifdef SIMULATE_MAIN
    blockram blockram_inst
