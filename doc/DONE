@@ -1,5 +1,9 @@
 DONE
 
+* Majorily redid the memory protocol. It now supports pipelining and
+  burst reads. To simplity, *all* reads are burst reads of a fixed
+  burst length (currently 4) and *all* writes are single, non-burst.
+
 * Rewrote and chopped off early history. George Orwell would have been
   proud.
 
