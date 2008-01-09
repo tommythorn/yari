@@ -155,7 +155,7 @@ int main()
         out4('mon ');
         out4('2008');
         out4('-01-');
-        out4('05\n');
+        out4('09\n');
 
         /*
          * Very simple protocol
@@ -259,7 +259,7 @@ int main()
                     /* Simple memory tester */
                     for (addr  = (unsigned *) 0x40000000;
                          addr != (unsigned *) 0x400E0000;
-                         addr += 16) {
+                         addr += 4) {
 
                         addr[0] = ((unsigned) addr >> 13) ^~ (unsigned) addr;
                         addr[1] = ~ (unsigned) addr;
@@ -269,7 +269,7 @@ int main()
 
                     for (addr  = (unsigned *) 0x40000000;
                          addr != (unsigned *) 0x400E0000;
-                         addr += 16) {
+                         addr += 4) {
 
                         unsigned a, b, c, d;
                         a = ((unsigned) addr >> 13) ^~ (unsigned) addr;

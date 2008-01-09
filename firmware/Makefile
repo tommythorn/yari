@@ -13,7 +13,7 @@ $(RUNYARI):
 
 firmware: tinymon-prom.mif tinymon-prom.data tinymon-prom.dis tinymon-prom.nm
 
-yarisim: tinymon-prom.mips tinymon-prom.dis
+isasim: tinymon-prom.mips tinymon-prom.dis
 	make -C ../yarisim FLAGS='-i ../firmware/test.txt --firm --verb --regwrites' TESTPROG=../firmware/tinymon-prom.mips run
 
 rtlsim: tinymon-prom.data tinymon-prom.dis promote
