@@ -171,6 +171,30 @@ cosim:  $(PROG).txt $(PROG).data $(SIM) $(TINYMON).mips $(TINYMON).data
 	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate | \
 	make -C ../yarisim FLAGS="-i ../testcases/input.txt --cosim $(VERB)" FIRMWARE=$(TINYMON).mips TESTPROG=../testcases/$(PROG).mips run
 
+# "FULL" here means including the loading of the program over the serial port -- a slow affair
+rtlsim_full: $(PROG).txt $(TINYMON).data
+	cp $< ../rtl/target/Icarus/input.txt
+	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data simulate
+
+isasim_full: $(PROG).txt $(TINYMON).mips
+	make -C ../yarisim \
+		FLAGS="-i ../testcases/$(PROG).txt "$(VERB) \
+		FIRMWARE=$(TINYMON).mips \
+		TESTPROG=../testcases/$(PROG).mips \
+		run
+
+cosim_full: $(PROG).txt $(PROG).data $(SIM) $(TINYMON).mips $(TINYMON).data
+	cp $< ../rtl/target/Icarus/input.txt
+	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate | \
+	make -C ../yarisim \
+		FLAGS="--cosim $(VERB)" \
+		FIRMWARE=$(TINYMON).mips \
+		TESTPROG=../testcases/$(PROG).mips \
+		run
+
+
+
+
 $(SIM):
 	make -C ../yarisim
 
