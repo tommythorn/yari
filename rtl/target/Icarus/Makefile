@@ -33,10 +33,14 @@ TARGETSRC:=\
     pll.v altsyncram.v \
     arithshiftbidir.v logshiftright.v
 
+# Change IDT_SRAM_MODEL to point to the IDT SRAM model if one is available
+IDT_SRAM_MODEL=
+
 SRC:=$(patsubst %,../../yari-core/%,$(YARISRC)) \
      $(patsubst %,../../soclib/%,$(SYSTEMSRC)) \
      $(PRIMSRC) \
-     $(TARGETSRC)
+     $(TARGETSRC) \
+     $(IDT_SRAM_MODEL)
 
 IVERILOGOPTS=-Wall -I../../soclib -I../../yari-core
 
@@ -48,7 +52,9 @@ config.h: Makefile ../../makeconfig.sh
 		$(DC_LINE_INDEX_BITS) $(DC_WORD_INDEX_BITS)
 
 simulate: $(SRC) config.h Makefile
-	iverilog -o main.test $(IVERILOGOPTS) -DSIMULATE_MAIN -DTRACE_SERIAL -DSRAM_INIT=$(SRAM_INIT) $(SRC)
+	iverilog -o main.test \
+		$(IVERILOGOPTS) \
+		-DSIMULATE_MAIN -DTRACE_SERIAL -DSRAM_INIT=$(SRAM_INIT) $(SRC)
 	./main.test
 
 mult:

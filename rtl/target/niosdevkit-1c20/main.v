@@ -277,17 +277,26 @@ module main(// Clock and reset
 
    defparam blockram_inst.INIT_FILE="`SRAM_INIT";
 `else
-   sram_ctrl sram_ctrl(.clk(clk),
+   sram_ctrl sram_ctrl_inst
+      (.clock(clk)
+      ,.rst(rst)
+      ,.mem_waitrequest(mem_waitrequest)
+      ,.mem_id(mem_id)
+      ,.mem_address(mem_address)
+      ,.mem_read(mem_read)
+      ,.mem_write(mem_write)
+      ,.mem_writedata(mem_writedata)
+      ,.mem_writedatamask(mem_writedatamask)
+      ,.mem_readdata(mem_readdata)
+      ,.mem_readdataid(mem_readdataid)
 
-                       .sram_req(sram_req),
-                       .sram_res(sram_res),
-
-                       .sram_a(fse_a),
-                       .sram_d(fse_d),
-                       .sram_cs_n(sram_cs_n),
-                       .sram_be_n(sram_be_n),
-                       .sram_oe_n(sram_oe_n),
-                       .sram_we_n(sram_we_n));
+      ,.sram_a(fse_a[19:2])
+      ,.sram_d(fse_d)
+      ,.sram_cs_n(sram_cs_n)
+      ,.sram_be_n(sram_be_n)
+      ,.sram_oe_n(sram_oe_n)
+      ,.sram_we_n(sram_we_n)
+      );
 `endif
 
 
