@@ -96,68 +96,57 @@ module main(
    wire [ 7:0]   rs232in_data;
    wire          rs232in_attention;
 
-   wire [17:0]   port1_addr;
-   wire          port1_rd_strobe;
-   wire [31:0]   port1_rd_data;
-   wire          port1_wait;
+   wire          mem_waitrequest;
+   wire    [1:0] mem_id;
+   wire   [29:0] mem_address;
+   wire          mem_read;
+   wire          mem_write;
+   wire   [31:0] mem_writedata;
+   wire    [3:0] mem_writedatamask;
+   wire   [31:0] mem_readdata;
+   wire    [1:0] mem_readdataid;
 
-   wire `REQ     vga_req, dmem_req, imem_req, master2_req, dc_ctrl_req,
-                 sram_req, peripheral_req, rs232_req;
-   wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
-                 sram_res, peripheral_res, rs232_res;
+   wire `REQ     rs232_req;
+   wire `RES     rs232_res;
 
    yari yari_inst(
          .clock(clock)
         ,.rst(rst)
-        ,.imem_req(imem_req)
-        ,.imem_res(imem_res)
-        ,.dmem_req(dmem_req)
-        ,.dmem_res(dmem_res)
+
+        ,.mem_waitrequest(mem_waitrequest)
+        ,.mem_id(mem_id)
+        ,.mem_address(mem_address)
+        ,.mem_read(mem_read)
+        ,.mem_write(mem_write)
+        ,.mem_writedata(mem_writedata)
+        ,.mem_writedatamask(mem_writedatamask)
+        ,.mem_readdata(mem_readdata)
+        ,.mem_readdataid(mem_readdataid)
+
+        ,.peripherals_req(rs232_req)
+        ,.peripherals_res(rs232_res)
         );
 
-   bus_ctrl bus_ctrl(.clk(clock),
-                     .rst(rst),
+   sram_ctrl sram_ctrl
+      (.clock(clk)
+      ,.rst(rst)
+      ,.mem_waitrequest(mem_waitrequest)
+      ,.mem_id(mem_id)
+      ,.mem_address(mem_address)
+      ,.mem_read(mem_read)
+      ,.mem_write(mem_write)
+      ,.mem_writedata(mem_writedata)
+      ,.mem_writedatamask(mem_writedatamask)
+      ,.mem_readdata(mem_readdata)
+      ,.mem_readdataid(mem_readdataid)
 
-                     // Master ports
-                     .master1_req(vga_req),  // VGA highest priority!
-                     .master1_res(vga_res),
-
-                     .master2_req(imem_req),
-                     .master2_res(imem_res),
-
-                     .master3_req(dmem_req),
-                     .master3_res(dmem_res),
-
-                     // Target ports
-                     .target1_req(sram_req),
-                     .target1_res(sram_res),
-
-                     .target2_req(peripheral_req),
-                     .target2_res(peripheral_res)
-                     );
-
-   peri_ctrl peri_ctrl(.clk(clock),
-                       .rst(rst),
-
-                       .peripheral_req(peripheral_req),
-                       .peripheral_res(peripheral_res),
-
-                       .rs232_req(rs232_req),
-                       .rs232_res(rs232_res));
-
-   wire [1:0]    dummy; // Need to generalize sram_ctr a bit
-
-   sram_ctrl sram_ctrl(.clk(clock),
-
-                       .sram_req(sram_req),
-                       .sram_res(sram_res),
-
-                       .sram_a({rama_a,dummy}),
-                       .sram_d({rama_d,ramb_d}),
-                       .sram_cs_n(rama_ncs),
-                       .sram_be_n({rama_nub,rama_nlb,ramb_nub,ramb_nlb}),
-                       .sram_oe_n(rama_noe),
-                       .sram_we_n(rama_nwe));
+      ,.sram_a(rama_a)
+      ,.sram_d({rama_d,ramb_d})
+      ,.sram_cs_n(rama_ncs)
+      ,.sram_be_n({rama_nub,rama_nlb,ramb_nub,ramb_nlb})
+      ,.sram_oe_n(rama_noe)
+      ,.sram_we_n(rama_nwe)
+      );
 
    rs232out #(BPS,FREQ)
       rs232out_inst(.clk25MHz(clock),
