@@ -37,9 +37,18 @@ TODO
 
 * Write a PSRAM controller (for the LPRP).
 
+* Improve cycle time; attack the current critical path which is in
+  ME. First try switching from a tag-sequental cache to the more
+  conventional way select (using a 32-bit 4-mux). This gives us
+  another stage to do the load alignment and sign-extension.
+
+* Integrate testall.S into tinymon.c
+
 * Change makeconfig.sh to instead parse config.h (which should now be
   written by hand). This is in preparation for moving many more
   configurable features to the config.h
+
+* Implement I$ flushing!
 
 * Port to Xilinx' ML401 and one of the Spartan-3 starter kits
 
@@ -82,7 +91,7 @@ TODO
 
 * Implement interrupt support
 
-* Implement I$ and D$ flushing!
+* Implement D$ flushing!
 
 * I$ locking under sw control
 
