@@ -301,13 +301,6 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    assign      imem_readdata      = mem_readdata;
    assign      imem_readdatavalid = mem_readdataid == ID_IC;
 
-
-   always @(posedge clock)
-      if (imem_read)
-         $display("I$ read  MR %d MA %x WR %d   (D$ R %d W %d)",
-                  mem_read, mem_address, mem_waitrequest,
-                  dmem_read, dmem_write);
-
 `ifdef SIMULATE_MAIN
    always @(posedge clock) if (debug) begin
       if (restart) begin
