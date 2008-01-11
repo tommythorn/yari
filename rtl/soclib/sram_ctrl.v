@@ -40,11 +40,10 @@ module sram_ctrl
    parameter burst_length = 1 << burst_bits;
 
    parameter S_IDLE     = 0;
-   parameter S_READ     = 1;
-   parameter S_READWAIT = 2;
-   parameter S_WRITE1   = 3;
-   parameter S_WRITE2   = 4;
-   reg [3:0] state      = S_IDLE;
+   parameter S_READWAIT = 1;
+   parameter S_WRITE1   = 2;
+   parameter S_WRITE2   = 3;
+   reg [1:0] state      = S_IDLE;
 
    wire      sel        = mem_address[29:26] == 'h4;
    reg [burst_bits:0] cnt = ~0;
@@ -52,7 +51,7 @@ module sram_ctrl
    reg [1:0]  pendingid;
    reg [31:0] sram_dout;
 
-   assign    mem_waitrequest   = state != S_IDLE;
+   assign    mem_waitrequest   = state != S_IDLE || !cnt[burst_bits];
    // XXX This coupling between oe# and the tri-state driver is perhaps a bit unsound
    // clearly there will be fighting for a short period
    assign    sram_d            = sram_oe_n ? sram_dout : 'hZ;
@@ -64,7 +63,14 @@ module sram_ctrl
       mem_readdataid <= 0;
       case (state)
       S_IDLE:
-         if (mem_read) begin
+         if (!cnt[burst_bits]) begin
+            // Burst reading.
+            cnt            <= cnt - 1;
+            sram_a         <= sram_a + 1;
+            mem_readdata   <= sram_d;
+            mem_readdataid <= pendingid;
+            state          <= need_wait ? S_READWAIT : S_IDLE;
+         end else if (mem_read) begin
             pendingid <= mem_id;
             sram_a    <= mem_address;
             sram_cs_n <= 0;
@@ -72,7 +78,7 @@ module sram_ctrl
             sram_be_n <= 0;
             int_we_n  <= 1;
             cnt       <= burst_length - 1;
-            state     <= need_wait ? S_READWAIT : S_READ;
+            state     <= need_wait ? S_READWAIT : S_IDLE;
          end else if (mem_write) begin
             sram_a    <= mem_address;
             sram_dout <= mem_writedata;
@@ -88,28 +94,15 @@ module sram_ctrl
          end
 
       S_READWAIT:
-         state <= S_READ;
+         state <= S_IDLE;
 
-      S_READ:
-         if (!cnt[burst_bits]) begin
-            cnt            <= cnt - 1;
-            sram_a         <= sram_a + 1;
-            mem_readdata   <= sram_d;
-            mem_readdataid <= pendingid;
-            state          <= need_wait ? S_READWAIT : S_READ;
-         end else
-            // XXX save a cycle and pick up new reads and writes from here. That however requires
-            // adjusting waitrequest al
-            state          <= S_IDLE;
-
-      S_WRITE1: begin
+      S_WRITE1:
          if (need_wait)
             state    <= S_WRITE2;
          else begin
             int_we_n <= 1;
             state    <= S_IDLE;
          end
-      end
 
       S_WRITE2: begin
          int_we_n <= 1;

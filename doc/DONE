@@ -1,5 +1,8 @@
 DONE
 
+* sram_ctrl.v: burst reads can now be issued back to back, fully
+  saturating the memory.
+
 * Majorily redid the memory protocol. It now supports pipelining and
   burst reads. To simplity, *all* reads are burst reads of a fixed
   burst length (currently 4) and *all* writes are single, non-burst.
