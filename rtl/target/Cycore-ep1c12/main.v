@@ -128,7 +128,7 @@ module main(
         );
 
    sram_ctrl sram_ctrl
-      (.clock(clk)
+      (.clock(clock)
       ,.rst(rst)
       ,.mem_waitrequest(mem_waitrequest)
       ,.mem_id(mem_id)
