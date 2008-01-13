@@ -52,13 +52,17 @@ module sram_ctrl
    reg [31:0] sram_dout;
 
    assign    mem_waitrequest   = state != S_IDLE || !cnt[burst_bits];
-   // XXX This coupling between oe# and the tri-state driver is perhaps a bit unsound
-   // clearly there will be fighting for a short period
-   assign    sram_d            = sram_oe_n ? sram_dout : 'hZ;
+
+   reg       sram_dout_en      = 0;
+   assign    sram_d            = sram_dout_en ? sram_dout : 'hZ;
 
    always @(negedge clock)
       sram_we_n <= int_we_n;
 
+   // XXX It's a concern that the SRAM D drivers may be fighting
+   // briefly with our sram_dout when transitioning directly from
+   // reading to writing. It seems to work, but it would probably be
+   // safer to wait for a cycle for those cases.
    always @(posedge clock) begin
       mem_readdataid <= 0;
       case (state)
@@ -77,10 +81,12 @@ module sram_ctrl
             sram_oe_n <= 0;
             sram_be_n <= 0;
             int_we_n  <= 1;
+            sram_dout_en <= 0;
             cnt       <= burst_length - 1;
             state     <= need_wait ? S_READWAIT : S_IDLE;
          end else if (mem_write) begin
             sram_a    <= mem_address;
+            sram_dout_en <= 1;
             sram_dout <= mem_writedata;
             sram_be_n <= ~mem_writedatamask;
             sram_cs_n <= 0;
@@ -90,6 +96,7 @@ module sram_ctrl
          end else begin
             sram_cs_n <= 0;
             sram_oe_n <= 1;
+            sram_dout_en <= 0;
             int_we_n  <= 1;
          end
 
