@@ -59,11 +59,13 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_noe
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to ram*_d
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_ncs
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_nwe
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to ram*_n*b
 set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_a
 set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_d
 set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_noe
 set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_ncs
 set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_nwe
+set_instance_assignment -name TCO_REQUIREMENT "3 ns" -to ram*_n*b
 set_instance_assignment -name TSU_REQUIREMENT "2.2 ns" -to ram*_d
 
 # other default timings
@@ -291,5 +293,4 @@ set_global_assignment -name MIF_FILE dtags3.mif
 set_global_assignment -name ENABLE_CLOCK_LATENCY ON
 
 set_global_assignment -name IGNORE_CLOCK_SETTINGS ON
-set_global_assignment -name FMAX_REQUIREMENT "200 MHz"
 set_global_assignment -name CYCLONE_OPTIMIZATION_TECHNIQUE SPEED
