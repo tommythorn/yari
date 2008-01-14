@@ -63,8 +63,7 @@ module main(
    wire clock;
 
    pll pll(.inclk0(clk),    // 20 MHz on Cycore
-           .c0(clock),      // xx MHz output
-          );
+           .c0(clock));     // xx MHz output
 
    assign wd = rst_counter[22];
 

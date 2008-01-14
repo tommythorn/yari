@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2007 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007,2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -139,14 +139,12 @@ module stage_I(input  wire        clock
              'b0010: set_2 = 1;
              'b0100: set_2 = 2;
              'b1000: set_2 = 3;
-             default:set_2 = 'hX;
+             default:set_2 = 2'bxx;
              endcase
 
    reg [IC_LINE_INDEX_BITS-1:0] tag_wraddress;
    reg [TAG_BITS-1:0]        tag_write_data;
    reg [3:0]                 tag_write_ena;
-
-   wire [31:0]  rdaddr_2 = {set_2,pc_2`CSI,pc_2`WDX};
 
 
    simpledpram #(32,CACHE_BITS - 2,"../../initmem")

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2007 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007,2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -118,11 +118,6 @@ module stage_M(input  wire        clock
     */
    parameter STORE_BUFFER_BITS = 3; // XXX Move to makeconfig.sh
 
-   // Divide instruction addresses into segments
-   `define CHK [CACHEABLE_BITS-1:SET_BITS]
-   `define CSI [SET_BITS-1:LINE_BITS]
-   `define WDX [DC_WORD_INDEX_BITS+1:2]
-
    // Inputs to stage EX - split the address into Cache Set Index, Word Index and Check
    wire [31:0]                   d_address = d_op1_val + d_simm;
    wire [TAG_BITS-1:0]           d_chk; // Tag check
@@ -138,7 +133,7 @@ module stage_M(input  wire        clock
 
    always @(posedge clock) begin
       x_address <= d_address;
-      {x_chk,x_csi,x_wi} <= d_address[31:2];
+      {x_chk,x_csi,x_wi} <= {d_chk,d_csi,d_wi};
    end
 
    wire [TAG_BITS-1:0]        x_tag0, x_tag1, x_tag2, x_tag3;
@@ -155,7 +150,7 @@ module stage_M(input  wire        clock
                'b0100: x_set = 2;
                'b0010: x_set = 1;
                'b0001: x_set = 0;
-               default:x_set = 'hX;
+               default:x_set = 2'bxx;
              endcase
 
    // Shift and replicate the stored data
@@ -182,7 +177,6 @@ module stage_M(input  wire        clock
    // Inputs to stage WB - access cache
    reg  [31:0]                m_address    = 0;
    reg                        m_load       = 0;
-   reg                        m_store      = 0;
    reg  [DC_SET_INDEX_BITS-1:0] m_set      = 0;
    reg  [TAG_BITS-1:0]        m_chk        = 0; // Tag check
    reg  [DC_LINE_INDEX_BITS-1:0] m_csi     = 0; // Cache Set Index (which cache in the set)
@@ -201,11 +195,11 @@ module stage_M(input  wire        clock
    reg  [ 3:0]                 store_buffer_be[0:(1 << STORE_BUFFER_BITS) - 1];
    reg  [STORE_BUFFER_BITS-1:0] store_buffer_wp = 0;
    reg  [STORE_BUFFER_BITS-1:0] store_buffer_rp = 0;
-   wire [STORE_BUFFER_BITS-1:0] store_buffer_wp_1 = store_buffer_wp + 1;
-   wire [STORE_BUFFER_BITS-1:0] store_buffer_rp_1 = store_buffer_rp + 1;
+   wire [STORE_BUFFER_BITS-1:0] store_buffer_wp_1 = store_buffer_wp + 1'd1;
+   wire [STORE_BUFFER_BITS-1:0] store_buffer_rp_1 = store_buffer_rp + 1'd1;
 
 
-   reg [31:0]                   fill_address;
+   reg [29:0]                   fill_address;
    reg                          fill_cache = 0;
    reg [DC_WORD_INDEX_BITS-1:0] fill_wi;
    reg [DC_LINE_INDEX_BITS-1:0] fill_csi;
@@ -311,7 +305,6 @@ module stage_M(input  wire        clock
          m_pc      <= x_pc;
          m_instr   <= x_instr;
          m_address <= x_load ? x_address : 0;
-         m_store   <= x_store;
          m_load    <= x_load;
          m_opcode  <= x_opcode;
          m_wbr     <= x_wbr;
@@ -429,6 +422,11 @@ module stage_M(input  wire        clock
 
             if (!outstanding_cache_miss) begin
                fill_cache   <= 1;
+               // XXX we get a warning here as fill_address is always
+               // starting at the beginning of a line, thus the bottom
+               // bits are zero. This comment is to remind me to
+               // eventually play with critical-word-first and
+               // background filling.
                fill_address <= {x_address[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS-2){1'd0}}};
                fill_wi      <= 0;
                fill_csi     <= x_csi;
