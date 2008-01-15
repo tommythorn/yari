@@ -118,6 +118,9 @@ module main(// Clock and reset
    //  PLLs and clock distribution
    // ------------------------------------------------------------------------
 
+   parameter FREQ = 25_000_000; // match clock frequency
+   parameter BPS  =    115_200; // Serial speed
+
    wire          clk100MHz;     //  100 MHz
    wire          clk25MHz;
    wire          video_clk;     //   25 MHz = screen pixel rate
@@ -255,26 +258,28 @@ module main(// Clock and reset
       );
 `endif
 
+   rs232out rs232out_inst
+      (.clock(clock),
+       .serial_out(ser_txd),
+       .transmit_data(rs232out_d),
+       .we(rs232out_w),
+       .busy(rs232out_busy));
 
-   rs232out #(115200,25000000)
-      rs232out_inst(
-               .clk25MHz(clk),
-               .reset(rst),
+   defparam rs232out_inst.frequency = FREQ,
+            rs232out_inst.bps       = BPS;
 
-               .serial_out(ttyb_txd),
-               .transmit_data(rs232out_d),
-               .we(rs232out_w),
-               .busy(rs232out_busy));
 
-   rs232in #(115200,25000000)
-      rs232in_inst(.clk25MHz(clk),
-                   .reset(rst),
+   rs232in rs232in_inst
+      (.clock(clock),
+       .serial_in(ser_rxd),
+       .received_data(rs232in_data),
+       .attention(rs232in_attention));
 
-                   .serial_in(ttyb_rxd),
-                   .received_data(rs232in_data),
-                   .attention(rs232in_attention));
+   defparam rs232in_inst.frequency = FREQ,
+            rs232in_inst.bps       = BPS;
 
-   rs232 rs232(.clk(clk),
+
+   rs232 rs232_inst(.clk(clock),
                .rst(rst),
 
                .rs232_req(rs232_req),

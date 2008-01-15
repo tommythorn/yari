@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2006 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2006-2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -12,21 +12,18 @@
 
 `timescale 1ns/10ps
 
-module rs232out(// Control
-                input wire         clk25MHz,
-                input wire         reset,
+module rs232out
+   (// Control
+    input wire         clock,
 
-                // Serial line
-                output wire        serial_out,
+    // Serial line
+    output wire        serial_out,
 
-                // Wishbone Interface
-                input  wire  [7:0] transmit_data,
-                input  wire        we,
-                output wire        busy);
+    input  wire  [7:0] transmit_data,
+    input  wire        we,
+    output wire        busy);
 
-   //parameter         bps         =    9_600;
-   parameter           bps        =     57_600;
-   //parameter           bps         =  115_200;
+   parameter           bps         =     57_600;
    parameter           frequency   = 25_000_000;
 `ifndef __ICARUS__
    parameter           period      = frequency / bps;
@@ -44,20 +41,16 @@ module rs232out(// Control
    assign              serial_out  = shift_out[0];
    assign              busy        = ~count[COUNT_SIGN] | ~ttyclk[TTYCLK_SIGN];
 
-   always @(posedge clk25MHz)
-     if (reset) begin
-        shift_out  <= 9'h1F;
-        ttyclk     <= ~0;
-        count      <= ~0;
-     end else if (~ttyclk[TTYCLK_SIGN]) begin
-        ttyclk     <= ttyclk - 1;
-     end else if (~count[COUNT_SIGN]) begin
-        ttyclk     <= period - 2;
-        count      <= count - 1;
-        shift_out  <= {1'b1, shift_out[8:1]};
-     end else if (we) begin
-        ttyclk     <= period - 2;
-        count      <= 9; // 1 start bit + 8 data + 1 stop - 1 due to SIGN trick
-        shift_out  <= {transmit_data, 1'b0};
-     end
+   always @(posedge clock)
+      if (~ttyclk[TTYCLK_SIGN]) begin
+         ttyclk     <= ttyclk - 1;
+      end else if (~count[COUNT_SIGN]) begin
+         ttyclk     <= period - 2;
+         count      <= count - 1;
+         shift_out  <= {1'b1, shift_out[8:1]};
+      end else if (we) begin
+         ttyclk     <= period - 2;
+         count      <= 9; // 1 start bit + 8 data + 1 stop - 1 due to SIGN trick
+         shift_out  <= {transmit_data, 1'b0};
+      end
 endmodule

@@ -75,9 +75,9 @@ module main(
       if (~rst_counter[26])
          rst_counter <= rst_counter - 1;
 
-   wire rst = ~rst_counter[26];
+   wire         rst      = ~rst_counter[26];
 
-   assign       ramb_a = rama_a;
+   assign       ramb_a   = rama_a;
    assign       ramb_ncs = rama_ncs;
    assign       ramb_noe = rama_noe;
    assign       ramb_nwe = rama_nwe;
@@ -147,22 +147,26 @@ module main(
       ,.sram_we_n(rama_nwe)
       );
 
-   rs232out #(BPS,FREQ)
-      rs232out_inst(.clk25MHz(clock),
-               .reset(0),
+   rs232out rs232out_inst
+      (.clock(clock),
+       .serial_out(ser_txd),
+       .transmit_data(rs232out_d),
+       .we(rs232out_w),
+       .busy(rs232out_busy));
 
-               .serial_out(ser_txd),
-               .transmit_data(rs232out_d),
-               .we(rs232out_w),
-               .busy(rs232out_busy));
+   defparam rs232out_inst.frequency = FREQ,
+            rs232out_inst.bps       = BPS;
 
-   rs232in #(BPS,FREQ)
-      rs232in_inst(.clk25MHz(clock),
-                   .reset(0),
 
-                   .serial_in(ser_rxd),
-                   .received_data(rs232in_data),
-                   .attention(rs232in_attention));
+   rs232in rs232in_inst
+      (.clock(clock),
+       .serial_in(ser_rxd),
+       .received_data(rs232in_data),
+       .attention(rs232in_attention));
+
+   defparam rs232in_inst.frequency = FREQ,
+            rs232in_inst.bps       = BPS;
+
 
    rs232 rs232_inst(.clk(clock),
                .rst(rst),

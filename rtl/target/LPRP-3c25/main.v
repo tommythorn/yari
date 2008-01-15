@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007-2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -9,50 +9,6 @@
 //   (at your option) any later version; incorporated herein by reference.
 //
 // -----------------------------------------------------------------------
-//
-// Main module
-
-
-/* 1000 words:
-
-   YARI
-
-   _________
-  |         |
-  | Stage_I |<=============\
-  |_________|              \\
-       |                    \\
-   ____v____                 \\
-  |         |                 \\
-  | Stage D |                  \\
-  |_________|                   \\
-       |                         \\
-   ____v____                      \\           Targets
-  |         |                      \\
-  | Stage X |                       \|
-  |_________|                       ||master
-       |                            ||
-   ____v____                     __\||/___      _________
-  |         |           master  |         |/   |         |
-  | Stage M |<=================>| Bus Ctrl|<==>| Periph. |
-  |_________|                   |___  ____|\   |_________|
-       |                           /||\    \\   _________
-   ____v____                  master||      \\ |         |
-  |         |                    ___||____   \>|SRAM ctrl|
-  | Stage W |                   |         |    |_________|
-  |_________|                   | VGA FB  |
-                                |_________|
-
-
-  4000_0000 - 400F_FFFF Extern SRAM (1 MiB)
-  BFC0_0000 - BFC0_3FFF Boot ROM (16 KiB) (Preloaded I$ cache)
-  FF00_0000 - FF00_1FFF Peripherals
-                        Read             Write
-                      0 rs232out busy    rs232out data
-                      1 rs232in  data
-                      2 rs232in  count
-                      3 TSC
- */
 
 `timescale 1ns/10ps
 `include "../../soclib/pipeconnect.h"
@@ -133,6 +89,9 @@ module main(input  wire        CLK_48_MHZ,
             // Table 13
             inout  wire [12:1] USER_IO);
 
+   parameter FREQ = 48_000_000; // match clock frequency
+   parameter BPS  =    115_200; // Serial speed
+
    wire clock = CLK_48_MHZ;
 
    assign USER_LED = rst_counter[25:22];
@@ -159,77 +118,73 @@ module main(input  wire        CLK_48_MHZ,
    assign          USER_IO[12] = ttyb_txd;
    wire            ttyb_rxd    = USER_IO[11];
 
-   wire [17:0]   port1_addr;
-   wire          port1_rd_strobe;
-   wire [31:0]   port1_rd_data;
-   wire          port1_wait;
+   wire          mem_waitrequest;
+   wire    [1:0] mem_id;
+   wire   [29:0] mem_address;
+   wire          mem_read;
+   wire          mem_write;
+   wire   [31:0] mem_writedata;
+   wire    [3:0] mem_writedatamask;
+   wire   [31:0] mem_readdata;
+   wire    [1:0] mem_readdataid;
 
-   wire `REQ     vga_req, dmem_req, imem_req, master2_req, dc_ctrl_req,
-                 sram_req, peripheral_req, rs232_req;
-   wire `RES     vga_res, dmem_res, imem_res, master2_res, dc_ctrl_res,
-                 sram_res, peripheral_res, rs232_res;
+   wire `REQ     rs232_req;
+   wire `RES     rs232_res;
 
    yari yari_inst(
          .clock(clock)
         ,.rst(rst)
-        ,.imem_req(imem_req)
-        ,.imem_res(imem_res)
-        ,.dmem_req(dmem_req)
-        ,.dmem_res(dmem_res)
+
+        ,.mem_waitrequest(mem_waitrequest)
+        ,.mem_id(mem_id)
+        ,.mem_address(mem_address)
+        ,.mem_read(mem_read)
+        ,.mem_write(mem_write)
+        ,.mem_writedata(mem_writedata)
+        ,.mem_writedatamask(mem_writedatamask)
+        ,.mem_readdata(mem_readdata)
+        ,.mem_readdataid(mem_readdataid)
+
+        ,.peripherals_req(rs232_req)
+        ,.peripherals_res(rs232_res)
         );
 
-   bus_ctrl bus_ctrl(.clk(clock),
-                     .rst(rst),
+   blockram blockram_inst
+      (.clock(clk)
+      ,.rst(rst)
+      ,.mem_waitrequest(mem_waitrequest)
+      ,.mem_id(mem_id)
+      ,.mem_address(mem_address)
+      ,.mem_read(mem_read)
+      ,.mem_write(mem_write)
+      ,.mem_writedata(mem_writedata)
+      ,.mem_writedatamask(mem_writedatamask)
+      ,.mem_readdata(mem_readdata)
+      ,.mem_readdataid(mem_readdataid)
+      );
 
-                     // Master ports
-                     .master1_req(vga_req),  // VGA highest priority!
-                     .master1_res(vga_res),
+   defparam blockram_inst.INIT_FILE="`SRAM_INIT";
 
-                     .master2_req(imem_req),
-                     .master2_res(imem_res),
+   rs232out rs232out_inst
+      (.clock(clock),
+       .serial_out(ser_txd),
+       .transmit_data(rs232out_d),
+       .we(rs232out_w),
+       .busy(rs232out_busy));
 
-                     .master3_req(dmem_req),
-                     .master3_res(dmem_res),
+   defparam rs232out_inst.frequency = FREQ,
+            rs232out_inst.bps       = BPS;
 
-                     // Target ports
-                     .target1_req(sram_req),
-                     .target1_res(sram_res),
 
-                     .target2_req(peripheral_req),
-                     .target2_res(peripheral_res)
-                     );
+   rs232in rs232in_inst
+      (.clock(clock),
+       .serial_in(ser_rxd),
+       .received_data(rs232in_data),
+       .attention(rs232in_attention));
 
-   peri_ctrl peri_ctrl(.clk(clock),
-                       .rst(rst),
+   defparam rs232in_inst.frequency = FREQ,
+            rs232in_inst.bps       = BPS;
 
-                       .peripheral_req(peripheral_req),
-                       .peripheral_res(peripheral_res),
-
-                       .rs232_req(rs232_req),
-                       .rs232_res(rs232_res));
-
-   blockram blockram(.clock(clock),
-                     .rst(rst),
-
-                     .sram_ctrl_req(sram_req),
-                     .sram_ctrl_res(sram_res));
-
-   rs232out #(115200,48000000)
-      rs232out_inst(.clk25MHz(clock),
-               .reset(0),
-
-               .serial_out(ttyb_txd),
-               .transmit_data(rs232out_d),
-               .we(rs232out_w),
-               .busy(rs232out_busy));
-
-   rs232in #(115200,48000000)
-      rs232in_inst(.clk25MHz(clock),
-                   .reset(0),
-
-                   .serial_in(ttyb_rxd),
-                   .received_data(rs232in_data),
-                   .attention(rs232in_attention));
 
    rs232 rs232_inst(.clk(clock),
                .rst(rst),

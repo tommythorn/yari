@@ -93,11 +93,4 @@ module rs232(input  wire        clk,
       $display("Opening of %s resulted in %d", inputtext, file);
    end
 `endif
- /*
-   always @*
-      if (debug)
-        $display("%5d RS232: rs232out_w %d rs232out_busy %d (addr %x)", $time,
-                 rs232out_w, rs232out_busy,
-                 addr);
-  */
 endmodule
