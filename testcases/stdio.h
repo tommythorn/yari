@@ -360,3 +360,15 @@ char *fgets(char *str, int size, FILE *f)
     *f = fp;
     return str;
 }
+
+unsigned __pre_main_t0;
+
+void __pre_main(void)
+{
+    __pre_main_t0 = TSC;
+}
+
+void __post_main(void)
+{
+    printf("Program spent %d cycles in main\n", TSC - __pre_main_t0);
+}

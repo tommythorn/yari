@@ -97,9 +97,15 @@ clear32_tail:
         nop
 
 done_clearing:
+        jal     __pre_main
+        nop
+
         li      $4,1
         la      $5,argv
         jal     main
+        nop
+
+        jal     __post_main
         nop
 
         li $2, 0x87654321
