@@ -468,6 +468,12 @@ unsigned load(unsigned a,  // IN: address
                                         ++rs232in_cnt;
                         }
                         res = rs232in_cnt; break;
+
+                case 3:
+                        // TSC
+                        res = 0;
+                        break;
+
                 default:
                         fatal("Unknown register 0x%08x\n", a);
                 }
