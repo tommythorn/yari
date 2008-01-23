@@ -259,8 +259,8 @@ module main(// Clock and reset
 `endif
 
    rs232out rs232out_inst
-      (.clock(clock),
-       .serial_out(ser_txd),
+      (.clock(clk),
+       .serial_out(ttyb_txd),
        .transmit_data(rs232out_d),
        .we(rs232out_w),
        .busy(rs232out_busy));
@@ -270,8 +270,8 @@ module main(// Clock and reset
 
 
    rs232in rs232in_inst
-      (.clock(clock),
-       .serial_in(ser_rxd),
+      (.clock(clk),
+       .serial_in(ttyb_rxd),
        .received_data(rs232in_data),
        .attention(rs232in_attention));
 
@@ -279,7 +279,7 @@ module main(// Clock and reset
             rs232in_inst.bps       = BPS;
 
 
-   rs232 rs232_inst(.clk(clock),
+   rs232 rs232_inst(.clk(clk),
                .rst(rst),
 
                .rs232_req(rs232_req),
