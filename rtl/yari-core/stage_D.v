@@ -160,9 +160,6 @@ module stage_D(input  wire        clock
       case (i_opcode[5:3])
       0: case (i_opcode[2:0])
          `REG:    d_wbr <= {|i_rd[4:0],i_rd[4:0]};
-         // XXX BUG? I assume `BLTZAL and BGEZAL writes r31 even if
-         // the condition is not met. Someone tell me what the
-         // semantic is here.
          `REGIMM: d_wbr <= {6{i_rt[4]}};// d_rt == `BLTZAL || d_rt == `BGEZAL ? 31 : 0;
          `JAL:    d_wbr <= 6'd32+6'd31;
          default: d_wbr <= 0; // no writeback

@@ -305,16 +305,12 @@ void run_simple(MIPS_state_t *state)
                         case BLTZ:
                                 if ((int)s < 0)
                                         pc_next = state->pc + (i.i.imm << 2);
-                                else
-                                        wbr = 0;
                                 branch_delay_slot_next = 1;
                                 break;
                         case BGEZAL: wbr = 31;
                         case BGEZ:
                                 if ((int)s >= 0)
                                         pc_next = state->pc + (i.i.imm << 2);
-                                else
-                                        wbr = 0;
                                 branch_delay_slot_next = 1;
                                 break;
                         default:
