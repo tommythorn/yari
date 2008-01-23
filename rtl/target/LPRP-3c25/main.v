@@ -87,18 +87,42 @@ module main(input  wire        CLK_48_MHZ,
 	    output wire [ 3:0] USER_LED,
 
             // Table 13
-            inout  wire [12:1] USER_IO);
+            inout  wire [12:1] USER_IO,
+
+            // The MT45W4MW16BCGB PSRAM
+            output wire        RAM_CLK,
+            output wire        RAM_CE_N,
+            output wire        RAM_WE_N,
+            output wire        RAM_OE_N,
+            output wire        RAM_ADV_N,
+            output wire [22:1] RAM_A,
+            inout  wire [15:0] RAM_D,
+            output wire        RAM_CRE,
+            output wire        RAM_LB_N,
+            output wire        RAM_UB_N,
+            input  wire        RAM_WAIT
+            );
 
    parameter FREQ = 48_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
-   wire clock = CLK_48_MHZ;
+   parameter FREQ = 48_000_000; // match clock frequency
+   parameter BPS  =    115_200; // Serial speed
+
+   wire clock, clock_locked;
+
+   // Actually, just a 1-1 clock filter at this point
+   pll	pll_inst (
+	.inclk0 ( CLK_48_MHZ ),
+	.c0 ( clock ),
+	.locked ( clock_locked )
+	);
 
    assign USER_LED = rst_counter[25:22];
 
    reg [26:0] rst_counter = 0;
    always @(posedge clock)
-      if (~USER_PB[0])
+      if (~USER_PB[0] | ~clock_locked)
          rst_counter <= 'd48_000_000;
       else if (~rst_counter[26])
          rst_counter <= rst_counter - 1;
@@ -131,6 +155,7 @@ module main(input  wire        CLK_48_MHZ,
    wire `REQ     rs232_req;
    wire `RES     rs232_res;
 
+
    yari yari_inst(
          .clock(clock)
         ,.rst(rst)
@@ -149,8 +174,43 @@ module main(input  wire        CLK_48_MHZ,
         ,.peripherals_res(rs232_res)
         );
 
-   blockram blockram_inst
-      (.clock(clk)
+/*
+   reg  state_read = 0;
+   reg [ 4:0] a = 2;
+   reg [ 4:0] my_address;
+   reg [31:0] my_writedata;
+   reg        my_read = 0;
+   reg        my_write = 0;
+   assign     mem_address       = my_address;
+   assign     mem_read          = my_read;
+   assign     mem_write         = my_write;
+   assign     mem_writedata     = my_writedata;
+   assign     mem_writedatamask = 'hF;
+   assign     mem_id            = mem_address;
+
+   always @(posedge clock)
+      if (!rst & !mem_waitrequest) begin
+         my_read <= 0;
+         my_write <= 0;
+         state_read <= !state_read;
+
+         if (state_read) begin
+            my_address <= a - 1'd3;
+            my_read <= 1;
+         end else begin
+            a <= a + 1'd1;
+            my_address <= a;
+            my_writedata <= (a << 16) + (a << 2);
+            my_write <= 1;
+         end
+      end
+*/
+
+   assign RAM_CLK = 0;
+   assign RAM_CRE = 0;
+   assign RAM_ADV_N = 0;
+   sram16_ctrl sram16_ctrl_inst
+      (.clock(clock)
       ,.rst(rst)
       ,.mem_waitrequest(mem_waitrequest)
       ,.mem_id(mem_id)
@@ -161,9 +221,14 @@ module main(input  wire        CLK_48_MHZ,
       ,.mem_writedatamask(mem_writedatamask)
       ,.mem_readdata(mem_readdata)
       ,.mem_readdataid(mem_readdataid)
-      );
 
-   defparam blockram_inst.INIT_FILE="`SRAM_INIT";
+      ,.sram_a(RAM_A[22:1])
+      ,.sram_d(RAM_D)
+      ,.sram_cs_n(RAM_CS_N)
+      ,.sram_be_n({RAM_UB_N,RAM_LB_N})
+      ,.sram_oe_n(RAM_OE_N)
+      ,.sram_we_n(RAM_WE_N)
+      );
 
    rs232out rs232out_inst
       (.clock(clock),
@@ -184,7 +249,6 @@ module main(input  wire        CLK_48_MHZ,
 
    defparam rs232in_inst.frequency = FREQ,
             rs232in_inst.bps       = BPS;
-
 
    rs232 rs232_inst(.clk(clock),
                .rst(rst),

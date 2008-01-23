@@ -47,8 +47,7 @@ set_global_assignment -name AUTO_RESTART_CONFIGURATION ON
 set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
 set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME ON
 set_global_assignment -name IGNORE_CLOCK_SETTINGS ON
-set_global_assignment -name FMAX_REQUIREMENT "200 MHz"
-set_global_assignment -name USE_SIGNALTAP_FILE stp2.stp
+set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 
 
 
@@ -56,7 +55,7 @@ set_global_assignment -name DEVICE EP3C25F324C8
 set_global_assignment -name FAMILY "Cyclone III"
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "6.1 SP0.01"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:18:31  FEBRUARY 20, 2007"
-set_global_assignment -name LAST_QUARTUS_VERSION 7.2
+set_global_assignment -name LAST_QUARTUS_VERSION "7.2 SP1"
 set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 324
 set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 8
@@ -449,8 +448,8 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA ON
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA OFF
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_A
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to RAM_D
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_D
@@ -463,9 +462,9 @@ set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_UB_N
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to RAM_WE_N
 set_instance_assignment -name FAST_INPUT_REGISTER ON -to RAM_WAIT
 set_instance_assignment -name FAST_INPUT_REGISTER ON -to RAM_D
-set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
-set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT FAST
 set_location_assignment PIN_V3 -to USER_IO[1]
 set_location_assignment PIN_V8 -to USER_IO[2]
 set_location_assignment PIN_T4 -to USER_IO[3]
@@ -505,7 +504,11 @@ set_global_assignment -name ENABLE_ADVANCED_IO_TIMING ON
 set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 1.8V
 
 set_global_assignment -name ADV_NETLIST_OPT_RETIME_CORE_AND_IO ON
+
+
 set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE sram16_ctrl.v
+set_global_assignment -name VERILOG_FILE mega/pll.v
 set_global_assignment -name VERILOG_FILE ../../soclib/blockram.v
 set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
 set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
@@ -523,7 +526,6 @@ set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
 set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
-set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
@@ -538,3 +540,4 @@ set_global_assignment -name MIF_FILE tags2.mif
 set_global_assignment -name MIF_FILE tags3.mif
 set_global_assignment -name CDF_FILE main.cdf
 set_global_assignment -name SIGNALTAP_FILE stp2.stp
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
