@@ -106,9 +106,6 @@ module main(input  wire        CLK_48_MHZ,
    parameter FREQ = 48_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
-   parameter FREQ = 48_000_000; // match clock frequency
-   parameter BPS  =    115_200; // Serial speed
-
    wire clock, clock_locked;
 
    // Actually, just a 1-1 clock filter at this point
@@ -232,7 +229,7 @@ module main(input  wire        CLK_48_MHZ,
 
    rs232out rs232out_inst
       (.clock(clock),
-       .serial_out(ser_txd),
+       .serial_out(ttyb_txd),
        .transmit_data(rs232out_d),
        .we(rs232out_w),
        .busy(rs232out_busy));
@@ -243,7 +240,7 @@ module main(input  wire        CLK_48_MHZ,
 
    rs232in rs232in_inst
       (.clock(clock),
-       .serial_in(ser_rxd),
+       .serial_in(ttyb_rxd),
        .received_data(rs232in_data),
        .attention(rs232in_attention));
 
