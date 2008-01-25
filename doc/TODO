@@ -37,25 +37,18 @@ TODO
 
 * Write a PSRAM controller (for the LPRP).
 
-* Improve cycle time; attack the current critical path which is in
-  ME. First try switching from a tag-sequental cache to the more
-  conventional way select (using a 32-bit 4-mux). This gives us
-  another stage to do the load alignment and sign-extension.
+* We're dancing on eggshells; instructions modifying non-register
+  state in EX wouldn't behave correctly when flushed from ME! (eg, lw
+  $3, ($4); mthi $5). The only reason there are no known bugs is
+  because currently the only flushes from ME are restarts.
 
-* Integrate testall.S into tinymon.c
+  If ME is ever taught to trap (misalignment, segmentation violation,
+  permission problems, page miss, etc), then this will require
+  immediate attention.
 
-* Change makeconfig.sh to instead parse config.h (which should now be
-  written by hand). This is in preparation for moving many more
-  configurable features to the config.h
 
-* Implement I$ flushing!
-
-* Port to Xilinx' ML401 and one of the Spartan-3 starter kits
-
-* Implement DIV
-
-* Move all architectual state updates to the latest stage that can
-  flush the pipe (and thus annul the updates).
+  Fixing this requires moving all architectual state updates to the
+  latest stage that can flush the pipe (and thus annul the updates).
 
   Doing this requires one of two approaches: The simplest is to move
   their implementation to stage ME, that is, give them an additional
@@ -84,12 +77,27 @@ TODO
   but imagine something like mul or other that can change the state in
   a different way each time.)
 
-* Trap on ADD[I] and SUB overflow
+* Improve cycle time; attack the current critical path which is in
+  ME. First try switching from a tag-sequental cache to the more
+  conventional way select (using a 32-bit 4-mux). This gives us
+  another stage to do the load alignment and sign-extension.
+
+* Integrate testall.S into tinymon.c
+
+* Change makeconfig.sh to instead parse config.h (which should now be
+  written by hand). This is in preparation for moving many more
+  configurable features to the config.h
+
+* Implement I$ flushing!
 
 * Merge fpgaMMIX and YARI, incl. the Avalon-like interconnect (for
   peripherals). Automate the generation of the interconnection.
 
 * Implement interrupt support
+
+* Port to Xilinx' ML401 and one of the Spartan-3 starter kits
+
+* Trap on ADD[I] and SUB overflow
 
 * Implement D$ flushing!
 
@@ -163,9 +171,7 @@ OTHER:
 * (PERF) Conditional support for pipeline stalls (need to examine the
   cycle-time penalty and the cost-benefit)
 
-* Better portability to other devices incl. Xilinx
-
-* More complete R3000 support, incl. trapping ADD/SUB on overflow
+* More complete R3000 support
 
 * Make the simulator more complete, incl. support for CP2 features
   like virtual memory etc.
@@ -211,15 +217,6 @@ OTHER:
 Old stuff below pending clean up .....
 
 FEATURES
-0. Get GDBstub running for loading and starting programs [DONE]
-
-   0a. Solve the bootstrapping problem: how to populate the data
-       segment from the bootprom (preloaded cache from which stage ME
-       can't access data). [DONE]
-
-   0b. Implement I$ cache flushing.  Limited isasim support.  Full
-       RTL.
-
 1. Debugging with the GDB stub:
 
    1a. Interrupts support
@@ -228,11 +225,6 @@ FEATURES
 
    1b. Get single stepping working (GDB stub work mostly).
 
-
-
-
-
-2. Implement DIV*.
 3. SDRAM support.
 
 4. Better infrastructure for peripherals
@@ -243,20 +235,7 @@ FEATURES
 9. Flash RAM support.
 A. PS/2 Mouse.
 
-B. Ports to ML401, XSA-100, ...
-
-C. (MAYBE) Exploit the R-modify-W mode of the SRAM to create a "smart"
-   framebuffer.  Probably only worthwhile if the SRAM is dedicated to
-   the framebuffer.
-
 PERFORMANCE
-- Make the SRAM interface much faster (fewer cycles)
-
-- (ADV) Rethink the internal memory bus.  Notably, it's silly for the
-  I$ to be able to access the (slow) peripheral bus.
-
-- Make the I$ filling faster (fewer cycles).
-
 - (ADV) Don't block while filling the I$.  Not obvious how to achieve
   this without inserting logic between the I$ ram and the decode
   stage.
@@ -267,10 +246,6 @@ PERFORMANCE
   outstanding are probably not worth the trouble.
 
 OTHER
-
-0. Make a "normal.ld" linker script that places programs in SRAM +
-   write a little boot loader that copies it from the boot rom to
-   sram. (MAYBE)
 
 4. Consistent naming convention (FOREVER ONGOING)
 
@@ -283,6 +258,3 @@ OTHER
 
   + Convert more assigns to un-clocked registers (always @*'s) -- it's
     easier to read (DEBATABLE)
-
-  + Minimize the amount of logic after registers (D'OH!)
-

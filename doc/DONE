@@ -1,5 +1,7 @@
 DONE
 
+* Implemented DIV and DIVU
+
 * Added a 16-bit async sram controller for LPRP.
 
 * sram_ctrl.v: burst reads can now be issued back to back, fully

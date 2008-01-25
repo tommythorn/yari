@@ -75,6 +75,11 @@ module stage_X(input  wire        clock
    reg [31:0]         mult_lo = 0;
    reg [31:0]         mult_hi = 0;
 
+   reg                div_busy = 0, div_neg_res, div_neg_rem;
+   reg [31:0]         divisor = 0, div_hi = 0, div_lo = 0;
+   reg [32:0]         diff = 0;
+   reg [ 6:0]         div_n = 0;
+
    reg [31:0]         cp0_status = 0,     // XXX -- " --
                       cp0_epc = 0,
                       cp0_errorepc = 0,
@@ -152,6 +157,23 @@ module stage_X(input  wire        clock
       end
 `endif
 
+      {div_hi,div_lo} = {div_hi,div_lo} << 1;
+      diff = div_hi - divisor;
+      if (!diff[32]) begin
+         div_hi = diff;
+         div_lo[0] = 1;
+      end
+      if (div_busy && div_n[6]) begin // XXX merge div_busy === !div_n[6]?
+         // results: div_hi is remainder, div_lo is result
+         div_busy <= 0;
+         mult_lo <= div_neg_res ? -div_lo : div_lo; // result
+         mult_hi <= div_neg_rem ? -div_hi : div_hi; // remainder
+         $display("DIV = hi %d lo %d",
+                  div_neg_rem ? -div_hi : div_hi,
+                  div_neg_res ? -div_lo : div_lo);
+      end else
+         div_n <= div_n - 1'd1;
+
       case (d_opcode)
       `REG:
          case (d_fn)
@@ -177,9 +199,11 @@ module stage_X(input  wire        clock
                x_restart_pc <= d_op1_val;
             end
 
+
+
          // XXX BUG See the comment above with mult_lo and mult_hi
          `MFHI:
-            if (mult_busy && d_valid) begin
+            if ((mult_busy | div_busy) && d_valid) begin
                x_flush_D    <= 1;
                x_valid      <= 0;
                x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
@@ -187,7 +211,7 @@ module stage_X(input  wire        clock
             end else
                x_res        <= mult_hi;
          `MFLO:
-            if (mult_busy && d_valid) begin
+            if ((mult_busy | div_busy) && d_valid) begin
                x_flush_D    <= 1;
                x_valid      <= 0;
                x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
@@ -196,7 +220,7 @@ module stage_X(input  wire        clock
                x_res        <= mult_lo;
          `MTHI:
             if (d_valid) begin
-               if (mult_busy) begin
+               if (mult_busy | div_busy) begin
                   x_flush_D    <= 1;
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
@@ -206,7 +230,7 @@ module stage_X(input  wire        clock
             end
          `MTLO:
             if (d_valid) begin
-               if (mult_busy) begin
+               if (mult_busy | div_busy) begin
                   x_flush_D    <= 1;
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
@@ -215,14 +239,53 @@ module stage_X(input  wire        clock
                   mult_lo      <= d_op1_val;
             end
 
-         //`DIV:   reg_mul.u32[1] = (int)s % (int)t;
-         //        reg_mul.u32[0] = (int)s / (int)t; break;
-         //`DIVU:  reg_mul.u32[1] = s % t;
-         //        reg_mul.u32[0] = s / t; break;
+         `DIV:
+            if (d_valid) begin
+               if (mult_busy | div_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else begin
+                  $display("DIV %x / %x", d_op1_val, d_op2_val);
+                  div_busy    <= 1;
+                  div_hi      <= 0;
+                  div_lo      <= d_op1_val[31] ? -d_op1_val : d_op1_val;
+                  divisor     <= d_op2_val[31] ? -d_op2_val : d_op2_val;
+                  div_neg_res <= d_op1_val[31] ^ d_op2_val[31];
+
+                  // res = a/b, rem = a - b*(a/b)
+                  // thus the rem sign follows a only
+
+                  div_neg_rem <= d_op1_val[31];
+                  div_n       <= 30;
+                  $display("%05dc EX: %d / %d", $time, d_op1_val, d_op2_val);
+               end
+            end
+
+         `DIVU:
+            if (d_valid) begin
+               if (mult_busy | div_busy) begin
+                  x_flush_D    <= 1;
+                  x_valid      <= 0;
+                  x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
+                  x_restart    <= 1;
+               end else begin
+                  $display("DIVU %x / %x", d_op1_val, d_op2_val);
+                  div_busy    <= 1;
+                  div_hi      <= 0;
+                  div_lo      <= d_op1_val;
+                  divisor     <= d_op2_val;
+                  div_neg_res <= 0;
+                  div_neg_rem <= 0;
+                  div_n       <= 30;
+                  $display("%05dc EX: %d /U %d", $time, d_op1_val, d_op2_val);
+               end
+            end
 
          `MULTU:
             if (d_valid) begin
-               if (mult_busy) begin
+               if (mult_busy | div_busy) begin
                   x_flush_D    <= 1;
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
@@ -243,7 +306,7 @@ module stage_X(input  wire        clock
 
          `MULT:
             if (d_valid) begin
-               if (mult_busy) begin
+               if (mult_busy | div_busy) begin
                   x_flush_D    <= 1;
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
