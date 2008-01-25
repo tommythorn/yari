@@ -46,6 +46,8 @@ void print_conf(unsigned conf0)
 //
 //      539 in the danish variant that is played with only six tokens
 
+#define random() 1
+
 static inline unsigned umin(unsigned a, unsigned b)
 {
     if (a <= b)
@@ -57,7 +59,7 @@ static inline unsigned umin(unsigned a, unsigned b)
 #define FOREACHCOLOR(p) for (p = 0; p <= 2; ++p)
 
 #define MAXCONF (1 << 18)
-unsigned char known_outcome[MAXCONF];
+unsigned char *known_outcome;
 int delay = 300000;
 int game = 1;
 
@@ -207,6 +209,11 @@ void play(void)
 
 int main(int argc, char **argv)
 {
+    int i;
+    known_outcome = malloc(MAXCONF);
+
+    memset(known_outcome, 0, MAXCONF);
+
     for (;;) {
         play();
         game++;

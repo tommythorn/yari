@@ -85,11 +85,17 @@ int puts(char *s)
     return n;
 }
 
+
+int printf(char *fmt, ...);
+
 int exit(int v)
 {
     asm("li $2, 0x87654321");
     asm("mtlo $2");
     asm(".word 0x48000000");
+
+    printf("THE END\n");
+    for (;;);
 }
 
 #endif
@@ -371,4 +377,42 @@ void __pre_main(void)
 void __post_main(void)
 {
     printf("Program spent %d cycles in main\n", TSC - __pre_main_t0);
+}
+
+extern char _end[];
+
+
+void *__sbrk_p = _end;
+
+void *malloc(unsigned size)
+{
+    void *res = __sbrk_p;
+
+    __sbrk_p += size;
+}
+
+void memset(void *d, char v, unsigned size)
+{
+    char *cp = (char *) d;
+
+    while ((unsigned) cp & 3 && size)
+        *cp++ = v, --size;
+
+    unsigned *up = (unsigned *) cp;
+    unsigned vvvv = v * 0x1010101;
+    while (size > 32) {
+        up[0] = vvvv;
+        up[1] = vvvv;
+        up[2] = vvvv;
+        up[3] = vvvv;
+        up[4] = vvvv;
+        up[5] = vvvv;
+        up[6] = vvvv;
+        up[7] = vvvv;
+        size -= 32;
+    }
+
+    cp = (char *) up;
+    while (size)
+        *cp++ = v, --size;
 }
