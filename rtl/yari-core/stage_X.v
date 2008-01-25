@@ -157,14 +157,18 @@ module stage_X(input  wire        clock
       end
 `endif
 
-      {div_hi,div_lo} = {div_hi,div_lo} << 1;
-      diff = div_hi - divisor;
-      if (!diff[32]) begin
-         div_hi = diff;
-         div_lo[0] = 1;
-      end
-      if (div_busy && div_n[6]) begin // XXX merge div_busy === !div_n[6]?
-         // results: div_hi is remainder, div_lo is result
+      // XXX the use of non-blocking assignments here is intentional
+      // (easier to read), but it has the unfortunate consequence of
+      // making the final negation more expensive than it should have
+      // been. Rework this.
+      if (!div_n[6]) begin
+         {div_hi,div_lo} = {div_hi,div_lo} << 1;
+         diff = div_hi - divisor;
+         if (!diff[32]) begin
+            div_hi = diff;
+            div_lo[0] = 1;
+         end
+      end else if (div_busy) begin
          div_busy <= 0;
          mult_lo <= div_neg_res ? -div_lo : div_lo; // result
          mult_hi <= div_neg_rem ? -div_hi : div_hi; // remainder
