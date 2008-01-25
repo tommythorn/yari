@@ -23,7 +23,7 @@ module rs232in
 
    parameter           bps        =     57_600;
    parameter           frequency  = 25_000_000;
-   parameter           period     = frequency / bps - 1;
+   parameter           period     = (frequency + bps/2) / bps;
 
    reg [16:0] ttyclk     = 0;
    reg [7:0]  shift_in   = 0;

@@ -26,7 +26,7 @@ module rs232out
    parameter           bps         =     57_600;
    parameter           frequency   = 25_000_000;
 `ifndef __ICARUS__
-   parameter           period      = frequency / bps;
+   parameter           period      = (frequency + bps/2) / bps;
 `else
    // One of the very few simulation artifacts we have to deal with at the source level.
    parameter           period      = 0;
