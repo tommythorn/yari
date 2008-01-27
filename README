@@ -1,6 +1,6 @@
               YARI -- Yet Another RISC Implementation
 
-Last update: 2007-12-12
+Last update: 2008-01-25
 
 INTRODUCTION
 
@@ -21,23 +21,18 @@ implementation currently comprises:
   + a 4-way associative write-through instruction cache (default 8 KiB)
   + a 4-way associative write-through data cache (default 16 KiB)
   + a store buffer
-  + all of the integer user-level instructions supported (current
-    missing DIV*).
+  + all of the integer user-level instructions supported
 
   Peripherals (depending on the target)
-  + SRAM interface
-  + 640x480x1 video interface
+  + SRAM interface (32-bit and 16-bit)
   + Serial in/out
-  + 8 LED out put for debugging.
 
   Simulation
   + Enough support to fully simulate the RTL with Icarus Verilog.
   + Co-simulation against the reference simulator supported
 
   Synthesis
-  + Targeted at the Altera Nios Dev Kit, Cyclone edition, and
-    others.
-
+  + Multiple target platforms supported (currently only Altera based)
   + Runs (last it ran) happily at 50+ MHz.
 
 - A boot loader pre-loaded into the I$ - will load programs over the

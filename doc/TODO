@@ -1,3 +1,11 @@
+Before YARI 0.1-RC2: Improve documentation
+Before YARI 0.2: Interrupts and exceptions!
+Before YARI 0.3: Improve the SOC generator and add more peripherals
+Before YARI 0.5: Improve the cycle time
+
+Before YARI 0.9: CP2 support, supervisor mode, trap illegal instructions
+Before YARI 1.0: Boot Linux!
+
 PIPELINE OVERVIEW:
 
     (Beware, currently there's a fairly loose mapping between pipeline
