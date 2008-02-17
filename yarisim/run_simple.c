@@ -258,7 +258,9 @@ void run_simple(MIPS_state_t *state)
                                         state->hi = (int)s % (int)t;
                                         state->lo = (int)s / (int)t;
                                 } else {
-                                        // XXX What is supposed to happen here?
+                                        // Technically undefined
+                                        state->hi = s;
+                                        state->lo = 0;
                                 }
                                 break;
                         case DIVU:
@@ -266,14 +268,43 @@ void run_simple(MIPS_state_t *state)
                                         state->hi = s % t;
                                         state->lo = s / t;
                                 } else {
-                                        // XXX What is supposed to happen here?
+                                        // Technically undefined
+                                        state->hi = s;
+                                        state->lo = 0;
                                 }
                                 break;
-                        case ADD:  fatal("Instruction ADD not supported\n");
-                                   wbv = s + t; break; // XXX Ignore the trap on overflow for now
+                        case SUB:
+                                t = -(int)t;
+                                /* Fall-though */
+
+                        case ADD:
+                                wbv = s + t;
+
+                                /*
+                                 * Check for overflow, that is, if the
+                                 * sign of the truncated result is
+                                 * different from sign of the true
+                                 * addition. One cheap way to test it:
+                                 * s.sign t.sign r.sign
+                                 * 1      0      X      -> ok
+                                 * 0      1      X      -> ok
+                                 * 0      0      1      -> overflow
+                                 * 1      1      0      -> overflow
+                                 * IOW: ss ^ ts | ss ^ rs
+                                 */
+                                if ((s^t|s^wbr) >> 31) {
+                                        state->cp0_cause.exc_code = EXC_OV;
+                                        state->cp0_cause.ce = 0;
+                                        state->cp0_cause.bd = branch_delay_slot;
+                                        state->cp0r[CP0_EPC] = pc_prev - 4 * branch_delay_slot;
+
+                                        pc_next = 0xBFC00280; // XXX Not too sure about this!
+                                        annul_delay_slot = 1;
+                                        state->cp0_status.exl = 1; // XXX This I know is wrong!
+                                        wbr = 0;
+                                }
+                                break;
                         case ADDU: wbv = s + t; break;
-                        case SUB:  fatal("Instruction SUB not supported\n");
-                                   wbv = s - t; break;
                         case SUBU: wbv = s - t; break;
                         case AND:  wbv = s & t; break;
                         case OR:   wbv = s | t; break;
@@ -284,12 +315,15 @@ void run_simple(MIPS_state_t *state)
                         case SLTU: wbv = s < t; break;
                         case BREAK:
                                 //pc_next = (cp0_status.bev ? 0xBFC00200 : 0x80000000) + 0x180;
+                                state->cp0_cause.exc_code = EXC_BP;
+                                state->cp0_cause.ce = 0;
+                                state->cp0_cause.bd = branch_delay_slot;
+                                state->cp0r[CP0_EPC] = pc_prev - 4 * branch_delay_slot;
+
                                 pc_next = 0xBFC00380;
                                 annul_delay_slot = 1;
                                 state->cp0_status.exl = 1;
-                                state->cp0_cause.exc_code = EXC_BP;
-                                state->cp0_cause.bd = branch_delay_slot;
-                                state->cp0r[CP0_EPC] = pc_prev;
+                                wbr = 0;
                                 break;
                         default:
                                 fatal("REG sub-opcode %d not handled\n", i.r.funct);
