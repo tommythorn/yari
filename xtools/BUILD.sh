@@ -12,6 +12,21 @@ export gccdist=gcc-4.2.1
 export binutilsdist=binutils-2.18
 export newlibdist=newlib-1.15.0
 
+download () {
+    location=$1
+    object=$2
+
+    if [ ! -f $GNUsrc/$object ]; then
+	wget -O $GNUsrc/$object $location/$object
+    else
+	echo "already have cached version of $object"
+    fi
+}
+
+download http://ftp.gnu.org/gnu/gcc/$gccdist gcc-core-${gccdist##*-}.tar.bz2
+download http://ftp.gnu.org/gnu/binutils $binutilsdist.tar.bz2
+download ftp://sources.redhat.com/pub/newlib newlib-1.15.0.tar.gz
+
 cd $builddir
 
 # Untar the files
