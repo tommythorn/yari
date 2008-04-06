@@ -228,11 +228,15 @@ void readelf(char *name)
                         // for BFC0XXXX
                         continue;
 
-                if (W(ph[i].p_type) == PT_LOAD && W(ph[i].p_filesz)) {
-                        fprintf(stderr, "Loading section [%08x; %08x]\n",
-                               W(ph[i].p_vaddr), W(ph[i].p_memsz));
-                        loadsection(f, W(ph[i].p_offset), W(ph[i].p_filesz),
-                                    W(ph[i].p_vaddr), W(ph[i].p_memsz));
+                if (W(ph[i].p_type) == PT_LOAD) {
+                        ensure_mapped_memory_range(W(ph[i].p_vaddr),
+                                                   W(ph[i].p_memsz));
+                        if (W(ph[i].p_filesz)) {
+                                fprintf(stderr, "Loading section [%08x; %08x]\n",
+                                        W(ph[i].p_vaddr), W(ph[i].p_memsz));
+                                loadsection(f, W(ph[i].p_offset), W(ph[i].p_filesz),
+                                            W(ph[i].p_vaddr), W(ph[i].p_memsz));
+                        }
                 }
 
                 if (W(ph[i].p_flags) & 1) {
