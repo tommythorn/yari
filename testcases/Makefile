@@ -7,7 +7,13 @@ TINYMON=../firmware/tinymon-prom
 PROG=showtime
 VERB=--verb
 
-all: cosim
+all: regress-test
+
+regress-test:
+	@for t in regress/*.c; do \
+		/bin/echo -n $$(basename $$t .c)': '; \
+		if make cosim VERB= PROG=regress/$$(basename $$t .c) 2> /dev/null | grep -q 'TEST SUCCESS'; \
+		then echo PASS; else echo FAIL; fi; done
 
 working: hw.txt sieve.txt fib.txt lievaart2.txt
 
