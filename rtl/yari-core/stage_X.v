@@ -168,6 +168,7 @@ module stage_X(input  wire        clock
             div_hi = diff;
             div_lo[0] = 1;
          end
+         div_n <= div_n - 1'd1;
       end else if (div_busy) begin
          div_busy <= 0;
          mult_lo <= div_neg_res ? -div_lo : div_lo; // result
@@ -175,8 +176,7 @@ module stage_X(input  wire        clock
          $display("DIV = hi %d lo %d",
                   div_neg_rem ? -div_hi : div_hi,
                   div_neg_res ? -div_lo : div_lo);
-      end else
-         div_n <= div_n - 1'd1;
+      end
 
       case (d_opcode)
       `REG:
@@ -251,7 +251,6 @@ module stage_X(input  wire        clock
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
                end else begin
-                  $display("DIV %x / %x", d_op1_val, d_op2_val);
                   div_busy    <= 1;
                   div_hi      <= 0;
                   div_lo      <= d_op1_val[31] ? -d_op1_val : d_op1_val;
@@ -262,7 +261,7 @@ module stage_X(input  wire        clock
                   // thus the rem sign follows a only
 
                   div_neg_rem <= d_op1_val[31];
-                  div_n       <= 30;
+                  div_n       <= 31;
                   $display("%05dc EX: %d / %d", $time, d_op1_val, d_op2_val);
                end
             end
@@ -275,14 +274,13 @@ module stage_X(input  wire        clock
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
                end else begin
-                  $display("DIVU %x / %x", d_op1_val, d_op2_val);
                   div_busy    <= 1;
                   div_hi      <= 0;
                   div_lo      <= d_op1_val;
                   divisor     <= d_op2_val;
                   div_neg_res <= 0;
                   div_neg_rem <= 0;
-                  div_n       <= 30;
+                  div_n       <= 31;
                   $display("%05dc EX: %d /U %d", $time, d_op1_val, d_op2_val);
                end
             end
