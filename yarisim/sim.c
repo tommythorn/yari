@@ -105,15 +105,18 @@ void print_stats(void)
                 + 1e-6 * (stat_stop_time.tv_usec - stat_start_time.tv_usec);
 
         putchar('\n');
-        printf("Simulation of %d instructions in %4.2fs ~= %4.6f kIPS \n",
-               n_issue, delta, n_issue / (1e3 * delta));
+        printf("Simulation of %llu instructions in %4.2fs ~= %4.6f MIPS \n",
+               n_issue, delta, n_issue / (1e6 * delta));
 
-        printf("%4.2f%% jal\n", 100.0 * n_call / n_issue);
+        // printf("%4.2f%% jal\n", 100.0 * n_call / n_issue);
+        printf("I$ %llu hits / %llu misses = %4.2f%% miss rate\n",
+               n_icache_hits, n_icache_misses,
+               100.0 * n_icache_misses / (n_icache_hits + n_icache_misses));
 
         if (enable_cosimulation) {
                 double freq = 25.0;
 
-                printf("RTL stalls %d\n", n_stall);
+                printf("RTL stalls %llu\n", n_stall);
                 printf("RTL CPI: %4.2f  ", (double) n_cycle / (double) n_issue);
                 printf("Cosim speed %4.2fX slower than realtime (assuming %g MHz)\n",
                        freq * 1e6 / (n_cycle / delta), freq);

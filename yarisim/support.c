@@ -11,11 +11,6 @@
 #include "runmips.h"
 #include <ctype.h>
 
-int n_call = 0;
-int n_cycle = 0;
-int n_issue = 0;
-int n_stall = 0;
-
 unsigned text_start = ~0;
 unsigned text_size  = 0;
 unsigned mif_size = 16384;

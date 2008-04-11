@@ -2,6 +2,7 @@
 #define _RUNMIPS_H_ 1
 
 #include <sys/time.h>
+#include <stdint.h>
 
 /* Basic latencies */
 #define LOAD_LATENCY 0
@@ -91,9 +92,10 @@ extern unsigned program_entry;
 extern unsigned text_start, text_size;
 extern unsigned mif_size;
 
-extern int n_cycle, n_stall;
-extern int n_issue;
-extern int n_call;
+long long unsigned n_cycle, n_stall;
+long long unsigned n_issue;
+long long unsigned n_call;
+long long unsigned n_icache_hits, n_icache_misses;
 
 extern int rs232in_fd;
 extern int rs232out_fd;

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
@@ -60,10 +61,10 @@ char *inst_name[64+64+32] = {
 char last[KEEP_LINES][RTL_MAX_LINE];
 unsigned last_p = 0;
 
-int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
+int get_rtl_commit(uint64_t *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
 {
         char buf[RTL_MAX_LINE];
-        unsigned time = ~0;
+        long long unsigned time = ~0;
         unsigned watchdog = 1000;
 
         for (;;) {
@@ -82,7 +83,7 @@ int get_rtl_commit(unsigned *cycle, unsigned *pc, unsigned *wbr, unsigned *wbv)
                         last_p = 0;
 
                 r = sscanf(buf,
-                           "%u  COMMIT  %x:r%d <- %x\n",
+                           "%llu  COMMIT  %x:r%d <- %x\n",
                            &time, pc, wbr, wbv);
 
                 if (r != 4)
@@ -104,7 +105,7 @@ int note_commit(unsigned io,
         // trace and compare
 
         if (enable_cosimulation) {
-                unsigned rtl_cycle;
+                uint64_t rtl_cycle;
                 int r = get_rtl_commit(&rtl_cycle, rtl_pc, rtl_wbr, rtl_wbv);
                 n_cycle = rtl_cycle;
 
@@ -147,12 +148,60 @@ void print_coverage(void)
         putchar(' ');
 }
 
+/*
+ * Simulate a simple 8 KiB 4-way I$.
+ */
+
+#define IC_SET_INDEX_BITS  2    // Caches has four sets
+#define IC_LINE_INDEX_BITS 7    // Each set has 128 lines
+#define IC_WORD_INDEX_BITS 2    // Each line has 4 32-bit words (128 bits)
+
+
+unsigned next_way;
+
+uint32_t icache_data[1 << IC_SET_INDEX_BITS][1 << IC_LINE_INDEX_BITS][1 << IC_WORD_INDEX_BITS];
+uint32_t icache_tag[1 << IC_SET_INDEX_BITS][1 << IC_LINE_INDEX_BITS];
+
+uint32_t icache_fetch(uint32_t address)
+{
+        unsigned line = (address >> (IC_WORD_INDEX_BITS + 2)) & ((1 << IC_LINE_INDEX_BITS) - 1);
+        unsigned word = (address >> 2)                        & ((1 << IC_WORD_INDEX_BITS) - 1);
+        unsigned way;
+        unsigned tag = address >> (IC_LINE_INDEX_BITS + IC_WORD_INDEX_BITS + 2);
+        unsigned fill_address, i;
+
+        for (way = 0; way < (1 << IC_SET_INDEX_BITS); ++way)
+                if (icache_tag[way][line] == tag) {
+                        uint32_t ic_data = icache_data[way][line][word];
+                        // I$ hit
+                        ++n_icache_hits;
+
+                        if (ic_data != load(address, 4, 1))
+                                printf("CRITICAL WARNING: executing stale I$ data for %08x\n", address);
+
+                        return ic_data;
+                }
+        ++n_icache_misses;
+
+        // Fill a line
+        way = next_way++ & ((1 << IC_SET_INDEX_BITS) - 1);
+        fill_address = address & ~((1 << (IC_WORD_INDEX_BITS + 2)) - 1);
+        for (i = 0; i < 1 << IC_WORD_INDEX_BITS; ++i, fill_address += 4)
+                icache_data[way][line][i] = load(fill_address, 4, 1);
+        icache_tag[way][line] = tag;
+
+        if (icache_data[way][line][word] != load(address, 4, 1))
+                printf("BROKEN!\n");
+
+        return icache_data[way][line][word];
+}
+
 void run_simple(MIPS_state_t *state)
 {
-        u_int32_t oldreg[32];
-        u_int32_t pc_prev;
-        u_int32_t pc_next = state->pc + 4;
-        u_int32_t wbv, s = 0, t, st_old = 0;
+        uint32_t oldreg[32];
+        uint32_t pc_prev;
+        uint32_t pc_next = state->pc + 4;
+        uint32_t wbv, s = 0, t, st_old = 0;
         int wbr;
 
         int branch_delay_slot_next = 0;
@@ -186,7 +235,7 @@ void run_simple(MIPS_state_t *state)
                 if (!branch_delay_slot)
                         state->epc = state->pc;
 
-                i.raw = annul_delay_slot ? 0 : load(state->pc, 4, 1);
+                i.raw = annul_delay_slot ? 0 : icache_fetch(state->pc);
                 state->pc = pc_next;
                 pc_next += sizeof(inst_t);
 
@@ -297,7 +346,7 @@ void run_simple(MIPS_state_t *state)
                                  * 1      1      0      -> overflow
                                  * IOW: ss ^ ts | ss ^ rs
                                  */
-                                if ((s^t|s^wbr) >> 31) {
+                                if (((s^t)|(s^wbr)) >> 31) {
                                         state->cp0_cause.exc_code = EXC_OV;
                                         state->cp0_cause.ce = 0;
                                         state->cp0_cause.bd = branch_delay_slot;
@@ -561,6 +610,9 @@ void run_simple(MIPS_state_t *state)
 
                 // Statistics
                 ++n_issue;
+
+                if (0 && (n_issue & 0xFFF) == 0)
+                        fprintf(stderr, "\rCycle %llu", n_issue);
 
                 unsigned rtl_pc = 0, rtl_wbr = 0, rtl_wbv = 0;
                 int r = 0;

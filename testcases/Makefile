@@ -15,6 +15,12 @@ regress-test:
 		if make cosim VERB= PROG=regress/$$(basename $$t .c) 2> /dev/null | grep -q 'TEST SUCCESS'; \
 		then echo PASS; else echo FAIL; fi; done
 
+regress-isasim:
+	@for t in regress/*.c; do \
+		/bin/echo $$(basename $$t .c); \
+		make isasim VERB= PROG=regress/$$(basename $$t .c); \
+		done
+
 working: hw.txt sieve.txt fib.txt lievaart2.txt
 
 #        testall.data testicache.data testeret-prom.data \
