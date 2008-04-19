@@ -19,6 +19,7 @@ int main()
     for (i = 0; i < 100; ++i) {
         short *p = (short *) return_const;
         p[3] = i;
+        __builtin_flush_icache(p + 3, 2);
         if (return_const() != i) {
             printf("Failure\n");
             return 1;
