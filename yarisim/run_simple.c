@@ -49,7 +49,8 @@ char *inst_name[64+64+32] = {
         [128+0] = "BLTZ",
         [128+1] = "BGEZ",
         [128+0x10] = "BLTZAL",
-        [128+0x11] = "BGEZAL"
+        [128+0x11] = "BGEZAL",
+        [128+31] = "SYNCI",
 
 };
 
@@ -196,6 +197,38 @@ uint32_t icache_fetch(uint32_t address)
         return icache_data[way][line][word];
 }
 
+static void synci(unsigned address)
+{
+        unsigned line = (address >> (IC_WORD_INDEX_BITS + 2)) & ((1 << IC_LINE_INDEX_BITS) - 1);
+        unsigned word = (address >> 2)                        & ((1 << IC_WORD_INDEX_BITS) - 1);
+        unsigned way;
+        unsigned tag = address >> (IC_LINE_INDEX_BITS + IC_WORD_INDEX_BITS + 2);
+
+        for (way = 0; way < (1 << IC_SET_INDEX_BITS); ++way)
+                if (icache_tag[way][line] == tag)
+                        // XXX I'm assuming here and elsewhere that 0 means invalid
+                        // which means that physical memory cannot be at 0 + I$ size
+                        icache_tag[way][line] = 0;
+}
+
+unsigned TSC;
+
+static int rdhwr(unsigned r)
+{
+        switch (r) {
+        case 0: // No of processors
+                return 1;
+        case 1: // I$ line size
+                return 4 << IC_WORD_INDEX_BITS;
+        case 2: // Free running counter
+                return TSC;
+        case 3: // cycles pr above count
+                return 1;
+        default:
+                fatal("rdhwr on a non-existing register %d\n", r);
+        }
+}
+
 void run_simple(MIPS_state_t *state)
 {
         uint32_t oldreg[32];
@@ -230,6 +263,8 @@ void run_simple(MIPS_state_t *state)
         for (;;) {
                 int j;
                 inst_t i;
+
+                ++TSC; // Just an optimistic approximation
 
                 pc_prev = state->pc;
                 if (!branch_delay_slot)
@@ -401,6 +436,10 @@ void run_simple(MIPS_state_t *state)
                                         pc_next = state->pc + (i.i.imm << 2);
                                 branch_delay_slot_next = 1;
                                 break;
+                        case SYNCI:
+                                synci(address);
+                                break;
+
                         default:
                                 fatal("REGIMM rt=0d%d not handled\n", i.r.rt);
                         }
@@ -570,6 +609,13 @@ void run_simple(MIPS_state_t *state)
                                 exit(1);
                         }
 
+                case RDHWR:
+                        if (i.r.funct == 59) {
+                            wbv = rdhwr(i.r.rd);
+                            break;
+                        }
+                        goto unhandled;
+
                 case LB:   wbv = EXT8(LD8(address)); break;
                 case LH:   wbv = EXT16(LD16(address)); break;
                 case LBU:  wbv = LD8(address); break;
@@ -603,6 +649,7 @@ void run_simple(MIPS_state_t *state)
                 case LDC1: fatal("%08x:%08x, opcode LDCP1 not handled\n", pc_prev, i.raw);
                 case SWC1: fatal("%08x:%08x, opcode SWCP1 not handled\n", pc_prev, i.raw);
                 case SDC1: fatal("%08x:%08x, opcode SDCP1 not handled\n", pc_prev, i.raw);
+                unhandled:
                 default:   fatal("%08x:%08x, opcode %d not handled\n",
                                  pc_prev, i.raw, i.j.opcode);
                            break; // XXX

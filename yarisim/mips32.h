@@ -8,7 +8,7 @@ Root map: instr[31:26] (6 bit)
 00     REG REGIMM      j    jal    beq    bne   blez   bgtz
 08    addi  addiu   slti  sltiu   andi    ori   xori    lui
 10     cp0    cp1    cp2    cp3   beql   bnel  blezl  bgtzl
-18       -      -      -      -      -      -      -      -
+18       -      -      -      -      -      -      -  rdhwr
 20      lb     lh    lwl     lw    lbu    lhu    lwr      -
 28      sb     sh    swl     sw      -      -    swr  cache
 30      ll   lwc1   lwc2   pref      -   ldc1   ldc2      -
@@ -32,7 +32,7 @@ Regimm map: instr[20:16] (5 bit)
 00    bltz   bgez      -      -      -      -      -      -
 08       -      -      -      -      -      -      -      -
 10  bltzal bgezal      -      -      -      -      -      -
-18       -      -      -      -      -      -      -      -
+18       -      -      -      -      -      -      -  SYNCI
 
  */
 
@@ -41,6 +41,7 @@ typedef enum root_map {
         REG =0x00, REGIMM, J, JAL, BEQ, BNE, BLEZ, BGTZ,
         ADDI=0x08, ADDIU, SLTI, SLTIU, ANDI, ORI, XORI, LUI,
         CP0 =0x10, CP1, CP2, CP3, BEQL, BNEL, BLEZL, BGTZL,
+                                                 RDHWR = 0x1f,
         LB  =0x20, LH, LWL, LW, LBU, LHU, LWR,
         SB  =0x28, SH, SWL, SW, SWR =0x2e, CACHE,
         LL  =0x30, LWC1, LWC2, PREF, LDC1=0x35, LCD2,
@@ -61,6 +62,7 @@ typedef enum regimm_map {
         BGEZ   = 0x01,
         BLTZAL = 0x10,
         BGEZAL = 0x11,
+        SYNCI  = 0x1f
 } regimm_map_t;
 
 

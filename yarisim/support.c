@@ -294,6 +294,7 @@ void disass(unsigned pc, inst_t i)
         default: fatal("Unknown instruction opcode 0d%d", i.j.opcode);
         case REG:
                 switch (i.r.funct) {
+                unhandled:
                 default:   sprintf(buf,"??0x%x?? $%d,$%d,%d", i.r.funct, i.r.rd, i.r.rt, i.r.sa);
                            break;
                 case SLL:
@@ -360,6 +361,9 @@ void disass(unsigned pc, inst_t i)
                         else
                                 sprintf(buf,"%-6s0x%08x","bal", npc + (i.i.imm << 2));
                         break;
+                case SYNCI:
+                        sprintf(buf, "%-6s%d($%d)", "synci", i.i.imm, i.r.rs);
+                        break;
                 }
                 break;
         case J:    sprintf(buf,"%-6s0x%08x","j", (npc & ~((1<<28)-1)) | (i.j.offset << 2)); break;
@@ -419,6 +423,13 @@ void disass(unsigned pc, inst_t i)
         case CP2:  sprintf(buf,"%-6s", "cp2"); break;
         case CP3:  sprintf(buf,"%-6s", "cp3"); break;
         case BEQL: sprintf(buf,"%-6s","bbql"); break;
+        case RDHWR:
+                if (i.r.funct == 59) {
+                        sprintf(buf,"%-6s$%d,$%d", "rdhwr", i.r.rt, i.r.rd);
+                        break;
+                }
+                goto unhandled;
+
         case LB:   dis_load_store(buf, "lb", i); break;
         case LH:   dis_load_store(buf, "lh", i); break;
         case LW:   dis_load_store(buf, "lw", i); break;
