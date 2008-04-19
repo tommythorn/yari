@@ -416,3 +416,33 @@ void memset(void *d, char v, unsigned size)
     while (size)
         *cp++ = v, --size;
 }
+
+// Modern GCCs provide these builtin, but ours is a bit stale
+
+
+static inline int  __builtin_rdhwr(int k)
+{
+    int r;
+
+    asm(".set push;"
+        ".set mips32r2;"
+        "rdhwr %0,$%1;.set pop" : "=r" (r) : "i" (k));
+
+    return r;
+}
+
+typedef unsigned size_t;
+
+static inline void __builtin_flush_icache(void *location, size_t len)
+{
+    const int SYNCI_Step = 1;
+    unsigned inc = __builtin_rdhwr(SYNCI_Step);
+    void *end = location + len;
+
+    for (; location < end; location += inc) {
+            asm(".set push");
+            asm(".set mips32r2");
+            asm("synci %0" :: "m" (*location));
+            asm(".set pop");
+    }
+}
