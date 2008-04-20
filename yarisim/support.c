@@ -227,8 +227,9 @@ void readelf(char *name)
                         ensure_mapped_memory_range(W(ph[i].p_vaddr),
                                                    W(ph[i].p_memsz));
                         if (W(ph[i].p_filesz)) {
-                                fprintf(stderr, "Loading section [%08x; %08x]\n",
-                                        W(ph[i].p_vaddr), W(ph[i].p_memsz));
+                                if (enable_verb_elf)
+                                        fprintf(stderr, "Loading section [%08x; %08x]\n",
+                                                W(ph[i].p_vaddr), W(ph[i].p_memsz));
                                 loadsection(f, W(ph[i].p_offset), W(ph[i].p_filesz),
                                             W(ph[i].p_vaddr), W(ph[i].p_memsz));
                         }

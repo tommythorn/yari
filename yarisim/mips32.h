@@ -32,7 +32,7 @@ Regimm map: instr[20:16] (5 bit)
 00    bltz   bgez      -      -      -      -      -      -
 08       -      -      -      -      -      -      -      -
 10  bltzal bgezal      -      -      -      -      -      -
-18       -      -      -      -      -      -      -  SYNCI
+18       -      -      -      -      -      -      -  synci
 
  */
 

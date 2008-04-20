@@ -178,7 +178,7 @@ int main(int argc, char **argv)
                         /* Turn off echo */
                         struct termios t;
                         if (tcgetattr(rs232in_fd, &t))
-                                perror("getattr");
+                                /*perror("getattr")*/;
                         else {
                                 t.c_lflag &= ~(ECHO|ECHOE|ECHOK);
                                 if (tcsetattr(rs232in_fd, TCSANOW, &t))

@@ -200,9 +200,8 @@ uint32_t icache_fetch(uint32_t address)
 static void synci(unsigned address)
 {
         unsigned line = (address >> (IC_WORD_INDEX_BITS + 2)) & ((1 << IC_LINE_INDEX_BITS) - 1);
-        unsigned word = (address >> 2)                        & ((1 << IC_WORD_INDEX_BITS) - 1);
-        unsigned way;
         unsigned tag = address >> (IC_LINE_INDEX_BITS + IC_WORD_INDEX_BITS + 2);
+        unsigned way;
 
         for (way = 0; way < (1 << IC_SET_INDEX_BITS); ++way)
                 if (icache_tag[way][line] == tag)
