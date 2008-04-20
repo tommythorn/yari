@@ -426,7 +426,8 @@ static inline int  __builtin_rdhwr(int k)
 
     asm(".set push;"
         ".set mips32r2;"
-        "rdhwr %0,$%1;.set pop" : "=r" (r) : "i" (k));
+        "rdhwr %0,$%1;"
+        ".set pop" : "=r" (r) : "i" (k));
 
     return r;
 }
@@ -439,10 +440,12 @@ static inline void __builtin_flush_icache(void *location, size_t len)
     unsigned inc = __builtin_rdhwr(SYNCI_Step);
     void *end = location + len;
 
-    for (; location < end; location += inc) {
-            asm(".set push");
-            asm(".set mips32r2");
-            asm("synci %0" :: "m" (*location));
-            asm(".set pop");
+    for (location = (void *) ((unsigned) location & ~(inc - 1));
+         location < end;
+         location += inc) {
+            asm(".set push;"
+                ".set mips32r2;"
+                "synci %0;"
+                ".set pop" :: "m" (*location));
     }
 }
