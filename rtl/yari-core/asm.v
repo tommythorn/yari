@@ -40,6 +40,7 @@
 `define BBQL    20
 
 `define BGTZL   23
+`define RDHWR   31
 
 `define LB      32
 `define LH      33
@@ -102,6 +103,7 @@
 `define BGEZ     1
 `define BLTZAL  16
 `define BGEZAL  17
+`define SYNCI   31
 
 /*
  * Coprocessor 0 register names

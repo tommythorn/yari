@@ -169,6 +169,8 @@ module stage_D(input  wire        clock
             d_wbr <= {|i_rt[4:0],i_rt[4:0]};  // MTCP0
          else
             d_wbr <= 0;
+      3: if (i_opcode == `RDHWR)
+             d_wbr <= {|i_rt[4:0],i_rt[4:0]}; // RDHWR
       4: d_wbr <= {|i_rt[4:0],i_rt[4:0]}; // Loads
       default: d_wbr <= 0;
       endcase

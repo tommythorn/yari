@@ -57,6 +57,8 @@ module stage_X(input  wire        clock
 
    parameter debug = 0;
 
+`include "config.h"
+
    wire               ops_eq = d_op1_val == d_op2_val;
    wire [32:0]        subtracted = {d_op1_val[31],d_op1_val} - {d_op2_val[31],d_op2_val};
 
@@ -98,7 +100,10 @@ module stage_X(input  wire        clock
 
    reg x_has_delay_slot = 0;
 
+   reg [31:0] tsc = 0; // Free running counter
+
    always @(posedge clock) begin
+      tsc                <= tsc + 1;
       x_instr            <= d_instr;
       x_pc               <= d_pc;
       x_valid            <= d_valid;
@@ -409,6 +414,15 @@ module stage_X(input  wire        clock
             $finish; // XXX do something more interesting for real hw.
          end
 `endif
+      `RDHWR:
+         if (d_fn == 59)
+            case (d_rd)
+            0: x_res <= 0;
+            1: x_res <= 4 << IC_WORD_INDEX_BITS;
+            2: x_res <= tsc;
+            3: x_res <= 1;
+            endcase
+
       //`BBQL:
 
 /*
