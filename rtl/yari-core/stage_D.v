@@ -160,7 +160,11 @@ module stage_D(input  wire        clock
       case (i_opcode[5:3])
       0: case (i_opcode[2:0])
          `REG:    d_wbr <= {|i_rd[4:0],i_rd[4:0]};
-         `REGIMM: d_wbr <= {6{i_rt[4]}};// d_rt == `BLTZAL || d_rt == `BGEZAL ? 31 : 0;
+         `REGIMM:
+            if (i__rt == `SYNCI)
+               d_wbr <= 0;
+            else
+               d_wbr <= {6{i_rt[4]}};// d_rt == `BLTZAL || d_rt == `BGEZAL ? 31 : 0;
          `JAL:    d_wbr <= 6'd32+6'd31;
          default: d_wbr <= 0; // no writeback
          endcase

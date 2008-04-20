@@ -32,6 +32,7 @@ module stage_X(input  wire        clock
               ,input  wire [31:0] d_op1_val
               ,input  wire [31:0] d_op2_val
               ,input  wire [31:0] d_rt_val
+              ,input  wire [31:0] d_simm
 
 
               ,input  wire        d_restart
@@ -49,6 +50,9 @@ module stage_X(input  wire        clock
               ,output reg  [31:0] x_rt_val        = 0 // for stores only
               ,output reg  [ 5:0] x_wbr           = 0
               ,output reg  [31:0] x_res           = 0
+
+              ,output reg         x_synci         = 0
+              ,output reg  [31:0] x_synci_a       = 0
 
               ,output reg         x_restart       = 0
               ,output reg  [31:0] x_restart_pc    = 0
@@ -118,6 +122,7 @@ module stage_X(input  wire        clock
       x_restart_pc       <= d_valid ? d_target : d_restart_pc;
       x_res              <= 'hDEADBEEF;
       x_flush_D          <= 0;
+      x_synci            <= 0;
 
 `define MULT_RADIX_4 1
 `ifdef MULT_RADIX_4
@@ -362,10 +367,18 @@ module stage_X(input  wire        clock
 `endif
          endcase
       `REGIMM: // BLTZ, BGEZ, BLTZAL, BGEZAL
-         if (d_valid) begin
-            x_restart <= d_rt[0] ^ d_op1_val[31];
-            x_res  <= d_npc + 4;
-         end
+         if (d_valid)
+            if (d_rt[4:0] == `SYNCI) begin
+               x_restart    <= 1;
+               x_restart_pc <= x_restart ? x_restart_pc : d_npc;
+               x_flush_D    <= 1;
+               //$display("synci restart at %x", x_restart ? x_restart_pc : d_npc);
+               x_synci      <= 1;
+               x_synci_a    <= d_op1_val + d_simm;
+            end else begin
+               x_restart <= d_rt[0] ^ d_op1_val[31];
+               x_res  <= d_npc + 4;
+            end
       `JAL:
          if (d_valid) begin
             x_restart <= 1;

@@ -104,6 +104,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [ 5:0]   x_wbr;
    wire [31:0]   x_res;
 
+   wire          x_synci;
+   wire [31:0]   x_synci_a;
+
    wire          x_restart;
    wire [31:0]   x_restart_pc;
    wire          x_flush_D;
@@ -145,6 +148,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
               ,.kill(~initialized[8])
               ,.restart(restart)
               ,.restart_pc(restart_pc)
+              ,.synci(x_synci)
+              ,.synci_a(x_synci_a)
 
               ,.imem_waitrequest(imem_waitrequest)
               ,.imem_address(imem_address)
@@ -223,6 +228,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_op1_val(d_op1_val),
                .d_op2_val(d_op2_val),
                .d_rt_val(d_rt_val),
+               .d_simm(d_simm),
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
 
@@ -239,6 +245,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
                .x_res(x_res),
+
+               .x_synci(x_synci),
+               .x_synci_a(x_synci_a),
 
                .x_restart(x_restart),
                .x_restart_pc(x_restart_pc),

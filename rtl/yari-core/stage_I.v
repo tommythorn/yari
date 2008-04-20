@@ -37,6 +37,9 @@ module stage_I(input  wire        clock
               ,input  wire        restart          // Target is next PC.
               ,input  wire [31:0] restart_pc
 
+              ,input  wire        synci
+              ,input  wire [31:0] synci_a
+
                // Memory access
               ,input              imem_waitrequest
               ,output reg  [29:0] imem_address
@@ -93,11 +96,12 @@ module stage_I(input  wire        clock
    parameter CACHE_BITS      = IC_SET_INDEX_BITS + SET_BITS;       // 14
 
    /*
-    * Caching less than the full range turns out to be a problem due
-    * to how initialization depends on it. (2007-08-23: I forgot, but
-    * think the issue is that standard MIPS reset address would have
-    * been outside the range. Probably could have been fixed with some
-    * deliberate aliasing in the memory space.)
+    * Restricting the physical address space would enable us to cache
+    * less than the full range and thus could save tag memory. However
+    * that would require much care as the standard MIPS reset address
+    * must be covered as well. It probably could be done with some
+    * deliberate aliasing in the memory space, but it is deemed not
+    * worth the effort and complication.
     */
    parameter TAG_BITS        = CACHEABLE_BITS - SET_BITS;       // 20
 
@@ -122,6 +126,8 @@ module stage_I(input  wire        clock
    parameter S_RUNNING     = 0;
    parameter S_FILLING     = 1;
    parameter S_PRE_RUNNING = 2;
+   parameter S_LOOKUP      = 3;
+   parameter S_INVALIDATE  = 4;
 
    reg [IC_SET_INDEX_BITS-1:0]  fill_set       = 2; // !! XXX
    reg [31:0]                   state          = S_RUNNING;
@@ -175,18 +181,41 @@ module stage_I(input  wire        clock
    assign       i2_valid = valid_2;
    assign       i2_pc    = pc_2;
 
+   reg          pending_synci      = 0;
+   reg [31:0]   pending_synci_a    = 0;
+   reg [31:0]   pending_synci_pc   = 0;
+
    always @(posedge clock) begin
       tag_write_ena <= 0;
+      if (synci) begin
+         pending_synci      <= 1;
+         pending_synci_a    <= synci_a;
+         pending_synci_pc   <= restart_pc; // restart is coincident with synci
+      end
 
       if (~imem_waitrequest & imem_read) begin
          $display("%05d  I$ done issueing", $time);
          imem_read <= 0;
       end
 
+      if (synci)
+         $display("SYNCI %x", synci_a);
+
+
       case (state)
       S_RUNNING:
-         // INV: pc_1`CSI === pc_1`CSI
-         if (|hits_2 | ~valid_2) begin
+         if (synci | pending_synci) begin
+            $display("%05d  I$ flushing line @ %x (index %d)", $time,
+                     synci ? synci_a : pending_synci_a,
+                     synci ? synci_a`CSI : pending_synci_a`CSI
+                     );
+            pc_1         <= synci ? synci_a : pending_synci_a;
+            i_valid      <= 0;
+            valid_1      <= 0;
+            valid_2      <= 0;
+
+            state        <= S_LOOKUP;
+         end else if (|hits_2 | ~valid_2 | restart) begin
             /*
              * This is the normal flow (we don't care about invalid misses)
              * Advance the pc; look up tags, word index, find hitting
@@ -197,6 +226,10 @@ module stage_I(input  wire        clock
             pc_2      <= pc_1;
             i_valid   <= valid_2;
             i_pc      <= pc_2;
+
+            // XXX delete just for debugging
+            //$display("%05d  I$ access %x hit set %d (hits: %x), index %d tags %x %x %x %x", $time,
+            //         pc_2, set_2, hits_2, pc_2`CSI, tag0, tag1, tag2, tag3);
          end else begin
             // We missed in the cache, start the filling machine
             $display("%05d  I$ %8x missed, starting to fill", $time, pc_2);
@@ -213,6 +246,35 @@ module stage_I(input  wire        clock
             state        <= S_FILLING;
          end
 
+      S_LOOKUP: begin
+         pc_2 <= pc_1;
+         state <= S_INVALIDATE;
+      end
+
+      S_INVALIDATE: begin
+         pending_synci <= 0;
+         if (|hits_2) begin
+            $display("%05d  I$ flushing %x (= %x TAG) found a stale line from set %d (hits %x), index %d tags %x %x %x %x",
+                     $time,
+                     pc_1, pc_1`CHK, set_2, hits_2, pc_1`CSI,
+                     tag0, tag1, tag2, tag3);
+         end else
+            $display("%05d  I$ flushing %x (= %x TAG) found nothing (hits %x), index %d tags %x %x %x %x",
+                     $time,
+                     pc_1, pc_1`CHK, hits_2, pc_1`CSI,
+                     tag0, tag1, tag2, tag3);
+
+         tag_wraddress  <= pending_synci_a`CSI;
+         tag_write_data <= ~0;
+         tag_write_ena  <= hits_2;
+         // XXX We must wait for SB to drain!  It happens to work as
+         // is right now as the SB gets priority but that's actually a
+         // bug.
+         pc_1 <= pending_synci_pc;
+         valid_1 <= 1;
+         state <= S_PRE_RUNNING; // To give a cycle for the tags to be written
+      end
+
       S_FILLING:
          if (imem_readdatavalid) begin
             $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time, fill_set, pc_2`CSI, fill_wi, imem_readdata);
@@ -220,7 +282,7 @@ module stage_I(input  wire        clock
             fill_wi <= fill_wi + 1'd1;
 
             if (&fill_wi) begin
-               $display("%05d  IF tag%d[%x] <- %x", $time,
+               $display("%05d  IF tag%d[%d] <- %x", $time,
                         fill_set, pc_2`CSI, pc_2`CHK);
                $display("%05d  IF cache filled, back to running", $time);
 
@@ -243,7 +305,7 @@ module stage_I(input  wire        clock
       endcase
 
       // Keep the restart & kill handling down here to take priority
-      if (restart) begin
+      if (restart && !synci && state != S_INVALIDATE) begin
          valid_1 <= 1;
          valid_2 <= 0;
          i_valid <= 0;
