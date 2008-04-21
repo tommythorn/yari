@@ -446,6 +446,6 @@ static inline void __builtin_flush_icache(void *location, size_t len)
             asm(".set push;"
                 ".set mips32r2;"
                 "synci %0;"
-                ".set pop" :: "m" (*location));
+                ".set pop" :: "m" (* (char *) location));
     }
 }
