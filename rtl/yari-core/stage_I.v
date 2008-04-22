@@ -56,7 +56,7 @@ module stage_I(input  wire        clock
               ,output reg         i_valid = 0      // 0 => ignore i_instr.
               ,output wire [31:0] i_instr
               ,output reg  [31:0] i_pc = 0         // The address of the instr.
-              ,output wire [31:0] i_npc            // The address of the instr + 4.
+              ,output wire [31:0] i_npc            // The next instruction
               );
 
    parameter debug = 0;
@@ -162,19 +162,23 @@ module stage_I(input  wire        clock
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag0")
       tag0_ram(.clock(clock), .rdaddress(pc_1`CSI), .rddata(tag0),
-               .wraddress(tag_wraddress), .wrdata(tag_write_data), .wren(tag_write_ena[0]));
+               .wraddress(tag_wraddress), .wrdata(tag_write_data),
+               .wren(tag_write_ena[0]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag1")
       tag1_ram(.clock(clock), .rdaddress(pc_1`CSI), .rddata(tag1),
-               .wraddress(tag_wraddress), .wrdata(tag_write_data), .wren(tag_write_ena[1]));
+               .wraddress(tag_wraddress), .wrdata(tag_write_data),
+               .wren(tag_write_ena[1]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag2")
       tag2_ram(.clock(clock), .rdaddress(pc_1`CSI), .rddata(tag2),
-               .wraddress(tag_wraddress), .wrdata(tag_write_data), .wren(tag_write_ena[2]));
+               .wraddress(tag_wraddress), .wrdata(tag_write_data),
+               .wren(tag_write_ena[2]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag3")
       tag3_ram(.clock(clock), .rdaddress(pc_1`CSI), .rddata(tag3),
-               .wraddress(tag_wraddress), .wrdata(tag_write_data), .wren(tag_write_ena[3]));
+               .wraddress(tag_wraddress), .wrdata(tag_write_data),
+               .wren(tag_write_ena[3]));
 
    assign       i1_valid = valid_1;
    assign       i1_pc    = pc_1;
@@ -197,10 +201,6 @@ module stage_I(input  wire        clock
          $display("%05d  I$ done issueing", $time);
          imem_read <= 0;
       end
-
-      if (synci)
-         $display("SYNCI %x", synci_a);
-
 
       case (state)
       S_RUNNING:
@@ -227,9 +227,10 @@ module stage_I(input  wire        clock
             i_valid   <= valid_2;
             i_pc      <= pc_2;
 
-            // XXX delete just for debugging
-            //$display("%05d  I$ access %x hit set %d (hits: %x), index %d tags %x %x %x %x", $time,
-            //         pc_2, set_2, hits_2, pc_2`CSI, tag0, tag1, tag2, tag3);
+// XXX just for debugging
+//$display(
+//"%05d  I$ access %x hit set %d (hits: %x), index %d tags %x %x %x %x",
+//$time, pc_2, set_2, hits_2, pc_2`CSI, tag0, tag1, tag2, tag3);
          end else begin
             // We missed in the cache, start the filling machine
             $display("%05d  I$ %8x missed, starting to fill", $time, pc_2);
@@ -238,7 +239,8 @@ module stage_I(input  wire        clock
             valid_2      <= 0;
 
             fill_wi      <= 0;
-            imem_address <= {pc_2[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS - 2){1'd0}}};
+            imem_address <= {pc_2[CACHEABLE_BITS-1:LINE_BITS],
+                             {(LINE_BITS - 2){1'd0}}};
             imem_read    <= 1;
             $display("%05d  I$ begin fetching from %8x", $time,
                      {pc_2[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}});
@@ -252,7 +254,6 @@ module stage_I(input  wire        clock
       end
 
       S_INVALIDATE: begin
-         pending_synci <= 0;
          if (|hits_2) begin
             $display("%05d  I$ flushing %x (= %x TAG) found a stale line from set %d (hits %x), index %d tags %x %x %x %x",
                      $time,
@@ -272,12 +273,14 @@ module stage_I(input  wire        clock
          // bug.
          pc_1 <= pending_synci_pc;
          valid_1 <= 1;
+         pending_synci <= 0;
          state <= S_PRE_RUNNING; // To give a cycle for the tags to be written
       end
 
       S_FILLING:
          if (imem_readdatavalid) begin
-            $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time, fill_set, pc_2`CSI, fill_wi, imem_readdata);
+            $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time,
+                     fill_set, pc_2`CSI, fill_wi, imem_readdata);
 
             fill_wi <= fill_wi + 1'd1;
 
@@ -305,17 +308,18 @@ module stage_I(input  wire        clock
       endcase
 
       // Keep the restart & kill handling down here to take priority
-      if (restart && !synci && state != S_INVALIDATE) begin
-         valid_1 <= 1;
-         valid_2 <= 0;
-         i_valid <= 0;
-         pc_1    <= restart_pc;
-         $display("%05d  IF restarted at %8x", $time, restart_pc);
-      end else if (kill) begin
-         valid_1 <= 0;
-         valid_2 <= 0;
-         i_valid <= 0;
-      end
+      if (!synci & !pending_synci)
+         if (restart) begin
+            valid_1 <= 1;
+            valid_2 <= 0;
+            i_valid <= 0;
+            pc_1    <= restart_pc;
+            $display("%05d  IF restarted at %8x", $time, restart_pc);
+         end else if (kill) begin
+            valid_1 <= 0;
+            valid_2 <= 0;
+            i_valid <= 0;
+         end
 
       // Keep all debugging output down here to keep the logic readable
       if (debug) begin
