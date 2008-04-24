@@ -38,12 +38,31 @@ PIPELINE OVERVIEW:
     terrifying.
 
     As of 2007-12-13, the subword extraction & sign extension is the
-    critical path.
+    critical path, followed closely by the shifters.
 
 
-TODO
+IDEAS
+
+* Implement a slew of performance counters, most specifically, count
+
+  - I$ misses
+  - D$ misses
+  - SB full hazards
+  - load-use hazards
+  - branch hazards
+  - waiting for mult hazards
+  - waiting for div hazards
+
+* preload the I$ with a boot-loader that copy the firmware in
+  preloaded D$ to RAM.  This way we can get rid of the need for
+  locking (wasting) half the I$ to firmware.
+
+* Write a SSRAM controller (for the DE2-70).
 
 * Write a PSRAM controller (for the LPRP).
+
+* Make it conform more closely to MIPS32R2. For starters, the memory
+  layout is borked. Need to support uncached access, shudder.
 
 * We're dancing on eggshells; instructions modifying non-register
   state in EX wouldn't behave correctly when flushed from ME! (eg, lw
@@ -95,8 +114,6 @@ TODO
 * Change makeconfig.sh to instead parse config.h (which should now be
   written by hand). This is in preparation for moving many more
   configurable features to the config.h
-
-* Implement I$ flushing!
 
 * Merge fpgaMMIX and YARI, incl. the Avalon-like interconnect (for
   peripherals). Automate the generation of the interconnection.
@@ -178,8 +195,6 @@ OTHER:
 
 * (PERF) Conditional support for pipeline stalls (need to examine the
   cycle-time penalty and the cost-benefit)
-
-* More complete R3000 support
 
 * Make the simulator more complete, incl. support for CP2 features
   like virtual memory etc.
