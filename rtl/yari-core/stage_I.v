@@ -57,6 +57,7 @@ module stage_I(input  wire        clock
               ,output wire [31:0] i_instr
               ,output reg  [31:0] i_pc = 0         // The address of the instr.
               ,output wire [31:0] i_npc            // The next instruction
+              ,output reg  [31:0] perf_icache_misses = 0
               );
 
    parameter debug = 0;
@@ -234,6 +235,7 @@ module stage_I(input  wire        clock
          end else begin
             // We missed in the cache, start the filling machine
             $display("%05d  I$ %8x missed, starting to fill", $time, pc_2);
+            perf_icache_misses <= perf_icache_misses + 1;
             pc_1         <= pc_2;
             i_valid      <= 0;
             valid_2      <= 0;

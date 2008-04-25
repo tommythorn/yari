@@ -60,6 +60,11 @@ module stage_M(input  wire        clock
 
               ,output reg         m_restart = 0
               ,output reg  [31:0] m_restart_pc
+
+              ,output reg  [31:0] perf_dcache_misses = 0
+              ,output reg  [31:0] perf_sb_full = 0
+              ,output reg  [31:0] perf_io_store_busy = 0
+              ,output reg  [31:0] perf_io_load_busy = 0
               );
    parameter debug = 1;
 
@@ -330,6 +335,7 @@ module stage_M(input  wire        clock
             peripherals_req`WBE <= x_byteena;
          end else begin
             // Another peripheral transaction is pending, restart the store
+            perf_io_store_busy <= perf_io_store_busy + 1;
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
@@ -349,6 +355,7 @@ module stage_M(input  wire        clock
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
             sb_was_full  <= 1;
+            perf_sb_full <= perf_sb_full + 1;
          end else begin
             store_buffer_addr[store_buffer_wp] <= x_address[31:2];
             store_buffer_data[store_buffer_wp] <= x_store_data;
@@ -389,6 +396,7 @@ module stage_M(input  wire        clock
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            perf_io_load_busy <= perf_io_load_busy + 1;
          end
       end
 
@@ -414,6 +422,8 @@ module stage_M(input  wire        clock
              * empty, but it's just one cycle out of many, not a big
              * deal.).
              */
+
+            perf_dcache_misses <= perf_dcache_misses + 1;
 
             m_restart    <= 1;
             m_valid      <= 0;

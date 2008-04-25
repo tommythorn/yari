@@ -598,15 +598,28 @@ void run_simple(MIPS_state_t *state)
                                 }
                         }
                         break;
-                case CP2: // 0x12 << 26 == 0x48000000
-                        if (state->lo == 0x87654321) {
-                                printf("TEST SUCCESS!\n");
-                                exit(0);
-                        } else {
-                                printf("TEST FAILED WITH $2 = 0x%08x\n",
-                                       state->lo);
-                                exit(1);
+                case CP2: {
+                        if (i.raw == 0x48000000) { // A hack
+                                if (state->lo == 0x87654321) {
+                                        printf("TEST SUCCESS!\n");
+                                        exit(0);
+                                } else {
+                                        printf("TEST FAILED WITH $2 = 0x%08x\n",
+                                               state->lo);
+                                        exit(1);
+                                }
                         }
+
+
+                        // Normal CP2 processing
+                        if (~i.r.rs & 0x10)
+                                if (~i.r.rs & 4) {
+                                        printf("MFC2 here!\n");
+                                        break;
+                                }
+                }
+
+
 
                 case RDHWR:
                         if (i.r.funct == 59) {

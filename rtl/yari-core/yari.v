@@ -129,6 +129,18 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   dmem_readdata;
    wire          dmem_readdatavalid;
 
+   wire [31:0]   perf_icache_misses;
+   wire [31:0]   perf_delay_slot_bubble;
+   wire [31:0]   perf_branch_hazard;
+   wire [31:0]   perf_mult_hazard;
+   wire [31:0]   perf_div_hazard;
+   wire [31:0]   perf_load_use_hazard;
+   wire [31:0]   perf_dcache_misses;
+   wire [31:0]   perf_sb_full;
+   wire [31:0]   perf_io_load_busy;
+   wire [31:0]   perf_io_store_busy;
+
+
    reg [9:0] initialized = 0;
    always @(posedge clock) initialized <= {initialized[8:0],~rst};
 
@@ -166,7 +178,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
               ,.i_valid(i_valid)
               ,.i_instr(i_instr)
               ,.i_pc(i_pc)
-              ,.i_npc(i_npc));
+              ,.i_npc(i_npc)
+              ,.perf_icache_misses(perf_icache_misses));
 
    stage_D stD(.clock(clock),
                .i_valid(i_valid & ~flush_I),
@@ -207,7 +220,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_restart_pc(d_restart_pc),
                .d_flush_X(d_flush_X),
 
-               .flush_D(flush_D)
+               .flush_D(flush_D),
+               .perf_delay_slot_bubble(perf_delay_slot_bubble)
                );
 
    stage_X stX(.clock(clock),
@@ -251,7 +265,18 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
                .x_restart(x_restart),
                .x_restart_pc(x_restart_pc),
-               .x_flush_D(x_flush_D)
+               .x_flush_D(x_flush_D),
+
+               .perf_branch_hazard(perf_branch_hazard),
+               .perf_dcache_misses(perf_dcache_misses),
+               .perf_delay_slot_bubble(perf_delay_slot_bubble),
+               .perf_div_hazard(perf_div_hazard),
+               .perf_icache_misses(perf_icache_misses),
+               .perf_io_load_busy(perf_io_load_busy),
+               .perf_io_store_busy(perf_io_store_busy),
+               .perf_load_use_hazard(perf_load_use_hazard),
+               .perf_mult_hazard(perf_mult_hazard),
+               .perf_sb_full(perf_sb_full)
                );
 
    stage_M stM(.clock(clock),
@@ -289,7 +314,12 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .m_res(m_res),
 
                .m_restart(m_restart),
-               .m_restart_pc(m_restart_pc)
+               .m_restart_pc(m_restart_pc),
+
+               .perf_dcache_misses(perf_dcache_misses),
+               .perf_sb_full(perf_sb_full),
+               .perf_io_load_busy(perf_io_load_busy),
+               .perf_io_store_busy(perf_io_store_busy)
                );
 
 

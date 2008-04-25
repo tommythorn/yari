@@ -62,6 +62,7 @@ module stage_D(input  wire        clock
               ,output reg         d_flush_X       = 0
 
               ,input  wire        flush_D
+              ,output reg  [31:0] perf_delay_slot_bubble = 0
               );
 
    parameter debug = 0;
@@ -169,7 +170,7 @@ module stage_D(input  wire        clock
          default: d_wbr <= 0; // no writeback
          endcase
       1: d_wbr <= {|i_rt[4:0],i_rt[4:0]}; // Immediate instructions
-      2: if (i_opcode == `CP0 && ~i_rs[4] && ~i_rs[2])
+      2: if ((i_opcode == `CP0 || i_opcode == `CP2) && ~i_rs[4] && ~i_rs[2])
             d_wbr <= {|i_rt[4:0],i_rt[4:0]};  // MTCP0
          else
             d_wbr <= 0;
@@ -290,6 +291,7 @@ module stage_D(input  wire        clock
          d_restart    <= 1;
          d_restart_pc <= d_pc;
          d_flush_X    <= 1;
+         perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
       end
    end
 

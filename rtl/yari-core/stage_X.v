@@ -12,6 +12,7 @@
 
 `timescale 1ns/10ps
 `include "asm.v"
+`include "perfcounters.v"
 
 module stage_X(input  wire        clock
 
@@ -57,6 +58,17 @@ module stage_X(input  wire        clock
               ,output reg         x_restart       = 0
               ,output reg  [31:0] x_restart_pc    = 0
               ,output reg         x_flush_D       = 0
+
+              ,output reg  [31:0] perf_branch_hazard = 0
+              ,input  wire [31:0] perf_dcache_misses
+              ,input  wire [31:0] perf_delay_slot_bubble
+              ,output reg  [31:0] perf_div_hazard = 0
+              ,input  wire [31:0] perf_icache_misses
+              ,input  wire [31:0] perf_io_load_busy
+              ,input  wire [31:0] perf_io_store_busy
+              ,output reg  [31:0] perf_load_use_hazard = 0
+              ,output reg  [31:0] perf_mult_hazard = 0
+              ,input  wire [31:0] perf_sb_full
               );
 
    parameter debug = 0;
@@ -216,12 +228,14 @@ module stage_X(input  wire        clock
                if (d_valid) begin
                   x_restart    <= 1;
                   x_restart_pc <= d_op1_val;
+                  perf_branch_hazard <= perf_branch_hazard + 1;
                end
             end
          `JR:
             if (d_valid) begin
                x_restart    <= 1;
                x_restart_pc <= d_op1_val;
+               perf_branch_hazard <= perf_branch_hazard + 1;
             end
 
 
@@ -233,6 +247,10 @@ module stage_X(input  wire        clock
                x_valid      <= 0;
                x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                x_restart    <= 1;
+               if (mult_busy)
+                  perf_mult_hazard <= perf_mult_hazard + 1;
+               else
+                  perf_div_hazard <= perf_div_hazard + 1;
             end else
                x_res        <= mult_hi;
          `MFLO:
@@ -241,6 +259,10 @@ module stage_X(input  wire        clock
                x_valid      <= 0;
                x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                x_restart    <= 1;
+               if (mult_busy)
+                  perf_mult_hazard <= perf_mult_hazard + 1;
+               else
+                  perf_div_hazard <= perf_div_hazard + 1;
             end else
                x_res        <= mult_lo;
          `MTHI:
@@ -250,6 +272,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else
                   mult_hi      <= d_op1_val;
             end
@@ -260,6 +286,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else
                   mult_lo      <= d_op1_val;
             end
@@ -271,6 +301,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else begin
                   div_busy    <= 1;
                   div_hi      <= 0;
@@ -294,6 +328,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else begin
                   div_busy    <= 1;
                   div_hi      <= 0;
@@ -313,6 +351,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else begin
                   $display("MULTU %x * %x", d_op1_val, d_op2_val);
                   mult_busy <= 1;
@@ -334,6 +376,10 @@ module stage_X(input  wire        clock
                   x_valid      <= 0;
                   x_restart_pc <= d_pc - {x_has_delay_slot,2'd0};
                   x_restart    <= 1;
+                  if (mult_busy)
+                     perf_mult_hazard <= perf_mult_hazard + 1;
+                  else
+                     perf_div_hazard <= perf_div_hazard + 1;
                end else begin
                   $display("MULT %x * %x", d_op1_val, d_op2_val);
                   mult_busy <= 1;
@@ -389,33 +435,44 @@ module stage_X(input  wire        clock
             end else begin
                x_restart <= d_rt[0] ^ d_op1_val[31];
                x_res  <= d_npc + 4;
+               perf_branch_hazard <= perf_branch_hazard + 1;
             end
       `JAL:
          if (d_valid) begin
             x_restart <= 1;
             x_res  <= d_npc + 4;
+            perf_branch_hazard <= perf_branch_hazard + 1;
          end
       `J: if (d_valid) x_restart <= 1;
       `BEQ:
          if (d_valid) begin
             x_restart <=  ops_eq;
+            perf_branch_hazard <= perf_branch_hazard + ops_eq;
             $display("%05d BEQ %8x == %8x (%1d)", $time,
                      d_op1_val, d_op2_val, ops_eq);
          end
       `BNE:
          if (d_valid) begin
             x_restart <= ~ops_eq;
+            perf_branch_hazard <= perf_branch_hazard + ~ops_eq;
             $display("%05d BNE %8x == %8x (%1d)", $time,
                      d_op1_val, d_op2_val, ops_eq);
          end
 
       `BLEZ:
-         if (d_valid)
+         if (d_valid) begin
             x_restart <= d_op1_val[31] || d_op1_val == 0;
+            perf_branch_hazard <= perf_branch_hazard +
+                                  (d_op1_val[31] || d_op1_val == 0);
+         end
+
       `BGTZ:
          // XXX Share logic
-         if (d_valid)
+         if (d_valid) begin
             x_restart <= !d_op1_val[31] && d_op1_val != 0;
+            perf_branch_hazard <= perf_branch_hazard +
+                                  (!d_op1_val[31] && d_op1_val != 0);
+         end
 
       `ADDI: x_res <= d_op1_val + d_op2_val;
       `ADDIU:x_res <= d_op1_val + d_op2_val;
@@ -427,17 +484,6 @@ module stage_X(input  wire        clock
       `LUI:  x_res <= {d_op2_val[15:0], 16'd0};
 
       //`CP1:
-`ifdef SIMULATE_MAIN
-      `CP2:
-         if (d_valid) begin
-            if (mult_lo == 32'h87654321)
-               $display("TEST SUCCEEDED!");
-            else
-               $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, mult_lo,
-                        d_valid, d_pc, d_instr);
-            $finish; // XXX do something more interesting for real hw.
-         end
-`endif
       `RDHWR:
          if (d_fn == 59)
             case (d_rd)
@@ -447,20 +493,38 @@ module stage_X(input  wire        clock
             3: x_res <= 1;
             endcase
 
-      //`BBQL:
-
-/*
-  These are handled in Stage_ME
-
-      `LB:   x_res <= d_op1_val + d_op2_val;
-      `LBU:  x_res <= d_op1_val + d_op2_val;
-      `LH:   x_res <= d_op1_val + d_op2_val;
-      `LHU:  x_res <= d_op1_val + d_op2_val;
-      `LW:   x_res <= d_op1_val + d_op2_val;
-      `SB:   x_res <= d_op1_val + d_op2_val;
-      `SH:   x_res <= d_op1_val + d_op2_val;
-      `SW:   x_res <= d_op1_val + d_op2_val;
-*/
+      `CP2: begin
+`ifdef SIMULATE_MAIN
+         if (d_valid && !d_rs[4] && 0) begin
+            if (mult_lo == 32'h87654321)
+               $display("TEST SUCCEEDED!");
+            else
+               $display("%05d TEST FAILED WITH %x  (%1d:%8x:%8x)", $time, mult_lo,
+                        d_valid, d_pc, d_instr);
+            $finish; // XXX do something more interesting for real hw.
+         end else
+`endif
+         if (~d_rs[4]) begin
+            if (d_rs[2])
+               $display("MTCP2 r%d <- %x (ignored)", d_rd, d_op2_val);
+            else begin
+               $display("MFCP2 r%d", d_rd);
+               case (d_rd)
+               `PERF_BRANCH_HAZARD:     x_res <= perf_branch_hazard;
+               `PERF_DCACHE_MISSES:     x_res <= perf_dcache_misses;
+               `PERF_DELAY_SLOT_BUBBLE: x_res <= perf_delay_slot_bubble;
+               `PERF_DIV_HAZARD:        x_res <= perf_div_hazard;
+               `PERF_ICACHE_MISSES:     x_res <= perf_icache_misses;
+               `PERF_IO_LOAD_BUSY:      x_res <= perf_io_load_busy;
+               `PERF_IO_STORE_BUSY:     x_res <= perf_io_store_busy;
+               `PERF_LOAD_USE_HAZARD:   x_res <= perf_load_use_hazard;
+               `PERF_MULT_HAZARD:       x_res <= perf_mult_hazard;
+               `PERF_SB_FULL:           x_res <= perf_sb_full;
+               default:                 x_res <= ~0;
+               endcase
+            end
+         end
+      end
 
 /*
  * XXX Comment out the CP0 handling for now. I want to handle
@@ -575,6 +639,7 @@ module stage_X(input  wire        clock
                x_valid   <= 0;
                x_restart_pc <= d_pc; // Notice, we know that EX had a
                // load, thus DE isn't a delay slot
+               perf_load_use_hazard <= perf_load_use_hazard + 1;
                $display("%05d  *** load-use hazard, restarting %8x", $time,
                         d_pc);
             end
