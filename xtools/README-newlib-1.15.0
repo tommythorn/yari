@@ -1,0 +1,11 @@
+This is a patch against newlib-1.15.0 available from RedHat:
+http://sourceware.org/newlib/
+
+As for now, yari does not support floating point operations as well as the
+special lw{l,r}, sw{l,r} instructions. Therefore some additional configure
+options are required for newlib to work correctly.
+
+configure  <your options> --target=mips-elf --disable-newlib-io-float \
+           --enable-target-optspace
+
+
