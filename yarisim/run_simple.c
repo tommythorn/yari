@@ -57,7 +57,7 @@ char *inst_name[64+64+32] = {
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
 
-#define KEEP_LINES 2500
+#define KEEP_LINES 40
 #define RTL_MAX_LINE 200
 char last[KEEP_LINES][RTL_MAX_LINE];
 unsigned last_p = 0;
@@ -482,8 +482,8 @@ void run_simple(MIPS_state_t *state)
 
                 case ADDI: wbv = (int) address; break;
                 case ADDIU:wbv =       address; break;
-                case SLTI: wbv = (int) s < (int) i.i.imm; break; // !!!
-                case SLTIU:wbv = s < (unsigned) i.i.imm; break;
+                case SLTI: wbv = (int) s < i.i.imm; break;
+                case SLTIU:wbv = s < (unsigned) i.i.imm; break; // !!!
                 case ANDI: wbv = s & i.u.imm; break;
                 case ORI:  wbv = s | i.u.imm; break;
                 case XORI: wbv = s ^ i.u.imm; break;
@@ -707,6 +707,9 @@ void run_simple(MIPS_state_t *state)
                 if (r == 1) {
                         printf("Divergence detected\n");
 
+                        printf("%08x %08x ", pc_prev, i.raw);
+                        disass(pc_prev,i);
+                        putchar('\n');
                         printf("ISA %08x: r%d <- %08x\n", pc_prev, wbr, wbv);
                         printf("RTL %08x: r%d <- %08x\n", rtl_pc, rtl_wbr, rtl_wbv);
 
