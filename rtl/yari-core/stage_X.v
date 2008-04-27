@@ -63,10 +63,21 @@ module stage_X(input  wire        clock
 
 `include "config.h"
 
-   wire               ops_eq = d_op1_val == d_op2_val;
-   wire [32:0]        subtracted = {d_op1_val[31],d_op1_val} - {d_op2_val[31],d_op2_val};
-
-   wire [4:0]         shift_dist = d_fn[2] ? d_op1_val[4:0] : d_sa;
+   wire               ops_eq           = d_op1_val == d_op2_val;
+   wire               negate_op2       = d_opcode == `SLTI ||
+                                         d_opcode == `SLTIU ||
+                                         d_opcode == `REG && (d_fn == `SLT ||
+                                                              d_fn == `SLTU ||
+                                                              d_fn == `SUB ||
+                                                              d_fn == `SUBU);
+   wire [31:0]        sum;
+   wire               carry_flag;
+   wire [31:0]        op2_val          = {32{negate_op2}} ^ d_op2_val;
+   assign             {carry_flag,sum} = d_op1_val + op2_val + negate_op2;
+   wire               sign_flag        = sum[31];
+   wire               overflow_flag    = d_op1_val[31] == op2_val[31] &&
+                                         d_op1_val[31] != sum[31];
+   wire [4:0]         shift_dist       = d_fn[2] ? d_op1_val[4:0] : d_sa;
    wire [31:0]        ashift_out;
    wire [31:0]        lshift_out;
 
@@ -337,17 +348,17 @@ module stage_X(input  wire        clock
             end
 
          // XXX BUG Trap on overflow for ADD, ADDI and SUB
-         `ADD:    x_res <= d_op1_val + d_op2_val;
-         `ADDU:   x_res <= d_op1_val + d_op2_val;
-         `SUB:    x_res <= d_op1_val - d_op2_val;
-         `SUBU:   x_res <= d_op1_val - d_op2_val;
+         `ADD:    x_res <= sum;
+         `ADDU:   x_res <= sum;
+         `SUB:    x_res <= sum;
+         `SUBU:   x_res <= sum;
          `AND:    x_res <= d_op1_val & d_op2_val;
          `OR:     x_res <= d_op1_val | d_op2_val;
          `XOR:    x_res <= d_op1_val ^ d_op2_val;
          `NOR:    x_res <= d_op1_val | ~d_op2_val;
 
-         `SLT:    x_res <= {{31{1'b0}}, subtracted[32]};
-         `SLTU: if (d_op1_val < d_op2_val) x_res <= 1; else x_res <= 0;
+         `SLT:    x_res <= {{31{1'b0}}, sign_flag ^ overflow_flag};
+         `SLTU:   x_res <= {{31{1'b0}}, ~carry_flag};
          `BREAK:
             if (d_valid) begin
                x_restart    <= 1;
@@ -408,8 +419,8 @@ module stage_X(input  wire        clock
 
       `ADDI: x_res <= d_op1_val + d_op2_val;
       `ADDIU:x_res <= d_op1_val + d_op2_val;
-      `SLTI: x_res <= $signed(d_op1_val) < $signed(d_op2_val);
-      `SLTIU:x_res <= d_op1_val < d_op2_val;
+      `SLTI: x_res <= {{31{1'b0}}, sign_flag ^ overflow_flag};
+      `SLTIU:x_res <= {{31{1'b0}}, ~carry_flag};
       `ANDI: x_res <= {16'b0, d_op1_val[15:0] & d_op2_val[15:0]};
       `ORI:  x_res <= {d_op1_val[31:16], d_op1_val[15:0] | d_op2_val[15:0]};
       `XORI: x_res <= {d_op1_val[31:16], d_op1_val[15:0] ^ d_op2_val[15:0]};
