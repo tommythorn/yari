@@ -1,0 +1,26 @@
+# setup some configuration variables
+builddir=/tmp/build-xtools #$PWD
+srcroot=$PWD
+target=mips-elf
+install_prefix=/opt/$target
+export PATH=$install_prefix/bin:$PATH
+make_option=-j4
+# enable this if you install into a directory that you don't own
+sudo= #sudo
+
+
+GNUsrc=~/Downloads/FSF  #$PWD
+gccdist=gcc-4.2.3
+binutilsdist=binutils-2.18
+newlibdist=newlib-1.16.0
+
+download () {
+    location=$1
+    object=$2
+
+    if [ ! -f $GNUsrc/$object ]; then
+	wget -O $GNUsrc/$object $location/$object
+    else
+	echo "already have cached version of $object"
+    fi
+}
