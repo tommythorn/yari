@@ -105,6 +105,8 @@ done_clearing:
         jal     main
         nop
 
+        .globl  _exit
+_exit:
         jal     __post_main
         nop
 
@@ -120,15 +122,4 @@ argv:   .word   argv0
 argv0:  .ascii  "prog\000"
 
 
-        .set noreorder
-        .globl  _exit
-        .set    noat
-_exit: 
-        jal     __post_main
-        nop
-
-        li $2, 0x87654321
-        mtlo $2;
-        .word 0x48000000
-        break
 
