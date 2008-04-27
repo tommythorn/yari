@@ -4,6 +4,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /// FIXME: Not winning is considered loosing.  Could make this a little
 /// more sophisticated.
@@ -209,7 +211,6 @@ void play(void)
 
 int main(int argc, char **argv)
 {
-    int i;
     known_outcome = malloc(MAXCONF);
 
     memset(known_outcome, 0, MAXCONF);
