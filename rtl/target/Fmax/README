@@ -1,0 +1,3 @@
+This is a clone of the LPRP target, but this target doesn't use a PLL
+and thus we use it to determine the Fmax for YARI + system.
+
