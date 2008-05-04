@@ -9,6 +9,15 @@ VERB=--verb
 
 all: regress-test
 
+perfcounters.h: ../rtl/yari-core/perfcounters.v Makefile
+	sed -e 's/`def/#def/' < $< > $@
+	(echo;echo 'char *__perf_counter_names[] = {') >> $@
+	(sed -e 's/`define PERF_/"/' -e 's/ .*$$/",/' |tr "_A-Z" " a-z") < $< >> $@
+	echo '};' >> $@
+	echo '#define __FORALL_PERF_COUNTERS(F) \' >> $@
+	sed -e 's/`define /F(/' -e 's/ .*$$/) \\/' < $< >> $@
+	echo >> $@
+
 regress-test:
 	@for t in regress/*.c; do \
 		/bin/echo -n $$(basename $$t .c)': '; \
@@ -95,7 +104,7 @@ testicache-prom.data: testicache-prom.mips $(SIM)
 #%.o: %.s
 #	mips-elf-as $< -o $@
 
-%.o: %.c stdio.h
+%.o: %.c stdio.h perfcounters.h
 	mips-elf-gcc -fno-builtin -I. -DSTANDALONE -msoft-float -g -O -c $< -o $@
 
 .PRECIOUS: %.dis %.mips %.data %.mif
