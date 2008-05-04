@@ -198,7 +198,7 @@ module stage_X(input  wire        clock
          {div_hi,div_lo} = {div_hi,div_lo} << 1;
          diff = div_hi - divisor;
          if (!diff[32]) begin
-            div_hi = diff;
+            div_hi = diff[31:0];
             div_lo[0] = 1;
          end
          div_n <= div_n - 1'd1;
