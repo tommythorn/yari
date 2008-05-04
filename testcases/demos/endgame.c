@@ -967,6 +967,7 @@ int main( void ){
 #ifdef WINDOWS_TIMING
    double start_time = get_real_time();
 #endif
+   perfmon_start();
    for(i=0; i<112; i++){
       for(j=0; j<=90; j++) board[j] = DUMMY;
       wc=bc=emp=0;
@@ -992,6 +993,8 @@ int main( void ){
       printf("%3d (emp=%2d wc=%2d bc=%2d) %s\n",
          val,            emp,wc,bc,            bds[i]         );
    }
+
+   perfmon_report();
 
    printf(
    "MAXTRIES=%d. USE_PARITY=%d. FULLSOLVE=%d. WINNER_GETS_EMPTIES=%d. FASTEST_FIRST=%d.\n",
