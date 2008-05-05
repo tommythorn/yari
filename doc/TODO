@@ -43,16 +43,6 @@ PIPELINE OVERVIEW:
 
 IDEAS
 
-* Implement a slew of performance counters, most specifically, count
-
-  - I$ misses
-  - D$ misses
-  - SB full hazards
-  - load-use hazards
-  - branch hazards
-  - waiting for mult hazards
-  - waiting for div hazards
-
 * preload the I$ with a boot-loader that copy the firmware in
   preloaded D$ to RAM.  This way we can get rid of the need for
   locking (wasting) half the I$ to firmware.

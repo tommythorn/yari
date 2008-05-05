@@ -1,5 +1,15 @@
 DONE
 
+* Implement a slew of performance counters, most specifically, count
+
+  - I$ misses
+  - D$ misses
+  - SB full hazards
+  - load-use hazards
+  - branch hazards
+  - waiting for mult hazards
+  - waiting for div hazards
+
 * Implemented DIV and DIVU
 
 * Added a 16-bit async sram controller for LPRP.
