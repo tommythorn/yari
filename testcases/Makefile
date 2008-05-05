@@ -4,7 +4,7 @@ HEAD=#  | head -2048
 SIM=../yarisim/sim
 OBJDUMP_FLAGS=-S -D -M reg-names=numeric
 TINYMON=../firmware/tinymon-prom
-PROG=showtime
+PROG=regress/nor
 VERB=--verb
 
 all: regress-test
@@ -14,7 +14,7 @@ perfcounters.h: ../rtl/yari-core/perfcounters.v Makefile
 	(echo;echo 'char *__perf_counter_names[] = {') >> $@
 	(sed -e 's/`define PERF_/"/' -e 's/ .*$$/",/' |tr "_A-Z" " a-z") < $< >> $@
 	echo '};' >> $@
-	echo '#define __FORALL_PERF_COUNTERS(F) \' >> $@
+	echo "#define __FORALL_PERF_COUNTERS(F) \\" >> $@
 	sed -e 's/`define /F(/' -e 's/ .*$$/) \\/' < $< >> $@
 	echo >> $@
 

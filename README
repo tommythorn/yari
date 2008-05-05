@@ -1,6 +1,6 @@
               YARI -- Yet Another RISC Implementation
 
-Last update: 2008-01-25
+Last update: 2008-09-23
 
 INTRODUCTION
 
@@ -24,7 +24,8 @@ implementation currently comprises:
   + all of the integer user-level instructions supported
 
   Peripherals (depending on the target)
-  + SRAM interface (32-bit and 16-bit)
+  + Async SRAM interface (32-bit and 16-bit)
+  + Sync burst SRAM interface (32-bit)
   + Serial in/out
 
   Simulation
@@ -33,7 +34,7 @@ implementation currently comprises:
 
   Synthesis
   + Multiple target platforms supported (currently only Altera based)
-  + Runs (last it ran) happily at 50+ MHz.
+  + Runs at 80+ MHz.
 
 - A boot loader pre-loaded into the I$ - will load programs over the
   serial port.
@@ -53,9 +54,9 @@ There are a few prerequisites for full YARI enjoyment:
 - For simulation: Icarus Verilog.  Great stuff.  Get the most recent
   version from http://www.icarus.com/eda/verilog
 
-- For synthesis: currently I've only tested with Quartus 7.2sp1.  Get it
-  for free from http://www.altera.com (alas, only works with Windows,
-  whereas everything else here expects Linux).
+- For synthesis: currently I've only tested with Quartus 7.2sp1, 8.0,
+  and 8.0sp1.  Get it for free from http://www.altera.com (alas, only
+  works with Windows, whereas everything else here expects Linux).
 
 With the Icarus Verilog installed you should be able to simply run
 
@@ -71,6 +72,3 @@ For more interesting workloads, try
 or try co-simulation
 
   make -C testcases VERB= PROG=fib cosim
-
-
-Tommy
