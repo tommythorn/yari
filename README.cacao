@@ -1,0 +1,6 @@
+This branch is to support the effort of porting and using CACAO on
+YARI. Please keep changes that are only relevant to this effort here,
+but all general YARI changes goes to master. I don't expected YARI to
+diverge much if at all between these branches.
+
+Tommy
