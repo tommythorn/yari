@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+  <head>
+    <title>Release Notes - phoneME Feature</title>
+    <link rel="stylesheet" href="./share/document.css" type="text/css">
+ </head>
+
+<body>
+<table class="full-width">
+  <!-- formatting table -->
+  <tr> 
+    <tr>
+      <td class="sun-darkblue">&nbsp;</td>
+    </tr>
+    <td class=sun-darkblue> 
+      <h1>Release Notes</h1>        
+      <h2>
+        phoneME&#153; Feature MR2
+      </h2>        
+      <h4>Development Release, March 2007</h4>
+    </td>
+  </tr>
+  <tr> 
+    <td class=sun-lightblue>&nbsp;</td>
+  </tr>
+</table>
+
+<p class="breadcrumb">
+  <a href="../index.html">Home</a>
+  &gt;
+  Release Notes
+</p>
+
+<b>This is a development release of the phoneME Feature Software. It is a work in progress. We expect that there will be bugs and areas where things are incomplete. We also expect to have development releases fairly frequently (perhaps every one or two weeks) until we reach the final release.</b>
+
+<h2 class="Head1">Table of Contents</h2>
+<dl>
+  <dd><a href="#introduction">Introduction</a></dd>
+  <dd><a href="#platforms">Supported Platforms</a></dd>
+  <dd><a href="#subsys">Subsystem, Library, and Directory Restructuring</a></dd>
+  <dd><a href="#notes">Implementation Notes</a></dd>
+  <dd><a href="#known_bugs_and_issues">Known Bugs</a></dd>
+</dl>
+
+<a name="introduction"></a><a name="_maincontent"></a>
+<h2 class="Head1">Introduction</h2>
+
+<p>
+phoneME Feature software is an optimized Java&#153; ME stack.
+This implementation supports multitasking and
+is built upon MIDP 2.1.
+</p>
+
+<p>
+When phoneME Feature software runs multiple MIDlets, it uses a single OS
+process. Therefore, a single instance of Java Virtual Machine can execute
+several applications simultaneously, providing each of them with a separate
+runtime environment. All running applications are isolated so that from the
+application's point of view, it looks as if each application is executed in
+its own virtual machine.
+</p>
+
+<p>
+phoneME Feature software is for developers who port MIDP and
+associated technologies to mobile devices. It is also useful to application
+developers who want to work with the very latest Java ME technologies, even
+before these technologies are ported to real devices.
+</p>
+
+<p>
+The following features are part of phoneME Feature software, version MR2:
+<p>
+
+<ul>
+  <li>High performance implementation of the Java ME platform stack</li>
+  <li>
+    Modular architecture which supports multiple implementations
+    per functional area (storage, networking, user interface, etc.)
+  </li>
+  <li>Subsystem, directory, and library portability</li>
+  <li>Minimal platform-specific code</li>
+  <li>
+    Multitasking capabilities and support for multiple, simultaneous 
+    applications (MIDlets)
+  </li>
+  <li>Native Application Management API</li>
+  <li>Native Resource Management API</li>
+  <li>Implements CLDC 1.1 (JSR 139) and MIDP 2.1 (JSR 118)</li>
+  <li>
+    Implements the following optional APIs:
+    <ul>
+      <!--<li>Personal Information and File Management (JSR 75)</li>-->
+      <!--<li>Bluetooth and OBEX (JSR 82)</li>-->
+      <li>Wireless Messaging 1.0 (JSR 120)</li>
+      <li>Mobile Media APIs (JSR 135)
+      <li>J2ME&#153; Web Services (JSR 172)</li>
+      <li>Security and Trust Services API (JSR 177)</li>
+      <!--<li>Location API (JSR 179)</li>-->
+      <!--<li>SIP API (JSR 180)</li>-->
+      <!--<li>Wireless Messaging API 2.0 (JSR 205)</li>-->
+      <li>Content Handler API (JSR 211)</li>
+      <!--<li>Scalable 2D Vector Graphics (JSR 226)</li>-->
+      <!--<li>Payment API (JSR 229)</li>-->
+      <!--<li>Mobile Internationalization API (JSR 238)</li>-->
+      <li>Java Binding for the OpenGL&reg; ES API (JSR 239)</li>
+    </ul>
+  </li>
+</ul>
+
+<a name="platforms"></a>
+<h2 class="Head1">Supported Platforms</h2>
+
+<p>
+Following are the supported target platforms for <i>running</i> an
+implementation of
+phoneME Feature software:
+</p>
+
+<ul>
+  <li>Texas Instruments P2SAMPLE64-V6 OMAP 730 with Linux/ARM  
+  <li>Linux/x86
+  <li>Windows/x86 (which runs the product in emulation mode)
+</ul>
+
+<p>The supported platforms for <i>building</i> an implementation of the 
+phoneME Feature software are Linux/x86 and Windows/x86.</p>
+
+<p>A Linux build system must meet the following requirements:</p>
+
+<ul>
+  <li>Ubuntu 6.06</li>
+  <li>GCC 3.4.6</li>
+  <li>JDK&#153; version 1.4.2</li>
+</ul>
+
+<p>
+If you wish to generate API reference documentation, you will also need:
+</p>
+
+<ul>
+  <li>Doxygen version 1.4.4</li>
+</ul>
+
+<p>
+To cross-compile for the supported P2 OMAP730 board (see below), you will need
+these additional tools:
+</p>
+
+<ul>
+  <li>GCC cross compiler 3.3.1</li>
+  <li>MontaVista Linux Consumer Electronics Edition 3.1 (2.4.20 kernel)</li>
+</ul>
+
+<p>
+If you are building for Qt, you will also need the following:
+</p>
+
+<ul>
+  <li>
+    Qt/Embedded 2.3.10
+  </li>
+</ul>
+
+<p>
+<b>NOTE:</b> It is possible to build the phoneME Feature software
+using other versions of Linux, but complete testing has only been performed 
+on Ubuntu.
+</p>
+
+<p>A Windows/x86 platform must meet the following requirements:</p>
+<ul>
+  <li>Windows 2000 or Windows XP</li>
+  <li>MSVC++ 6.0 or Microsoft Visual Studio .NET 2003</li>
+  <li>
+    <a href="ftp://ftp.sunfreeware.com/pub/freeware/contributions/cygwin/cyg4me1_1_full.zip">
+      Cyg4Me
+    </a>, a version of Cygwin for building Java ME technology. Unzip the
+    archive and ensure that its <code>bin</code> directory is the first
+    element in your <code>PATH</code>.
+  </li>
+  <li>JDK version 1.4.2</li>
+</ul>
+
+<p>
+If you wish to generate API reference documentation, you will also need:
+</p>
+
+<ul>
+  <li>Doxygen version 1.4.4</li>
+</ul>
+
+<a name="run"></a>
+<h2 class="Head1">Running</h2>
+
+<p>
+The general operation of the phoneME Feature software is
+described in the <i>Tools
+Guide</i>, part of the Sun Java Wireless Client 1.1.3 documentation.
+</p>
+
+<ul>
+  <li>
+    <a href="http://java.sun.com/javame/reference/docs/sjwc-1.1.3-web/pdf-html/tools/cmdline-exes.html#pgfId-1016916">
+      Sun Java Wireless Client 1.1.3 <i>Tools Guide</i>, Chapter 3
+    </a>
+  </li>
+</ul>
+
+<a name="notes"></a>
+<h2 class="Head1">Implementation Notes</h2>
+
+<a name="chameleon"></a>
+<h3 class="Head3">Skin Property Loading</h3>
+
+<p>
+In this release, Chameleon skin properties can be loaded dynamically,
+although this option is off by default. When this option is on,
+you can
+adjust skin properties during development without rebuilding the entire
+phoneME Feature software.
+</p>
+
+<h3 class="Head3">Whitespace Handling for Descriptor Properties</h3>
+
+<p>
+When installing a trusted midlet suite, phoneME Feature software expects an exact
+match between
+the values of the properties from the application descriptor file and the
+values of the same properties in the MIDlet suite JAR file manifest. The
+strings
+representing the values are compared, including the leading and trailing
+spaces. For example, the following properties are considered to be different
+(the first one has an extra space after the first <code>HelloMIDlet</code>):
+</p>
+
+<tt>
+MIDlet-1: HelloMIDlet , , HelloMIDlet
+<br>
+MIDlet-1: HelloMIDlet, , HelloMIDlet
+</tt>
+
+<h3 class="Head3">Keystrokes and the <code>qvfb</code> Window</h3>
+
+<p>
+When you view the executable output in a <code>qvfb</code> window, keystroke
+events might not be delivered to the phoneME Feature software until you click
+inside the window.
+</p>
+
+<h3 class="Head3">Limited Path Lengths When Using Javacall</h3>
+
+<p>
+The implementation chooses record store file names based on the location of the
+binary executables. The maximum path length for these files is 128. If the path
+to the binary executable files is too long, you will encounter errors with
+record stores. This can also happen if you are using <code>MIDP_HOME</code>
+to point to the binary executable files. If you encounter this problem,
+move your binaries to a location with a shorter path.
+</p>
+
+<p>
+For any file name used in the Javacall Windows/x86 implementation (for example,
+a file name used in the JSR 75 FileConnection API), the maximum length is 256.
+</p>
+
+<h3 class="Head3">Use of <code>MIDP_HOME</code> Environment Variable</h3>
+
+<p>
+The implementation chooses the MIDP home directory based on several rules.
+If <code>MIDP_HOME</code> is set, its value is used unmodified.
+Otherwise, the software searches for the <code>appdb</code> directory in the
+following places:
+</p>
+
+<ul>
+  <li>
+    current directory (if the executable is in the <code>PATH</code>
+    and the current directory is the right place)
+  </li>
+  <li>
+    the parent directory of the executable
+  </li>
+  <li>
+    the grandparent directory of the executable
+  </li>
+</ul>
+
+<a name="jsr-135"></a>
+<h3 class="Head3">JSR 135 and MIDP Audio Supported Only on Win32</h3>
+<p>
+Due to the unavailability of needed drivers on the P2SAMPLE64-V6 reference
+platform, JSR 135, the MIDP Audio Building Block (ABB) APIs, and the sound 
+functionality they provide, are supported only on the Win32 platform.  
+On the P2 board, phoneME Feature software is compliant with the 
+<i>MIDP 2.1 Specification</i>, except for the ABB requirement.
+<p>
+<b>NOTE</b>: To build JSR 135, set <code>USE_JSR_135=true</code>, but do 
+not set the variable <code>JSR_135_DIR=</code><i>pathname</i>, as for other 
+JSRs.  Instead, set the variable <code>JSR_234_DIR=</code><i>pathname</i>. 
+Despite the name of this variable, phoneME Feature software 
+supports only JSR 135, but not JSR 234.
+<p>
+Mobile Media API (JSR 135) is a subset of Advanced Multimedia Supplements 
+(JSR 234).  Support for JSR 234 is planned for future releases.
+<p>
+
+<a name="known_bugs_and_issues"></a>
+<h2 class="Head1">Known Bugs</h2>
+<p>
+
+<p>
+The following high-severity bugs are known at the time of this release.
+</p>
+
+<table>
+  <thead>
+
+    <tr> 
+      <th class="sun-verylightblue" scope="col">Bug ID</th>
+      <th class="sun-verylightblue" scope="col">Description</th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr> 
+      <!--
+      <td colspan="2"><hr class="pTableHr" /> </td>
+      -->
+    </tr>
+  </tfoot>
+  <tbody>
+  
+    <tr>
+      <td>6537774</td>
+      <td>
+        Twelve tests fail in monetDI.
+      </td>
+    </tr>
+
+    <tr>
+      <td>6538077</td>
+      <td>
+        In MMAPI, <code>Player.getContentType()</code>
+        returns <code>audio/midi</code> for <code>audio/sp-midi</code> file.
+      </td>
+    </tr>
+
+    <tr>
+      <td>6538156</td>
+      <td>
+        <code>Canvas</code> cannot be set into full screen mode in some cases.
+      </td>
+    </tr>
+
+    <tr>
+      <td>6522329</td>
+      <td>
+        In the JSR 120 TCK,
+        <code>javax.microedition.io.sms</code> and <code>smsSE</code>
+        OTA tests fail.
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+<hr class="pHr">
+
+<p class=copyright><a href="share/copyright.html">Copyright</a> &#169;
+  2007 Sun Microsystems, Inc. All rights reserved.
+  Use subject to license terms. </p>
+  
+</body>
+</html>

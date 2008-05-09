@@ -1,0 +1,372 @@
+/* CSS FILE FOR UNSTRUCTURED BOOKS FOR UNIX */
+/* DEFAULT VALUES */
+body { background-color: #FFFFFF;
+       font-family: Arial, Helvetica, sans-serif;
+       border-top-width: 0px; border-right-width: 0px; 
+       border-bottom-width: 0px; border-left-width: 0px;
+       color: Black; font-size: 12px; font-style: normal;
+       font-variant: normal; font-weight: normal;
+       text-align: left; text-decoration: none;
+       text-indent: 0em; text-transform: none;
+}
+/* CHAPTER NUMBERING AND TITLES FORMATTING */
+.ChapNumber, .ChapNumberA
+{ font-size: 20px; font-weight: bold; font-style: normal;
+  font-family: arial, helvetica, sans-serif;
+  text-align: left; color: #3E647E; }
+.ChapTitle, .ChapTitleA, .ChapTitleCSR, .ChapTitleC,
+   .ChapTitleG, .ChapTitleI, .ChapTitleP, .ChapTitleS,
+   .PartTitle
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: #3E647E; font-size: 25px; font-style: normal;
+  font-variant: normal; font-weight: bold;
+  margin-left: 0em; margin-right: 0em; text-align: left;
+  text-decoration: none; text-indent: 0em;
+  text-transform: none;
+}
+.Head1, .Head1A, .Head1CSR, .Head1G, .Head1P
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: #3E647E; font-size: 20px; font-style: normal;
+  font-variant: normal; font-weight: bold;
+  margin-left: 0em; margin-right: 0em;  margin-top: 1.8em;
+  text-align: left; text-decoration: none; text-indent: 0em;
+  text-transform: none;
+}
+.Head2, .Head2A, .Head2CSR, .Head2G, .Head2P, 
+.Head2-Procedure, .Head2ProcTitle, .Head2-OptFlag
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: #3E647E; font-size: 18px; font-style: normal;
+  font-variant: normal; text-indent: 0em;
+  font-weight: normal; margin-left: 0em; margin-right: 0em;
+  text-align: left; text-decoration: none; 
+  text-transform: none
+}       
+.Head3, .Head3A, .Head3CSR, .Head3G, .Head3P,
+.Head3-Procedure, .Head3ProcTitle, .Head3-OptCat
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: #3E647E; font-size: 14px; font-style: normal;
+  font-weight: bold; margin-left: 0em; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  font-variant: normal; text-transform: none
+}
+.Head4 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: #3E647E; font-size: 12px; font-style: italic;
+  font-variant: normal; font-weight: bold; margin-left:0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  margin-right: 0em; text-transform: none 
+}
+/* TABLE FORMATTING */
+table { font-family: Arial, Helvetica, sans-serif;
+        background-color: #FFFFFF;
+        margin-top: 0px; padding-top: 0px;
+        border-top-width: 0px; border-right-width: 0px;
+        border-bottom-width: 0px; border-left-width: 0px;
+        margin-bottom: 10px; margin-left: 0px; 
+        padding-bottom: 5px; padding-left: 5px 
+}
+th
+{ font-family: Arial, Helvetica, sans-serif;
+  text-align: left; vertical-align: bottom;
+  padding-top: 5px; padding-right: 10px; 
+  padding-left: 10px; white-space: nowrap
+  border-top-width: 0px; border-right-width: 0px;
+  border-bottom-width: 0px; border-left-width: 0px;
+  padding-bottom: 5px; font-size: 12px;
+}
+td
+{ font-family: Arial, Helvetica, sans-serif;
+  padding-right:10px; padding-left: 10px; padding-top: 7px;
+  padding-bottom: 7px; border-top-width: 0px;
+  border-bottom-width: 0px; border-left-width: 0px;
+  border-right-width: 0px; vertical-align: top;
+  font-size: 12px;
+}
+td p 
+{ font-family: Arial, Helvetica, sans-serif;
+  padding-right:10px; padding-left: 10px; padding-top: 10px
+ border-top-width: 0px; border-right-width: 0px;
+ border-bottom-width: 0px; border-left-width: 0px;
+ vertical-align: top; font-size: 12px;
+}
+td h1 {  text-align: center 
+}
+td h2 {  text-align: center; padding-top: 0px 
+}
+td h3 {  text-align: center; padding-top: 0px 
+}
+td h4 {  text-align: center; padding-top: 0px 
+}
+table.Code { margin-bottom: 0.5em; border: 0; 
+ margin-top: 0.5em;
+}
+table.Screen { margin-top: 0.5em; margin-bottom: 0.5em;
+               border: 1px solid #3E647E; 
+}
+.Untitled { margin-bottom: 1.0em; margin-top: 1.0em;
+}
+.NoBorder { margin-top: 1.0em; margin-bottom: 1.0em;
+  line-height: 2pt; }
+/* CAPTIONS -- TABLE, CODE, FIGURE */
+caption.TableCaption, caption.TableCaption-Wide,
+caption.TableCaptionA-Wide, caption.TableCaptionG,
+caption.TableCaptionG-Wide, caption.TableCaptionP-Wide,
+caption.TableCaptionP, caption.TableCaptionP-Wide,
+ caption.TableCaptionA
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: italic; font-variant: normal;
+  font-weight: normal; margin-left: 0em; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none
+}
+.TableCaption,.TableCaptionA,.TableCaptionP,.TableCaptionG,
+.TableCaption-Wide,.TableCaptionA-Wide,.TableCaptionP-Wide
+{ margin-top:1.5em; margin-bottom:0.5em; text-align:left; 
+}
+.CodeCaption, .CodeCaption-Wide, .CodeCaptionA,
+.CodeCaptionG, .CodeCaptionG-Wide, .CodeCaptionP,
+.CodeCaptionA-Wide, .CodeCaptionP-Wide
+{ color: Black; font-size: 12px; font-style: italic;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-variant:normal; font-weight:normal; margin-left:0em;
+  margin-right:0em; text-align:left; text-decoration: none;
+ white-space: pre; text-indent: 0em; text-transform: none
+}
+.FigureBox, .FigureBox-Wide
+{ white-space: pre; font-weight: bold;
+  font-family: arial, helvetica, sans-serif;
+  font-style: normal;
+}
+/* FONT FORMATTING */
+kbd.UserInput, kbd.UserType 
+{ font-family: courier; font-weight: bold;
+  font-style: normal; white-space: pre; 
+}
+kbd.Filename-Command, kbd.url {
+        font-family: courier;
+        font-weight: normal;
+        white-space: pre;
+        font-style: normal;
+}
+i.Variable 
+{ font-family:Times; font-weight:normal; font-style:italic;
+}
+i.EquationVariables
+ { font-family: Times; font-weight: normal;
+   font-style: italic; 
+}
+i.Title { font-weight: normal; font-style: italic;
+}
+i.Strong { font-style: normal; font-weight: bold; 
+}
+.ErrorTxt { margin-left: 36pt; 
+}
+.ErrorMsg
+{ margin-top:2.5em; white-space: pre; font-family: courier;
+ font-size: 112%; 
+}
+b.TipNote
+{ font-family: helvetica, sans-serif; font-style: normal;
+  font-weight: bold; font-size: 115%; 
+}
+pre.ScreenText
+{ font-family:courier; white-space:pre; line-height: 16px; 
+}
+pre.Codeline 
+{ font-family:courier; white-space:pre; margin-left:35px; 
+ line-height: 16px;
+}
+/* STEPS */
+.Step1, .Step1-, .StepSingle 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight: bold; margin-left: 0em; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none; margin-left: 22px; 
+}
+.Step2, .Step2- 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight: bold; margin-left: 0em; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none; margin-left: 65px; 
+}
+.Step3 .Step3- 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  color: Black; font-size: 12px; font-style: normal;
+  font-variant: normal; font-weight: bold;
+  margin-left: 0em; margin-right: 0em; text-align: left; 
+  text-decoration: none; text-indent: 0em;
+  text-transform: none; margin-left: 115px;
+}
+/* MARGINS FOR PARAGRAPHS ASSOCIATED WITH STEPS */
+.StepPara1 { margin-left: 38px; font-weight: normal; }
+.StepPara2 { margin-left: 80px; font-weight: normal; } 
+.StepPara3 { margin-left: 125px; font-weight: normal; }
+
+/* LISTS */
+.List1, .List1-
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight:normal; margin-left: 22px; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none;
+}
+.List2, .List2- 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight:normal; margin-left: 65px; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none; 
+}
+.List3 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight:normal; margin-left:115px; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none;
+}
+.List3-
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight:normal; margin-left:112px; margin-right: 0em;
+  text-align:left; text-decoration:none; text-indent: 0em;
+  color: Black; text-transform: none;
+}
+
+.TwoStart
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:12px; font-style: normal; font-variant: normal;
+  font-weight:normal; text-align:left; text-decoration:none;
+  text-indent: 0em; color: Black; text-transform: none;
+  margin-left: 0px; counter-reset 1;
+}
+.ParaIndent1 { margin-left: 39px; }
+.ParaIndent2 { margin-left: 80px; }
+.ParaIndent3 { margin-left: 127px; }
+/* TOC FORMATS */
+.PartTitleTOC 
+{ margin: 1.25em 0em 0em 2em; font-size: 16px;
+  font-weight: bold; font-style: normal;
+  font-family: arial, helvetica, sans-serif; 
+}
+.ChapTitleTOC, .ChapTitleATOC, .ChapTitleCTOC,
+ .ChapTitleCSRTOC, .ChapTitleGTOC, .ChapTitleITOC,
+ .ChapTitlePTOC, .ChapTitleSTOC
+{ margin-left: 2.5em; margin-right: 0em;
+  font-style: normal; font-size: 15px; font-weight: normal;
+  font-family: arial, helvetica, sans-serif; 
+}       
+.Head1TOC, .Head1ATOC, .Head1PTOC, .Head1CSRTOC, .Head1GTOC
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:15px; font-style: normal; font-variant: normal;
+  font-weight: normal; margin-left: 5em; margin-right: 0em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  color: Black; text-transform: none; 
+}
+.Head2TOC,.Head2ATOC,.Head2-ProcedureTOC,.Head2-OptCatTOC,
+.Head2-OptFlagTOC, .Head2CRSTOC, .Head2PTOC
+{ margin-left: 7.5em; margin-right: 0em; font-size: 14px;
+  font-weight: normal; font-style: normal;
+  font-family: arial, helvetica, sans-serif; 
+}
+.Head3TOC, .Head3ATOC, .Head3-ProcedureTOC, .Head3CSRTOC,
+.Head3-OptCatTOC, .Head3PTOC
+{ margin-left: 10em; margin-right: 0em; 
+  font-size: 13px; font-weight: normal; font-style: normal;
+  font-family: arial, helvetica, sans-serif;
+}
+    
+/* LOT, LOF, LOC formats */
+.FigureCaptionLOF, .FigureCaption-WideLOF,
+.FigureCaptionALOF, .FigureCaptionPLOF,
+.FigureCaptionGLOF, .FigureCaptionG-WideLOF,
+.FigureCaptionA-WideLOF, .FigureCaptionP-WideLOF
+{ margin: .65em 0em 0em 2em; font-weight: normal;
+  font-family: arial, helvetica, sans-serif; 
+  color: Black; font-size: 15px; font-variant: normal;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  font-style: normal; text-transform: none;
+}
+        
+.TableCaptionLOT, .TableCaption-WideLOT, .TableCaptionALOT,
+.TableCaptionA-WideLOT, .TableCaptionGLOT,
+.TableCaptionPLOT, .TableCaptionP-WideLOT,
+.TableCaptionG-WideLOT
+{ margin: .65em 0em 0em 2em; font-weight: normal;
+  font-family: arial, helvetica, sans-serif; 
+  color: Black; font-size: 15px; font-variant: normal;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  font-style: normal; text-transform: none;
+}
+        
+.CodeCaptionLOP, .CodeCaption-WideLOP, .CodeCaptionALOP,
+.CodeCaptionA-WideLOP, .CodeCaptionG-WideLOP,
+.CodeCaptionGLOP, .CodeCaptionP,.CodeCaptionP-WideLOP
+{ margin: .65em 0em 0em 2em; font-weight: normal;
+  font-family: arial, helvetica, sans-serif; 
+  color: Black; font-size: 15px; font-variant: normal;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  font-style: normal; text-transform: none;
+}
+/* OTHER STUFF -- MOSTLY CMSG */
+.sun-darkblue { font-family: Arial, Helvetica, sans-serif ;
+                color: #FFFFFF; background-color: #587993
+}
+.sun-lightblue { background-color: #3E647E
+}
+.sun-verylightblue {  background-color: #A5B8C9
+}
+.go-right {  text-align: right }
+.go-left {  text-align: left }
+.copyright 
+{ font-family:Arial, Helvetica, sans-serif; font-size:10px}
+.breadcrumb 
+{ font-family:Arial, Helvetica, sans-serif; font-size:10px}
+.full-width {  width: 100% }
+/* Definitions for horizontal rules */
+.pTableHr { color: #3E647E; background-color: #3E647E }
+.pHr { color: #3E647E; background-color: #3E647E }
+/* INDEX FORMATS */
+.GroupTitlesIX 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:18px; font-style: normal; font-variant: normal;
+  margin: 1.5em 0em 0em 0em; text-align: left;
+  text-decoration: none; text-transform: none;
+  text-indent: 0em; font-weight: bold; color: #3E647E; 
+}
+p.Level1IX
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-style: normal; font-variant: normal;
+  font-weight: normal; margin: .25em 0em 0em 2em;
+  text-align:left; text-decoration: none; text-indent: 0em;
+  font-size: 13px; color: Black; text-transform: none;
+}
+p.Level2IX 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:13px; font-style: normal; font-variant: normal;
+  font-weight: normal; margin: .25em 0em 0em 4em;
+  text-decoration: none; text-transform: none;
+  text-indent: 0em; text-align: left; color: Black; 
+}
+p.Level3IX {
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size:13px; font-style: normal; font-variant: normal;
+  font-weight: normal; margin: .25em 0em 0em 6em;
+  text-decoration: none; text-transform: none;
+  text-indent: 0em; text-align: left; color: Black; 
+}
+p.Level4IX 
+{ font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 13px; font-style: normal; font-variant: normal;
+  font-weight: normal; margin: .25em 0em 0em 8em;
+  text-decoration: none; text-transform: none;
+  text-indent: 0em; text-align: left; color: Black; 
+}
+/* GLOSSARY TERM FORMATS*/
+.GlossTerm 
+{ font-size: 115%; font-weight: bold; font-style: normal; }
+.GlossText { margin: 0em 0em 3.0em 3.0em; }
+.footnote { vertical-align: super; font-size: 10px; }
+span.Footnote { font-size: small; vertical-align: super }
+.Linebreak { line-height: 0.5em; }
