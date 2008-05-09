@@ -1,4 +1,24 @@
-This directory contains  a patched version of cacao, which can be run on yari.
+This directory contains a set of packages required to build cacao (an open 
+source java virtual machine) for yari. In addition to the files in this 
+directory you will also need binutils and gcc. see the links below how to get 
+the required packages. I use gcc version 4.1.1 and binutils 2.17, you may also 
+use other version, but these are the ones used in the build script.
 
+To build everything simply invoke:
+./build.sh 
+
+The build script has some options, use the following command to show them:
+./build.sh -h
+
+have fun,
 florian
+
+
+
+
+Links:
+ftp://gd.tuwien.ac.at/gnu/gcc/releases/gcc-4.1.1/gcc-4.1.1.tar.bz2
+http://ftp.gnu.org/gnu/binutils/binutils-2.17.tar.bz2
+http://www.jopwiki.com/MIPS
+http://www.cacaovm.org/
 
