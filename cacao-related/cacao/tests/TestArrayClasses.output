@@ -1,0 +1,66 @@
+ok String[] implements 2 interfaces
+ok String[] implements Cloneable
+ok String[] implements Serializable
+ok String[] is public final abstract
+ok classname ref
+ok classname primitive
+ok arraylength primitive
+ok arraylength ref
+ok arraylength of saa2
+ok arraylength of saa2[1]
+ok arraylength of saaa
+ok arraylength of saaa[0]
+ok arraylength of saaa[0][1]
+ok Object[].isArray
+ok int[].isArray
+ok !Object.isArray
+ok !Object.isPrimitive
+ok component ref
+ok component ref !isPrimitive
+ok component primitive
+ok component primitive isPrimitive
+ok component of String[][] equals String[]
+ok component of String[][] !equals Object[]
+ok saa[0].getClass equals component of String[][]
+    ArrayStoreException
+ok !store Object in String[]
+ok store String in String[]
+ok store Object in Object[]
+ok store String in Object[]
+ok store String[] in Object[][]
+    ArrayStoreException
+ok !store Object[] in String[][]
+ok store String[] in java.io.Serializable[]
+ok store String[] in Cloneable[]
+    ArrayStoreException
+ok !store String[] in StringBuffer[][]
+ok store Foo in Foo[]
+ok store FooChild in Foo[]
+    ArrayStoreException
+ok !store Foo in FooChild[]
+ok store FooChild in FooChild[]
+ok cast String[] to Object[]
+    ClassCastException
+ok !cast Object[] to String[]
+ok String[] instanceof String[]
+ok String[] instanceof Object[]
+ok Object[] !instanceof String[]
+ok Object[] instanceof Object[]
+ok Object[][] instanceof Object[]
+ok String[][] instanceof Object[]
+ok String[] instanceof java.io.Serializable
+ok String[] instanceof java.lang.Cloneable
+ok String[] instanceof java.lang.Object
+ok saa[0] instanceof java.io.Serializable
+ok saa[0] instanceof java.lang.Cloneable
+ok saa[0] instanceof java.lang.Object
+ok cloned int array length
+ok cloned int array data
+ok cloned Integer array length
+ok cloned Integer array data
+ok arraycopy primitive
+ok arraycopy ref
+ok arraycopy ref different classes
+ok arraycopy Integer to Number
+    ArrayStoreException
+ok !arraycopy Number to Integer

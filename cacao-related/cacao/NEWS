@@ -1,0 +1,218 @@
+New in release 0.98 (xxx xx, 2006)
+
+  * Implemented Class/Method/Field getSignature.
+
+
+New in release 0.97 (October 30, 2006)
+
+  * New instruction format.
+  * New intermediate representation with unified variables.
+  * Local subroutine elimination.
+  * Fixed the interpreter - it runs eclipse now.
+  * New stack-based verifier (used for -Xint).
+  * Boehm GC updated to version 6.8.
+  * Added enable/disable system assertion support (-esa/-dsa).
+  * Initial javax.management support.
+  * Initial sun.misc.Unsafe (JSR166) support.
+  * Added failed class as message to ClassCastException's.
+  * AttachCurrentThread, DetachCurrentThread, and
+    AttachCurrentThreadAsDaemon implemented.
+  * libjvm is now opened via dlopen (removed -rpath stuff).
+  * Data segment now reuses values (if possible).
+
+  * Fixed AbstractMethodError bug.
+  * Fixed builtin_isanysubclass (BeanShell bug).
+  * Fixed a memory leak in dump memory.
+  * Fixed a bug with DUP2_X1 and DUP2_X2.
+  * Safe decoding of invalid UTF-8 sequences in NewStringUTF.
+  * Fixed line numbers in exceptions thrown through the JIT.
+  * Proper null-check for MONITOREXIT.
+  * Many low-level jasmin tests added.
+
+
+New in release 0.96 (May 29, 2006)
+
+  * New tasuki lock implementation resolves deadlock problems on
+    multi-processor machines.
+  * Handle Miranda-methods properly.
+  * try-catch line number problem with jikes fixed.
+  * Added support for libjvm.so (including invocation API).
+  * Stripped down object code size of code generators.
+  * Increased default maximum heap size to 128MB and decreased default
+    stack size to 64kB.
+  * Cleaned up internal handling of Unicode strings.
+  * Fixed getResources of bootstrap classloader.
+  * Correct handling of boot packages (provided glibj.zip contains a
+    jar index).
+  * Exception handling fixes (don't allocate memory on Java heap).
+  * x86_64's code generator generates not RISC-style code.
+  * Green threads implementation removed.
+  * Semaphore implementation for Darwin (taken from Boehm).
+  * sem_wait interrupted by signal fixed.
+  * Overflow in Object.wait() (partially) fixed (caused busy waiting
+    in JOnAS).
+  * Store JNI global refs in native hashtable instead of Java
+    hashtable (bootstrap problem).
+  * Argument passing fixed for powerpc-linux (asm_vm_call_method).
+
+
+New in release 0.95 (February 13, 2006)
+
+  * Dead-lock bugfix.  This should fix the random dead-locks seen in
+    Eclipse or other applications.
+  * Search for suitable jar program during configure, can be specified
+    via JAR environment variable
+  * --enable-zlib bugfix
+  * i386 bugfix: Set FPU to 64-bit on VM startup (fixes Debian bug
+    #350729)
+  * powerpc bugfix: (M_COPY): Handle longs and doubles properly.
+  * Fixed instructions copying stackslots (like DUP_X1).
+  * Fixed classcache-related problem with java.lang.reflect.Proxy.
+  * Throw correct exception when trying to load a directory
+    as a classfile (from a .zip file).
+  * Fixed incorrect method resolution when calling instance methods 
+    through JNI (fixes CACAO bugs #17 and #18).
+
+
+New in release 0.94 (January 22, 2006)
+
+  * support compilation of Interpreter and JIT compiler into one binary (not
+    enabled by default)
+  * bootstrap ZIP code rewrite (VM startup time improvement)
+  * fixed JNI DirectByteBuffer functions, jogl works now
+  * removed most third-party files from the repository, we link to the
+    libraries instead
+  * removed VM interface Java files which were identical to the GNU
+    Classpath upstream version
+  * added defineClassWithTransformers to java.lang.VMClassLoader, now we are
+    able to build against the generics branch
+  * Java compiler which should be used during compilation can be specified
+    via JAVAC environment variable
+  * a lot of bugfixes
+
+
+New in release 0.93 (November 23, 2005)
+
+  * Java 1.5 support
+  * JIT codegenerators for Arm and MIPS (32-bit, -o32), currently
+    closed-source
+  * integration of a vmgen-based interpreter (--enable-intrp)
+  * removal of GNU classpath, CACAO now uses upstream releases or CVS
+    head versions
+  * finalizer thread
+  * JNI local references implemented
+  * reflection fixes and access checks (mauve tests)
+  * linear scan register allocator (-lsra)
+  * lazy resolving fixes
+  * fixed instanceof instruction
+  * updated to Boehm GC 6.6
+
+
+New in release 0.92 "Tomclipse" (July 14, 2005)
+
+  * runtime lazy-loading with code patching
+  * dynamic library loading on every platform we support (using
+    libltdl)
+  * new ICMDs (PUTSTATICCONST, PUTFIELDCONST)
+  * some ICMDs inlined (IDIV/IREM, LDIV/LREM, AASTORE, ARRAYCHECKCAST)
+  * register allocator uses unused argument registers
+  * stacktraces on MIPS, PowerPC and x86_64
+  * integration of GNU classpath's system class loader
+  * internal class loading code more Java VM Spec compliant
+    (classcache, loading constraints, ...)
+  * virtual function table bugfix (abstract class implements not all
+    interface methods)
+  * initial support for thread dump on SIGQUIT (<ctrl>-\) on most
+    platforms
+  * GNU classpath 0.16
+  * Boehm GC 6.5
+
+
+New in release 0.91 (December 23, 2004)
+
+  * bug fixed in MULTIANEWARRAY
+  * field access related bug fixes
+  * native function call bug fixes
+  * smaller fixes...
+
+
+New in relaese 0.90 (December 8, 2004)
+
+  * More architectures supported: At the moment, CACAO is able to run on
+    Alpha, MIPS (64-bit), x86, x86-64 and PowerPC (32-bit) architectures.
+  * Native thread support
+  * Java 1.4 support
+  * GNU classpath 0.12
+  * Preliminary AWT support
+  * Boehm garbage collector
+  * Reentrant JIT compiler
+  * Lots of bug fixes and conformance enhancements
+  * Lots of bugs introduced and not fixed
+
+
+* Version 0.40 (released)
+=========================
+
+** Boehm garbage collector supported
+------------------------------------
+
+The --enable-gc2 options was replaced by --with-gc. Choose boehm for the
+Boehm garbage collector. Also see README.boehm.
+
+** mips port
+------------
+
+Now runs on some SGI systems, which are based on the mips architecture.
+
+** multiple bug fixes
+---------------------
+
+Even more java programs work as expected!
+
+
+* Version 0.35 (experimental)
+=============================
+
+** autoconf, automake support
+-----------------------------
+
+Finally moved the entire distribution to autoconf/automake. This should fix
+some of our problems with supporting different compilers. Thread support and
+the use of the new garbage collector can be enabled/disabled from using
+configure arguments:
+
+	--enable-threads [default]
+	--disable-threads
+
+	--enable-gc2 [default]
+	--disable-gc2
+
+** new garbage collector
+------------------------
+
+Included the new garbage collector as default garbage collector. 
+
+* Version 0.30 (released)
+=========================
+
+Added unlimited stack for GC and main thread. 
+Some optimzations for instructions which operate on constants. 
+
+* Version 0.20 (released)
+=========================
+
+Hardware null pointer check added, fixed severe errors in GC/Threads, type
+check and IEEE arithmetic.
+
+* Version 0.20beta (can't remember)
+=========================
+
+There is a completely new JIT compiler which is about 7 times faster and
+produces better code. 
+Multithreading is now supported. 
+A lot of bugs have been fixed.
+
+* Version 0.10 (ancient history)
+==============
+
+The initial version included the old JIT and support for lang, util and io.

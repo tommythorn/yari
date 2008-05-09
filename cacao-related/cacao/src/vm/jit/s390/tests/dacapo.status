@@ -1,0 +1,53 @@
+antlr
+
+	* parses one or more grammar files and generates a parser and lexical analyzer for each.
+	* Tue May  1 18:49:29 CEST 2007: ===== DaCapo antlr PASSED in 37095 msec =====
+
+bloat
+
+	* performs a number of optimizations and analysis on Java bytecode files
+	* Tue May  1 18:55:16 CEST 2007: ===== DaCapo bloat PASSED in 266735 msec =====
+
+chart
+
+	* uses JFreeChart to plot a number of complex line graphs and renders them as PDF
+
+eclipse
+
+	* executes some of the (non-gui) jdt performance tests for the Eclipse IDE
+
+fop
+
+	* takes an XSL-FO file, parses it and formats it, generating a PDF file.
+	* Tue May  1 22:10:03 CEST 2007: ===== DaCapo fop PASSED in 83230 msec =====
+
+hsqldb
+
+	* executes a JDBCbench-like in-memory benchmark, executing a number of transactions against a model of a banking application
+	* Tue May  1 19:37:46 CEST 2007: ===== DaCapo hsqldb PASSED in 72187 msec =====
+
+jython
+
+	* inteprets a the pybench Python benchmark
+	* Tue May  1 19:23:18 CEST 2007: ===== DaCapo jython PASSED in 190386 msec =====
+
+luindex
+
+	* Uses lucene to indexes a set of documents; the works of Shakespeare and the King James Bible
+
+lusearch
+
+	* Uses lucene to do a text search of keywords over a corpus of data comprising the works of Shakespeare and the King James Bible
+
+pmd
+
+	* analyzes a set of Java classes for a range of source code problems
+	* Tue May  1 22:12:57 CEST 2007: ===== DaCapo pmd PASSED in 43427 msec =====
+
+xalan
+
+	* transforms XML documents into HTML
+	* Tue May  1 23:26:33 CEST 2007
+		LOG: [0x77dc66c0] Generating code: org.apache.xalan.processor.XSLTSchema.build()V
+		32834 (0x8042) is not an signed 16 bit integer at /home/peter/cacao-dev/build-s390/../svn/src/vm/jit/s390/emit.c:258.
+		=> branch to patcher overflow

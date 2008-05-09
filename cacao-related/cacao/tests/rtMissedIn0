@@ -1,0 +1,10 @@
+java/lang/VMThrowable <init> ()V
+gnu/java/nio/channels/FileChannelImpl <init> (II)V
+java/lang/reflect/Constructor <init> ()V
+gnu/java/io/decode/Decoder8859_1 <init> (Ljava/io/InputStream;)V
+gnu/java/io/encode/Encoder8859_1 <init> (Ljava/io/OutputStream;)V
+gnu/java/net/protocol/file/Handler <init> ()V
+gnu/java/net/protocol/jar/Handler <init> ()V
+gnu/java/net/protocol/jar/Connection <init> (Ljava/net/URL;)V
+gnu/java/locale/Calendar <init> ()V
+gnu/java/locale/Calendar_en <init> ()V

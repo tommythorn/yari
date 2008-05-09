@@ -1,0 +1,208 @@
+/* include/config.h.in.  Generated from configure.in by autoheader.  */
+
+/* all interior pointers */
+#undef ALL_INTERIOR_POINTERS
+
+/* atomic uncollectable */
+#undef ATOMIC_UNCOLLECTABLE
+
+/* don't use FindTopOfStack */
+#undef DARWIN_DONT_PARSE_STACK
+
+/* datastart is etext */
+#undef DATASTART_IS_ETEXT
+
+/* dbg hdrs all */
+#undef DBG_HDRS_ALL
+
+/* dgux threads */
+#undef DGUX_THREADS
+
+/* ecos */
+#undef ECOS
+
+/* gc aix threads */
+#undef GC_AIX_THREADS
+
+/* gc alpha version */
+#undef GC_ALPHA_VERSION
+
+/* gc assertions */
+#undef GC_ASSERTIONS
+
+/* gc darwin threads */
+#undef GC_DARWIN_THREADS
+
+/* gc dgux386 threads */
+#undef GC_DGUX386_THREADS
+
+/* gc freebsd threads */
+#undef GC_FREEBSD_THREADS
+
+/* gc gcj support */
+#undef GC_GCJ_SUPPORT
+
+/* have builtin backtrace */
+#undef GC_HAVE_BUILTIN_BACKTRACE
+
+/* gc hpux threads */
+#undef GC_HPUX_THREADS
+
+/* gc irix threads */
+#undef GC_IRIX_THREADS
+
+/* gc linux threads */
+#undef GC_LINUX_THREADS
+
+/* GC NetBSD threads */
+#undef GC_NETBSD_THREADS
+
+/* gc osf1 threads */
+#undef GC_OSF1_THREADS
+
+/* gc solaris pthreads */
+#undef GC_SOLARIS_PTHREADS
+
+/* gc solaris threads */
+#undef GC_SOLARIS_THREADS
+
+/* gc version major */
+#undef GC_VERSION_MAJOR
+
+/* gc version minor */
+#undef GC_VERSION_MINOR
+
+/* gc win32 threads */
+#undef GC_WIN32_THREADS
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* java finalization */
+#undef JAVA_FINALIZATION
+
+/* keep back ptrs */
+#undef KEEP_BACK_PTRS
+
+/* make back graph */
+#undef MAKE_BACK_GRAPH
+
+/* no clock */
+#undef NO_CLOCK
+
+/* no debugging */
+#undef NO_DEBUGGING
+
+/* no exceute permission */
+#undef NO_EXECUTE_PERMISSION
+
+/* no getenv */
+#undef NO_GETENV
+
+/* no signals */
+#undef NO_SIGNALS
+
+/* no sigset */
+#undef NO_SIGSET
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* parallel mark */
+#undef PARALLEL_MARK
+
+/* redirect free */
+#undef REDIRECT_FREE
+
+/* redirect malloc */
+#undef REDIRECT_MALLOC
+
+/* redirect realloc */
+#undef REDIRECT_REALLOC
+
+/* save call count */
+#undef SAVE_CALL_COUNT
+
+/* silent */
+#undef SILENT
+
+/* small config */
+#undef SMALL_CONFIG
+
+/* solaris 2.5 proc vdb bug fixed */
+#undef SOLARIS25_PROC_VDB_BUG_FIXED
+
+/* stackbase */
+#undef STACKBASE
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* sun os 5.3 shared lib */
+#undef SUNOS53_SHARED_LIB
+
+/* thread local alloc */
+#undef THREAD_LOCAL_ALLOC
+
+/* use compiler tls */
+#undef USE_COMPILER_TLS
+
+/* Version number of package */
+#undef VERSION
+
+/* posix c source */
+#undef _POSIX_C_SOURCE
+
+/* pthreads */
+#undef _PTHREADS
+
+/* reentrant */
+#undef _REENTRANT
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif

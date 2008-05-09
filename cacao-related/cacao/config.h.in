@@ -1,0 +1,373 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* architecture directory */
+#undef ARCH_DIR
+
+/* library installation prefix */
+#undef CACAO_LIBDIR
+
+/* installation prefix */
+#undef CACAO_PREFIX
+
+/* CACAO's vm.zip */
+#undef CACAO_VM_ZIP
+
+/* Java core library classes */
+#undef CLASSPATH_CLASSES
+
+/* Java core library jni.h header */
+#undef CLASSPATH_JNI_H
+
+/* Java core library native libraries installation directory */
+#undef CLASSPATH_LIBDIR
+
+/* Java core library installation directory */
+#undef CLASSPATH_PREFIX
+
+/* disable dump memory */
+#undef DISABLE_DUMP
+
+/* disable garbage collector */
+#undef DISABLE_GC
+
+/* enable cycle count statistics */
+#undef ENABLE_CYCLES_STATS
+
+/* enable disassembler */
+#undef ENABLE_DISASSEMBLER
+
+/* statically embedd class files */
+#undef ENABLE_EMBEDDED_CLASSES
+
+/* enable conservative boehm-gc */
+#undef ENABLE_GC_BOEHM
+
+/* enable exact cacao-gc */
+#undef ENABLE_GC_CACAO
+
+/* enable if-conversion */
+#undef ENABLE_IFCONV
+
+/* use method inlining */
+#undef ENABLE_INLINING
+
+/* enable method inlining debug options */
+#undef ENABLE_INLINING_DEBUG
+
+/* enable interpreter */
+#undef ENABLE_INTRP
+
+/* compile for Java ME CLDC1.1 */
+#undef ENABLE_JAVAME_CLDC1_1
+
+/* compile for Java SE */
+#undef ENABLE_JAVASE
+
+/* enable JIT compiler */
+#undef ENABLE_JIT
+
+/* enable JNI */
+#undef ENABLE_JNI
+
+/* use JVMTI */
+#undef ENABLE_JVMTI
+
+/* enable libjvm.so */
+#undef ENABLE_LIBJVM
+
+/* use loop optimization */
+#undef ENABLE_LOOP
+
+/* enable lsra */
+#undef ENABLE_LSRA
+
+/* perform debugging memory checks */
+#undef ENABLE_MEMCHECK
+
+/* enable profiling */
+#undef ENABLE_PROFILING
+
+/* use on-stack replacement */
+#undef ENABLE_REPLACEMENT
+
+/* enable real-time timing */
+#undef ENABLE_RT_TIMING
+
+/* enable softfloat */
+#undef ENABLE_SOFTFLOAT
+
+/* enable soft double cmp */
+#undef ENABLE_SOFT_DOUBLE_CMP
+
+/* enable soft float cmp */
+#undef ENABLE_SOFT_FLOAT_CMP
+
+/* enable lsra with ssa */
+#undef ENABLE_SSA
+
+/* link CACAO statically */
+#undef ENABLE_STATICVM
+
+/* enable statistics */
+#undef ENABLE_STATISTICS
+
+/* enable threads */
+#undef ENABLE_THREADS
+
+/* enable classfile verification */
+#undef ENABLE_VERIFIER
+
+/* enable vmlog tracing code */
+#undef ENABLE_VMLOG
+
+/* use zlib */
+#undef ENABLE_ZLIB
+
+/* Define to 1 if you have the <avcall.h> header file. */
+#undef HAVE_AVCALL_H
+
+/* Define to 1 if you have BSD u_int32_t */
+#undef HAVE_BSD_INT32_DEFINED
+
+/* Define to 1 if you have the `calloc' function. */
+#undef HAVE_CALLOC
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the <ffi.h> header file. */
+#undef HAVE_FFI_H
+
+/* Define to 1 if you have the `free' function. */
+#undef HAVE_FREE
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getrusage' function. */
+#undef HAVE_GETRUSAGE
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define if you have the iconv() function. */
+#undef HAVE_ICONV
+
+/* Define to 1 if you have uint32_t */
+#undef HAVE_INT32_DEFINED
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isnan' function. */
+#undef HAVE_ISNAN
+
+/* Define to 1 if you have the `avcall' library (-lavcall). */
+#undef HAVE_LIBAVCALL
+
+/* Define to 1 if you have the `bfd' library (-lbfd). */
+#undef HAVE_LIBBFD
+
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
+/* Define to 1 if you have the `ffi' library (-lffi). */
+#undef HAVE_LIBFFI
+
+/* Define to 1 if you have the `iberty' library (-liberty). */
+#undef HAVE_LIBIBERTY
+
+/* Define to 1 if you have the `intl' library (-lintl). */
+#undef HAVE_LIBINTL
+
+/* Define to 1 if you have the `ltdl' library (-lltdl). */
+#undef HAVE_LIBLTDL
+
+/* Define to 1 if you have the `opcodes' library (-lopcodes). */
+#undef HAVE_LIBOPCODES
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* Define to 1 if you have the <ltdl.h> header file. */
+#undef HAVE_LTDL_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `mprotect' function. */
+#undef HAVE_MPROTECT
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the `scandir' function. */
+#undef HAVE_SCANDIR
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/config.h> header file. */
+#undef HAVE_SYS_CONFIG_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <zconf.h> header file. */
+#undef HAVE_ZCONF_H
+
+/* Define to 1 if you have the <zlib.h> header file. */
+#undef HAVE_ZLIB_H
+
+/* disable debug code */
+#undef NDEBUG
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* The size of `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
+
+/* statement for skipping 16 bytes */
+#undef SKIP16
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* use scheduler */
+#undef USE_SCHEDULER
+
+/* Version number of package */
+#undef VERSION
+
+/* CC used */
+#undef VERSION_CC
+
+/* CFLAGS used */
+#undef VERSION_CFLAGS
+
+/* configure arguments */
+#undef VERSION_CONFIGURE_ARGS
+
+/* use binutils disassembler */
+#undef WITH_BINUTILS_DISASSEMBLER
+
+/* use Sun's CLDC1.1 classes */
+#undef WITH_CLASSPATH_CLDC1_1
+
+/* use GNU Classpath */
+#undef WITH_CLASSPATH_GNU
+
+/* use libffcall */
+#undef WITH_FFCALL
+
+/* use libffi */
+#undef WITH_FFI
+
+/* with JRE layout */
+#undef WITH_JRE_LAYOUT
+
+/* link GNU classpath native libraries statically into CACAO */
+#undef WITH_STATIC_CLASSPATH
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
+
+/* Define to `__attribute__' to nothing if it's not supported.  */
+#ifndef __cplusplus
+#undef __attribute__
+#endif
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `long int' if <sys/types.h> does not define. */
+#undef off_t
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t

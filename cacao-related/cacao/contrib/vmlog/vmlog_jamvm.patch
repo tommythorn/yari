@@ -1,0 +1,133 @@
+diff -u -r jamvm-1.4.2/src/excep.c vmlog-jamvm-1.4.2/src/excep.c
+--- jamvm-1.4.2/src/excep.c	2005-12-31 08:12:55.000000000 +0100
++++ vmlog-jamvm-1.4.2/src/excep.c	2006-03-12 00:42:34.000000000 +0100
+@@ -23,6 +23,8 @@
+ #include "jam.h"
+ #include "lock.h"
+ 
++#include <vmlog_jamvm.h>
++
+ extern char VM_initing;
+ 
+ static Class *ste_class, *ste_array_class, *throw_class, *vmthrow_class;
+@@ -83,6 +85,7 @@
+                 }
+ 
+                 getExecEnv()->exception = exp;
++		vmlog_jamvm_throw(getExecEnv()->thread,exp);
+             }
+         }
+     }
+@@ -90,11 +93,15 @@
+ 
+ void setException(Object *exp) {
+     getExecEnv()->exception = exp;
++    vmlog_jamvm_throw(getExecEnv()->thread,exp);
+ }
+ 
+ void clearException() {
+     ExecEnv *ee = getExecEnv();
+ 
++    if (ee->exception)
++	vmlog_jamvm_catch(ee->thread,ee->exception);
++
+     if(ee->overflow) {
+         ee->overflow = FALSE;
+         ee->stack_end -= STACK_RED_ZONE_SIZE;
+@@ -157,6 +164,8 @@
+     while(((handler_pc = findCatchBlockInMethod(frame->mb, exception, frame->last_pc)) == NULL)
+                     && (frame->prev->mb != NULL)) {
+ 
++	vmlog_jamvm_unwnd_method(getExecEnv()->thread,frame->mb);
++
+         if(frame->mb->access_flags & ACC_SYNCHRONIZED) {
+             Object *sync_ob = frame->mb->access_flags & ACC_STATIC ?
+                     (Object*)frame->mb->class : (Object*)frame->lvars[0];
+diff -u -r jamvm-1.4.2/src/frame.h vmlog-jamvm-1.4.2/src/frame.h
+--- jamvm-1.4.2/src/frame.h	2005-09-05 02:02:45.000000000 +0200
++++ vmlog-jamvm-1.4.2/src/frame.h	2006-03-14 00:26:07.000000000 +0100
+@@ -53,7 +53,12 @@
+                                                                 \
+     new_frame->prev = dummy;                                    \
+     ee->last_frame = new_frame;                                 \
++    vmlog_jamvm_enter_method(ee->thread,mb);                    \
+ }
+ 
+ #define POP_TOP_FRAME(ee)                                       \
++    if (ee->exception)                                          \
++        vmlog_jamvm_unwnd_method(ee->thread,mb);                \
++    else                                                        \
++        vmlog_jamvm_leave_method(ee->thread,mb);                \
+     ee->last_frame = ee->last_frame->prev->prev;
+diff -u -r jamvm-1.4.2/src/interp.c vmlog-jamvm-1.4.2/src/interp.c
+--- jamvm-1.4.2/src/interp.c	2006-01-22 23:32:38.000000000 +0100
++++ vmlog-jamvm-1.4.2/src/interp.c	2006-03-13 04:21:48.000000000 +0100
+@@ -59,6 +59,8 @@
+     }                                                                      \
+ }
+ 
++#include "vmlog_jamvm.c"
++
+ uintptr_t *executeJava() {
+     CodePntr pc;
+     ExecEnv *ee = getExecEnv();
+@@ -2220,6 +2222,8 @@
+ 
+     ee->last_frame = new_frame;
+ 
++    vmlog_jamvm_enter_method(ee->thread,new_mb);
++
+     if(new_mb->access_flags & ACC_SYNCHRONIZED) {
+         sync_ob = new_mb->access_flags & ACC_STATIC ? (Object*)new_mb->class : (Object*)*arg1;
+         objectLock(sync_ob);
+@@ -2229,6 +2233,11 @@
+         ostack = (*(uintptr_t *(*)(Class*, MethodBlock*, uintptr_t*))
+                      new_mb->native_invoker)(new_mb->class, new_mb, arg1);
+ 
++	if (exceptionOccured0(ee))
++		vmlog_jamvm_unwnd_method(ee->thread,new_mb);
++	else
++		vmlog_jamvm_leave_method(ee->thread,new_mb);
++
+         if(sync_ob)
+             objectUnlock(sync_ob);
+ 
+@@ -2262,6 +2271,8 @@
+         return ostack;
+     }
+ 
++    vmlog_jamvm_leave_method(ee->thread,mb);
++
+     if(mb->access_flags & ACC_SYNCHRONIZED) {
+         Object *sync_ob = mb->access_flags & ACC_STATIC ? (Object*)mb->class : this;
+         objectUnlock(sync_ob);
+@@ -2294,6 +2305,8 @@
+             return NULL;
+         }
+ 
++	vmlog_jamvm_catch(ee->thread,excep);
++
+         /* If we're handling a stack overflow, reduce the stack
+            back past the red zone to enable handling of further
+            overflows */
+diff -u -r jamvm-1.4.2/src/jam.c vmlog-jamvm-1.4.2/src/jam.c
+--- jamvm-1.4.2/src/jam.c	2006-01-17 01:36:59.000000000 +0100
++++ vmlog-jamvm-1.4.2/src/jam.c	2006-03-13 04:32:16.000000000 +0100
+@@ -25,6 +25,8 @@
+ 
+ #include "jam.h"
+ 
++#include <vmlog_jamvm.h>
++
+ /* Setup default values for command line args */
+ 
+ static int noasyncgc = FALSE;
+@@ -282,6 +284,8 @@
+     int status;
+     int i;
+ 
++    vmlog_jamvm_init(&argc,argv);
++
+     int class_arg = parseCommandLine(argc, argv);
+ 
+     initVM();

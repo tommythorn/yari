@@ -1,0 +1,27 @@
+Quick start instructions
+========================
+
+You can check the configure options via `./configure --help'. But the
+default settings should be ok. For building the package type:
+
+   $ ./configure
+   $ make
+   $ make install
+
+The default installation prefix is `/usr/local/cacao'. You can change
+this destination by providing the `--prefix=PATH' option to configure.
+
+This version of cacao only supports the `--prefix' option, even if
+configure processes the other options (`--bindir', `--libdir', etc.),
+it will screw up your installation since CACAO tries to setup a
+directory tree like the JVMs from Sun or IBM do.
+
+
+Requirements:
+-------------
+
+In order to compile the Java classes from GNU classpath, you need a
+Java compiler supported by GNU classpath. To get a working classpath
+in an appropriate time, we recommend IBM jikes 1.18 or newer. For
+further instructions concerning GNU classpath, please refer to
+`src/classpath/INSTALL'.

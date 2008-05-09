@@ -1,0 +1,17 @@
+# sets the environment variables when GNU classpath and CACAO are not
+# installed
+
+export PATH=$PWD/src/cacao:$PATH
+
+export LD_LIBRARY_PATH=\
+$PWD/src/cacao/.libs:\
+@CLASSPATH_PREFIX@/native/jawt/.libs:\
+@CLASSPATH_PREFIX@/native/jni/gtk-peer/.libs:\
+@CLASSPATH_PREFIX@/native/jni/java-io/.libs:\
+@CLASSPATH_PREFIX@/native/jni/java-lang/.libs:\
+@CLASSPATH_PREFIX@/native/jni/java-net/.libs:\
+@CLASSPATH_PREFIX@/native/jni/java-nio/.libs:\
+@CLASSPATH_PREFIX@/native/jni/java-util/.libs:\
+$LD_LIBRARY_PATH
+
+export BOOTCLASSPATH=$PWD/src/lib/vm.zip:@CLASSPATH_CLASSES@

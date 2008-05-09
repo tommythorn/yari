@@ -1,0 +1,6 @@
+# sets the environment variables when GNU classpath is installed, but
+# CACAO not
+
+export PATH=$PWD/src/cacao:$PATH
+export LD_LIBRARY_PATH=$PWD/src/cacao/.libs
+export BOOTCLASSPATH=$PWD/src/lib/vm.zip:@CLASSPATH_CLASSES@

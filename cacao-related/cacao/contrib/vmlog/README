@@ -1,0 +1,128 @@
+vmlog - high-speed logging for free VMs
+Copyright (c) 2006 Edwin Steiner <edwin.steiner@gmx.net>
+-----------------------------------------------------------------------
+
+About
+-----
+
+vmlog is a software module for doing fast call logging in free Java VMs and a
+set of tools for examining the created logfiles.
+
+Some features of vmlog:
+
+	* high data density because of binary formats with hashed strings
+	* high speed (ie. you can run big applications with full logging)
+	* small, non-intrusive interface to several VMs
+	* clean separation of threads
+	* can ignore a user-specified list of methods
+
+Right now there are complete interfaces for the following VMs:
+
+	* CACAO
+	* jamvm 1.4.2
+
+	
+License
+-------
+	
+vmlog is free software distributed under the GPL. See the file COPYING
+for details.
+
+
+How to compile a VM with vmlog
+------------------------------
+
+CACAO has vmlog support built-in. Use the configure flag --enable-vmlog
+to build it.
+
+For other VMs, you need to do two things:
+
+	* patch the VM code with the provided vmlog_<vm>.patch
+	* configure the VM with CFLAGS that include -Ivmlogdir
+	  where vmlogdir is the directory the contains the vmlog
+	  source code
+
+You can then compile your VM with vmlog. 
+
+
+Using vmlog
+-----------
+
+To use it call the VM with at least the following option added to the command
+line:
+
+	-vmlog:prefix PREFIX
+
+PREFIX is an arbitrary string that will be used as a prefix for the generated
+file names.
+
+Note: For cacao you currently also have to add `-verbose:call` to activate
+the logging.
+
+
+Ignore Lists
+------------
+
+If you want vmlog to ignore certain methods do the following:
+
+	* put the full names of the methods (as displayed by vmlog)
+	  into a file, say "vmloginore.txt".
+
+	* type
+
+		vmlogindex vmloginore vmloginore.txt
+
+	* add the following option to your VM command line:
+
+		-vmlog:ignore vmloginore
+
+
+The Tools
+---------
+
+After running something with your prepared VM, you will find the following
+files:
+
+    PREFIX.idx          string index
+	PREFIX.str          string data
+	PREFIX.#.log        log for thread number #
+
+Some things you can do now:
+
+	* Count called methods:
+
+		vmlogdump PREFIX -c
+
+	* Show open call frames at the end of the log:
+
+		vmlogdump PREFIX -o
+	
+	* Dump all strings in the hash:
+
+		vmlogdump PREFIX -s
+
+	* Print an indented call trace:
+
+		vmlogdump PREFIX
+
+
+Comparing logs
+--------------
+
+An important feature of vmlog is that you can compare the logs created by
+different VMs. To do this first do a normal vmlog run with the first VM.
+Then start the second VM with theese options:
+
+	-vmlog:prefix OTHERPREFIX -vmlog:strings PREFIX
+
+where PREFIX is the PREFIX you used for the first VM run and OTHERPREFIX
+is a different string.
+
+You can now compare the logs (for example of the first thread):
+
+	vmlogdiff OTHERPREFIX PREFIX.0.log OTHERPREFIX.0.log
+
+Note: vmlogdiff is currently not fast enough, yet. You can add the
+`-v` option to it to see what it is doing (on stderr) at least.
+
+
