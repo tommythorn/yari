@@ -69,6 +69,7 @@ PCRT0 = @pcrt0@
 GENOBJS = syscalls.o fstat.o getpid.o isatty.o kill.o \
 	lseek.o print.o putnum.o stat.o unlink.o
 GENOBJS2 = open.o close.o read.o write.o
+YARIOBJS = yarimon.o @part_specific_obj@ ${GENOBJS} ${GENOBJS2}
 IDTOBJS = idtmon.o @part_specific_obj@ ${GENOBJS}
 PMONOBJS = pmon.o @part_specific_obj@ ${GENOBJS}
 LSIOBJS = lsipmon.o @part_specific_obj@ ${GENOBJS}
@@ -80,7 +81,7 @@ CYGMONOBJS = open.o close.o cygmon.o @part_specific_obj@ ${GENOBJS}
 # Nullmon cannot support read and write, but the test cases pull them in via libs
 NULLMONOBJS = nullmon.o @part_specific_obj@ ${GENOBJS}
 
-CFLAGS = -g 
+CFLAGS = -g
 
 GCC_LDFLAGS = `if [ -d ${objroot}/../gcc ] ; \
 	then echo -L${objroot}/../gcc ; fi`
@@ -103,6 +104,9 @@ all: ${CRT0} ${PCRT0} test.o ${BSP}
 #
 # here's where we build the board support packages for each target
 #
+mipsyari.o: $(YARIOBJS)
+	${LD} -r $(YARIOBJS) -o $@
+
 mipsidt.o: $(IDTOBJS)
 	${LD} -r $(IDTOBJS) -o $@
 
@@ -111,6 +115,10 @@ mipspmon.o: $(PMONOBJS)
 
 mipslsi.o: $(PMONOBJS)
 	${LD} -r $(LSIOBJS) -o $@
+
+libyari.a: $(YARIOBJS)
+	${AR} ${ARFLAGS} $@ $(YARIOBJS)
+	${RANLIB} $@
 
 libidt.a: $(IDTOBJS)
 	${AR} ${ARFLAGS} $@ $(IDTOBJS)
@@ -191,7 +199,7 @@ cfe-test.dis: cfe-test.x
 	$(OBJDUMP) -d cfe-test.x > $@
 cfe-test: cfe-test.srec cfe-test.dis
 
-doc:	
+doc:
 
 clean mostlyclean:
 	rm -f a.out core *.i *~ *.o *-test *.srec *.dis *.map *.x
@@ -218,6 +226,7 @@ test.o:	${srcdir}/test.c
 crt0.o: ${srcdir}/crt0.S
 pcrt0.o: ${srcdir}/crt0.S
 	$(CC) -c $(CFLAGS_FOR_TARGET) $(CFLAGS) -DGCRT0 ${srcdir}/crt0.S -o ${PCRT0}
+crt0_yari.o: ${srcdir}/crt0_yari.S
 crt0_cfe.o: ${srcdir}/crt0_cfe.S
 crt0_cygmon.o: ${srcdir}/crt0_cygmon.S
 idtmon.o: ${srcdir}/idtmon.S

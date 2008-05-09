@@ -83,11 +83,11 @@ case "${target}" in
 	bsp_list="libpmon.a libnullmon.a"
 	;;
   *)
-	crt0="crt0_cfe.o crt0.o"
+	crt0="crt0_yari.o crt0_cfe.o crt0.o"
         part_specific_obj="vr4300.o cma101.o"
 	part_specific_defines=
-        script_list="idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon"
-        bsp_list="libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a"
+        script_list="yari idt pmon ddb ddb-kseg0 lsi cfe idtecoff nullmon"
+        bsp_list="libyari.a libidt.a libpmon.a liblsi.a libcfe.a libnullmon.a"
         ;;
 esac
 
