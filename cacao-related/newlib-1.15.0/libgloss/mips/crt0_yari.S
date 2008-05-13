@@ -35,7 +35,7 @@ _start: li      $0, 0
         li      $30, 30
         li      $31, 31
 
-        la    $29,0x400E0000 /* Stack ends where tinymon data begins. */
+        la    $29,0x40100000 /* Stack ends where tinymon data begins. */
         la    $28,_gp        /* Globals pointer. */
 
         /* Clear the BSS segment. */
@@ -123,6 +123,7 @@ argv0:  .ascii  "prog\000"
         .set noreorder
         .globl  _exit
         .set    noat
+	.align 4
 _exit: 
         jal     __post_main
         nop
