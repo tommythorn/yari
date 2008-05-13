@@ -25,6 +25,8 @@ unsigned section_start[99];
 unsigned section_size[99];
 static int text_segments = 0;
 
+extern unsigned TSC;
+
 #define H(x) (endian_is_big ? ntohs(x) : x)
 #define W(x) (endian_is_big ? ntohl(x) : x)
 
@@ -482,7 +484,7 @@ unsigned load(unsigned a,  // IN: address
 
                 case 3:
                         // TSC
-                        res = 0;
+                        res = TSC;
                         break;
 
                 default:
