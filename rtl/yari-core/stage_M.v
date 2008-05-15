@@ -513,7 +513,7 @@ module stage_M(input  wire        clock
 
          if (x_address[31:2] == x_last_store_address) begin
             /*
-             * Previous instructino was a store to the location we're
+             * Previous instruction was a store to the location we're
              * loading, but the store has finish yet as it happens one
              * cycle out of phase of the load. We could forward the
              * result, but that's tricky and expensive. Given how rare

@@ -1,5 +1,12 @@
 DONE
 
+* Improve cycle time; attack the current critical path which is in
+  ME. First try switching from a tag-sequental cache to the more
+  conventional way select (using a 32-bit 4-mux). This gives us
+  another stage to do the load alignment and sign-extension.
+
+* Implement D$ flushing!
+
 * Implement a slew of performance counters, most specifically, count
 
   - I$ misses
