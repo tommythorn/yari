@@ -57,7 +57,7 @@ char *inst_name[64+64+32] = {
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
 
-#define KEEP_LINES 40
+#define KEEP_LINES 400
 #define RTL_MAX_LINE 200
 char last[KEEP_LINES][RTL_MAX_LINE];
 unsigned last_p = 0;
@@ -234,11 +234,15 @@ void run_simple(MIPS_state_t *state)
         uint32_t pc_prev;
         uint32_t pc_next = state->pc + 4;
         uint32_t wbv, s = 0, t, st_old = 0;
-        int wbr;
+        int wbr = 0;
 
         int branch_delay_slot_next = 0;
         int branch_delay_slot = 0;
         int annul_delay_slot = 0;
+
+        int last_shift_dest = 0;
+        int last_load_dest = 0;
+        int last_load32_dest = 0;
 
         atexit(print_coverage);
 
@@ -273,6 +277,33 @@ void run_simple(MIPS_state_t *state)
                 state->pc = pc_next;
                 pc_next += sizeof(inst_t);
 
+                if (i.raw == 0) {
+                        stat_nop++;
+                        if (branch_delay_slot_next)
+                                stat_nop_delay_slots++;
+                }
+                if (wbr == i.r.rs)
+                        switch (i.j.opcode) {
+                        case LB:
+                        case LH:
+                        case LBU:
+                        case LHU:
+                        case LW: stat_gen_load_hazard++; break;
+                        default: break;
+                        }
+                if (last_load_dest && (last_load_dest == i.r.rs ||
+                                       last_load_dest == i.r.rt))
+                        stat_load_use_hazard++;
+                if (last_load32_dest && (last_load32_dest == i.r.rs ||
+                                         last_load32_dest == i.r.rt))
+                        stat_load32_use_hazard++;
+                if (last_shift_dest && (last_shift_dest == i.r.rs ||
+                                        last_shift_dest == i.r.rt))
+                        stat_shift_use_hazard++;
+
+                last_load_dest = last_load32_dest = last_shift_dest = 0;
+
+
                 if (enable_disass & !enable_regwrites)
                         for (j = 0; j < 32; ++j)
                                 if (oldreg[j] != state->r[j])
@@ -281,6 +312,7 @@ void run_simple(MIPS_state_t *state)
                 branch_delay_slot = branch_delay_slot_next;
                 branch_delay_slot_next = 0;
                 annul_delay_slot = 0;
+
 
                 s = state->r[i.r.rs];
                 t = state->r[i.r.rt];
@@ -302,16 +334,17 @@ void run_simple(MIPS_state_t *state)
                         case SW:   st_old = LD32(address); break;
                         }
 
+
                 switch (i.j.opcode) {
                 case REG: // all R-type, thus rd is target register
                         wbr = i.r.rd;
                         switch (i.r.funct) {
-                        case SLL:  wbv = t << i.r.sa; break;
-                        case SRL:  wbv = t >> i.r.sa; break;
-                        case SRA:  wbv = (int)t >> i.r.sa; break;
-                        case SLLV: wbv = t << (s & 31); break;
-                        case SRLV: wbv = t >> (s & 31); break;
-                        case SRAV: wbv = (int)t >> (s & 31); break;
+                        case SLL:  last_shift_dest = wbr; wbv = t << i.r.sa; break;
+                        case SRL:  last_shift_dest = wbr; wbv = t >> i.r.sa; break;
+                        case SRA:  last_shift_dest = wbr; wbv = (int)t >> i.r.sa; break;
+                        case SLLV: last_shift_dest = wbr; wbv = t << (s & 31); break;
+                        case SRLV: last_shift_dest = wbr; wbv = t >> (s & 31); break;
+                        case SRAV: last_shift_dest = wbr; wbv = (int)t >> (s & 31); break;
 
                         case JALR: wbv = pc_next;
                         case JR:   pc_next = s;
@@ -628,11 +661,11 @@ void run_simple(MIPS_state_t *state)
                         }
                         goto unhandled;
 
-                case LB:   wbv = EXT8(LD8(address)); break;
-                case LH:   wbv = EXT16(LD16(address)); break;
-                case LBU:  wbv = LD8(address); break;
-                case LHU:  wbv = LD16(address); break;
-                case LW:   wbv = LD32(address); break;
+                case LB:   last_load_dest = wbr; wbv = EXT8(LD8(address)); break;
+                case LH:   last_load_dest = wbr; wbv = EXT16(LD16(address)); break;
+                case LBU:  last_load_dest = wbr; wbv = LD8(address); break;
+                case LHU:  last_load_dest = wbr; wbv = LD16(address); break;
+                case LW:   last_load_dest = last_load32_dest = wbr; wbv = LD32(address); break;
                 case SB:   wbr = 0; ST8(address,t); break;
                 case SH:   wbr = 0; ST16(address,t); break;
                 case SW:   wbr = 0; ST32(address,t); break;
