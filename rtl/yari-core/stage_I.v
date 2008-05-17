@@ -151,13 +151,13 @@ module stage_I(input  wire        clock
 
    reg [IC_LINE_INDEX_BITS-1:0] tag_wraddress;
    reg [TAG_BITS-1:0]        tag_write_data;
-   reg [3:0]                 tag_write_ena;
+   reg [3:0]                 tag_write_ena = 0;
 
 
    simpledpram #(32,CACHE_BITS - 2,"../../initmem")
       icache_ram(.clock(clock),
                  .rdaddress({set_2,pc_2`CSI,pc_2`WDX}), .rddata(i_instr),
-                 .wraddress({fill_set | 2'd2,pc_2`CSI,fill_wi}),
+                 .wraddress({fill_set,pc_2`CSI,fill_wi}),
                  .wrdata(imem_readdata),
                  .wren(state == S_FILLING && imem_readdatavalid));
 
@@ -186,11 +186,14 @@ module stage_I(input  wire        clock
    assign       i2_valid = valid_2;
    assign       i2_pc    = pc_2;
 
+   reg [32:0]  lfsr = 0;
+
    reg          pending_synci      = 0;
    reg [31:0]   pending_synci_a    = 0;
    reg [31:0]   pending_synci_pc   = 0;
 
    always @(posedge clock) begin
+      lfsr <= {lfsr[31:0], ~lfsr[32] ^ lfsr[19]};
       tag_write_ena <= 0;
       if (synci) begin
          pending_synci      <= 1;
@@ -293,14 +296,9 @@ module stage_I(input  wire        clock
 
                tag_wraddress  <= pc_2`CSI;
                tag_write_data <= pc_2`CHK;
-               tag_write_ena  <= 1 << (fill_set | 2'd2);
-
-               // Restrict writes to set 2 and 3 to protect the
-               // preloaded image. XXX This should be under sw control
-               // so we can switch it off ROM.
-               // XXX: Need a better replacement algorithm.
-               fill_set <= {1'd1, !fill_set[0]};
-               state <= S_PRE_RUNNING;
+               tag_write_ena  <= 4'd1 << fill_set;
+               fill_set       <= lfsr[1:0];
+               state          <= S_PRE_RUNNING;
             end
          end
 
