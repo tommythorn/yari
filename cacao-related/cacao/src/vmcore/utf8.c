@@ -55,7 +55,7 @@
 
 /* hashsize must be power of 2 */
 
-#define HASHTABLE_UTF_SIZE    16384     /* initial size of utf-hash           */
+#define HASHTABLE_UTF_SIZE    8192      /* initial size of utf-hash           */
 
 hashtable *hashtable_utf;               /* hashtable for utf8-symbols         */
 
