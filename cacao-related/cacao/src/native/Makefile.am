@@ -75,18 +75,20 @@ endif
 
 if ENABLE_EMBEDDED_CLASSES
 my_nativetable.tmp: vm/libnativevm.la
-	nm --defined-only vm/.libs/libnativevm.a | grep Java | cut -d ' ' -f 3 > $@
+	$(NM) --defined-only vm/.libs/libnativevm.a | grep Java | cut -d ' ' -f 3 > $@
 
 my_nativetable.c: my_nativetable.tmp
 	echo "char *native_names[] = {" > $@
 	cat $^ | sort | sed -e s/^/\"/ -e s/$$/\",/ >> $@
+	echo '""' >> $@
 	echo "};" >> $@
 	cat $^ | sort | sed -e s/^/extern\ void\ / -e s/$$/\(\)\;/ >> $@
 	echo "typedef void (*funcptr)();" >> $@
 	echo "funcptr native_symbols[] = {" >> $@
 	cat $^ | sort | sed -e s/^/\&/ -e s/$$/,/ >> $@
+	echo '""' >> $@
 	echo "};" >> $@
-	echo -n "int num_natives = " >> $@
+	/bin/echo -n "int num_natives = " >> $@
 	cat $^ | wc -l >> $@
 	echo ";" >> $@
 endif

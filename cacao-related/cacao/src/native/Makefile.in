@@ -690,13 +690,15 @@ uninstall-info: uninstall-info-recursive
 @ENABLE_EMBEDDED_CLASSES_TRUE@my_nativetable.c: my_nativetable.tmp
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo "char *native_names[] = {" > $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	cat $^ | sort | sed -e s/^/\"/ -e s/$$/\",/ >> $@
+@ENABLE_EMBEDDED_CLASSES_TRUE@	echo '""' >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo "};" >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	cat $^ | sort | sed -e s/^/extern\ void\ / -e s/$$/\(\)\;/ >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo "typedef void (*funcptr)();" >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo "funcptr native_symbols[] = {" >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	cat $^ | sort | sed -e s/^/\&/ -e s/$$/,/ >> $@
+@ENABLE_EMBEDDED_CLASSES_TRUE@	echo '""' >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo "};" >> $@
-@ENABLE_EMBEDDED_CLASSES_TRUE@	echo -n "int num_natives = " >> $@
+@ENABLE_EMBEDDED_CLASSES_TRUE@	/bin/echo -n "int num_natives = " >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	cat $^ | wc -l >> $@
 @ENABLE_EMBEDDED_CLASSES_TRUE@	echo ";" >> $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -169,7 +169,7 @@ pushd ${CACAO_BUILD}
   make -sj ${MINUS_J}
 
   if [ ! "$?" -eq "0" ]; then
-    echo "Building cacao for yari."
+    echo "Building cacao for yari failed."
     exit 1
   fi
 popd
