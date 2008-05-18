@@ -54,6 +54,11 @@
 
 #include "vm/jit/i386/codegen.h"
 
+#if MAC_OS_X_VERSION < MAC_OS_X_VERSION_10_5
+/* Trying to support compatibility between versions of Mac OS X isn't
+   worth the pain */
+#error Sorry, this has been hacked to only run on Leopard
+#endif
 
 /* md_signal_handler_sigsegv ***************************************************
 
@@ -66,7 +71,7 @@ void md_signal_handler_sigsegv(int sig, siginfo_t *siginfo, void *_p)
 	ucontext_t          *_uc;
 	mcontext_t           _mc;
 	u1                  *pv;
-	i386_thread_state_t *_ss;
+	_STRUCT_X86_THREAD_STATE32 *_ss;
 	u1                  *sp;
 	u1                  *ra;
 	u1                  *xpc;
@@ -81,11 +86,11 @@ void md_signal_handler_sigsegv(int sig, siginfo_t *siginfo, void *_p)
 
 	_uc = (ucontext_t *) _p;
 	_mc = _uc->uc_mcontext;
-	_ss = &_mc->ss;
+	_ss = &_mc->__ss;
 
     pv  = NULL;                 /* is resolved during stackframeinfo creation */
-	sp  = (u1 *) _ss->esp;
-	xpc = (u1 *) _ss->eip;
+	sp  = (u1 *) _ss->__esp;
+	xpc = (u1 *) _ss->__eip;
     ra  = xpc;                              /* return address is equal to XPC */
 
     /* get exception-throwing instruction */
@@ -106,13 +111,13 @@ void md_signal_handler_sigsegv(int sig, siginfo_t *siginfo, void *_p)
 
         type = disp;
 
-        val = (d == 0) ? _ss->eax :
-            ((d == 1) ? _ss->ecx :
-            ((d == 2) ? _ss->edx :
-            ((d == 3) ? _ss->ebx :
-            ((d == 4) ? _ss->esp :
-            ((d == 5) ? _ss->ebp :
-            ((d == 6) ? _ss->esi : _ss->edi))))));
+        val = (d == 0) ? _ss->__eax :
+            ((d == 1) ? _ss->__ecx :
+            ((d == 2) ? _ss->__edx :
+            ((d == 3) ? _ss->__ebx :
+            ((d == 4) ? _ss->__esp :
+            ((d == 5) ? _ss->__ebp :
+            ((d == 6) ? _ss->__esi : _ss->__edi))))));
     }
     else {
         /* this was a normal NPE */
@@ -126,9 +131,9 @@ void md_signal_handler_sigsegv(int sig, siginfo_t *siginfo, void *_p)
 
     /* set registers */
 
-    _ss->eax = (ptrint) o;
-	_ss->ecx = (ptrint) xpc;
-	_ss->eip = (ptrint) asm_handle_exception;
+    _ss->__eax = (ptrint) o;
+	_ss->__ecx = (ptrint) xpc;
+	_ss->__eip = (ptrint) asm_handle_exception;
 }
 
 
@@ -144,7 +149,7 @@ void md_signal_handler_sigfpe(int sig, siginfo_t *siginfo, void *_p)
 	ucontext_t          *_uc;
 	mcontext_t           _mc;
     u1                  *pv;
-	i386_thread_state_t *_ss;
+	_STRUCT_X86_THREAD_STATE32 *_ss;
 	u1                  *sp;
 	u1                  *ra;
 	u1                  *xpc;
@@ -155,11 +160,11 @@ void md_signal_handler_sigfpe(int sig, siginfo_t *siginfo, void *_p)
 
 	_uc = (ucontext_t *) _p;
 	_mc = _uc->uc_mcontext;
-	_ss = &_mc->ss;
+	_ss = &_mc->__ss;
 
     pv  = NULL;                 /* is resolved during stackframeinfo creation */
-	sp  = (u1 *) _ss->esp;
-	xpc = (u1 *) _ss->eip;
+	sp  = (u1 *) _ss->__esp;
+	xpc = (u1 *) _ss->__eip;
 	ra  = xpc;                          /* return address is equal to xpc     */
 
     /* this is an ArithmeticException */
@@ -171,9 +176,9 @@ void md_signal_handler_sigfpe(int sig, siginfo_t *siginfo, void *_p)
 
     o = exceptions_new_hardware_exception(pv, sp, ra, xpc, type, val);
 
-    _ss->eax = (ptrint) o;
-	_ss->ecx = (ptrint) xpc;
-	_ss->eip = (ptrint) asm_handle_exception;
+    _ss->__eax = (ptrint) o;
+	_ss->__ecx = (ptrint) xpc;
+	_ss->__eip = (ptrint) asm_handle_exception;
 }
 
 
@@ -188,18 +193,21 @@ void md_signal_handler_sigusr2(int sig, siginfo_t *siginfo, void *_p)
 	threadobject        *t;
 	ucontext_t          *_uc;
 	mcontext_t           _mc;
-	i386_thread_state_t *_ss;
+	_STRUCT_X86_THREAD_STATE32 *_ss;
 	u1                  *pc;
 
 	t = THREADOBJECT;
 
 	_uc = (ucontext_t *) _p;
 	_mc = _uc->uc_mcontext;
-	_ss = &_mc->ss;
+	_ss = &_mc->__ss;
 
-	pc = (u1 *) _ss->eip;
+	pc = (u1 *) _ss->__eip;
 
-	t->pc = pc;
+	/* t->__pc = pc;
+
+	   I don't know why I get THREADOBJECT of NULL, but apparently
+	   it's only used for profiling */
 }
 
 
@@ -207,19 +215,19 @@ void md_signal_handler_sigusr2(int sig, siginfo_t *siginfo, void *_p)
 void thread_restartcriticalsection(ucontext_t *_uc)
 {
 	mcontext_t           _mc;
-	i386_thread_state_t *_ss;
+	_STRUCT_X86_THREAD_STATE32 *_ss;
 	u1                  *pc;
 	void                *rpc;
 
 	_mc = _uc->uc_mcontext;
 	_ss = &_mc->ss;
 
-	pc = (u1 *) _ss->eip;
+	pc = (u1 *) _ss->__eip;
 
 	rpc = critical_find_restart_point(pc);
 
 	if (rpc != NULL)
-		_ss->eip = (ptrint) rpc;
+		_ss->__eip = (ptrint) rpc;
 }
 #endif
 
