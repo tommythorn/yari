@@ -4,7 +4,6 @@
 MINUS_J="3"
 MAKE="make"
 TARGET="mips-elf"
-CLASSPATH_INCLUDE="/usr/include"
 
 # parse command line options
 for i in $@; do
@@ -21,7 +20,6 @@ for i in $@; do
       echo "  -i<dir>                          install directory. [TOPDIR/install]"
       echo "  -j<number>                       parallel make processes. [3]"
       echo "  -m<make>                         change make command. [make]"
-      echo "  -classpath-include=<dir>         Path to the classpath headers [/usr/include]"
       exit 1;;
   esac
 done;
@@ -36,6 +34,7 @@ GCC_DIR="${TOPDIR}gcc-4.2.3/"
 NEWLIB_DIR="${TOPDIR}newlib-1.15.0/"
 CACAO_DIR="${TOPDIR}cacao/"
 CLDC_DIR="${TOPDIR}phoneme_feature/cldc/src/javaapi/cldc1.1/classes"
+CLASSPATH_INCLUDE="${TOPDIR}classpath-include"
 
 # build directories
 BINUTILS_BUILD="${BUILDDIR}binutils-2.18-mips-elf/"
