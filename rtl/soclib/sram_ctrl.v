@@ -63,6 +63,13 @@ module sram_ctrl
    // briefly with our sram_dout when transitioning directly from
    // reading to writing. It seems to work, but it would probably be
    // safer to wait for a cycle for those cases.
+
+   /*
+    * NOTE: It is important that sram_dout_en be (redundantly)
+    * assigned in every state to insure that the enable is packed into
+    * the IO buffer. Credit to Martin Schoeberl for finding this
+    * obscure fact.
+    */
    always @(posedge clock) begin
       mem_readdataid <= 0;
       case (state)
@@ -74,6 +81,7 @@ module sram_ctrl
             mem_readdata   <= sram_d;
             mem_readdataid <= pendingid;
             state          <= need_wait ? S_READWAIT : S_IDLE;
+            sram_dout_en <= 0;
          end else if (mem_read) begin
             pendingid <= mem_id;
             sram_a    <= mem_address;
@@ -100,18 +108,23 @@ module sram_ctrl
             int_we_n  <= 1;
          end
 
-      S_READWAIT:
+      S_READWAIT: begin
          state <= S_IDLE;
+         sram_dout_en <= 0;
+      end
 
-      S_WRITE1:
+      S_WRITE1: begin
+         sram_dout_en <= 1;
          if (need_wait)
             state    <= S_WRITE2;
          else begin
             int_we_n <= 1;
             state    <= S_IDLE;
          end
+      end
 
       S_WRITE2: begin
+         sram_dout_en <= 1;
          int_we_n <= 1;
          state    <= S_IDLE;
       end
