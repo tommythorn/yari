@@ -43,16 +43,36 @@ PIPELINE OVERVIEW:
 
 IDEAS
 
+* Finish the D$ work, given LW a 0 cycle latency
+
+* Finish the shifter work, stretching it over two cycles, restart on
+  shift-use hazards, and log those in performance counters.
+
+* Introduce a x_pc_restart rather than litter the RTL with the same
+  calculation over and over.
+
+* Apply the same parallel cache transformation to the I$ and shorten
+  the pipeline by one stage (effectively getting back to the original
+  5 stage pipeline).
+
+* Further, investigate minimizing the branch penalty.
+
+* Extend D$ to be a write back cache (not as hard as I thought).
+
+* Implement the full MIPS32R2 instruction set (keeping a close eye on
+  cycle time impact). In particular, conditional moves are expected to
+  help IPC.
+
+* Make it conform more closely to MIPS32R2. For starters, the memory
+  layout is borked. Need to support uncached access, shudder.
+
+* Write a SSRAM controller (for the DE2-70).
+
 * preload the I$ with a boot-loader that copy the firmware in
   preloaded D$ to RAM.  This way we can get rid of the need for
   locking (wasting) half the I$ to firmware.
 
-* Write a SSRAM controller (for the DE2-70).
-
 * Write a PSRAM controller (for the LPRP).
-
-* Make it conform more closely to MIPS32R2. For starters, the memory
-  layout is borked. Need to support uncached access, shudder.
 
 * We're dancing on eggshells; instructions modifying non-register
   state in EX wouldn't behave correctly when flushed from ME! (eg, lw
@@ -94,29 +114,17 @@ IDEAS
   but imagine something like mul or other that can change the state in
   a different way each time.)
 
-* Improve cycle time; attack the current critical path which is in
-  ME. First try switching from a tag-sequental cache to the more
-  conventional way select (using a 32-bit 4-mux). This gives us
-  another stage to do the load alignment and sign-extension.
-
 * Integrate testall.S into tinymon.c
 
 * Change makeconfig.sh to instead parse config.h (which should now be
   written by hand). This is in preparation for moving many more
   configurable features to the config.h
 
-* Merge fpgaMMIX and YARI, incl. the Avalon-like interconnect (for
-  peripherals). Automate the generation of the interconnection.
-
 * Implement interrupt support
 
 * Port to Xilinx' ML401 and one of the Spartan-3 starter kits
 
 * Trap on ADD[I] and SUB overflow
-
-* Implement D$ flushing!
-
-* I$ locking under sw control
 
 * (PERF) Sign-extension and shifting in ME is the critical
   path.
