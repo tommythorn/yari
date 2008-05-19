@@ -24,6 +24,15 @@ extern int endian_is_big;
 
 extern struct timeval stat_start_time, stat_stop_time;
 
+/* The hazards here count def-use cases with no intervening cycles,
+   not all hazards today */
+uint64_t stat_gen_load_hazard;
+uint64_t stat_load_use_hazard;
+uint64_t stat_load32_use_hazard;
+uint64_t stat_shift_use_hazard;
+uint64_t stat_nop;
+uint64_t stat_nop_delay_slots;
+
 /*
   The simulation space address to physical address translation is a
   key operation, so it has been optimized slightly.

@@ -36,6 +36,7 @@ module stage_M(input  wire        clock
               ,input  wire [31:0] x_rt_val // for stores only
               ,input  wire [ 5:0] x_wbr
               ,input  wire [31:0] x_res
+              ,output reg  [31:0] x_lw_res // lw has latecy 1, other loads 2
 
               // Connection to main memory
               ,input              dmem_waitrequest
@@ -62,6 +63,7 @@ module stage_M(input  wire        clock
               ,output reg  [31:0] m_restart_pc
 
               ,output reg  [31:0] perf_dcache_misses = 0
+              ,output reg  [31:0] perf_load_hit_store_hazard = 0
               ,output reg  [31:0] perf_sb_full = 0
               ,output reg  [31:0] perf_io_store_busy = 0
               ,output reg  [31:0] perf_io_load_busy = 0
@@ -132,6 +134,12 @@ module stage_M(input  wire        clock
 
    // Inputs to stage ME - check tags and access cache (this is the critical path)
    reg  [31:0]                   x_address = 0;
+
+   // The parallel look up in tags and data array means that writes
+   // are out of phase with reads so we need to worry about a rare
+   // hazard: immediately loading a stored word (note, this could be
+   // fx. a sb followed by a lw).
+   reg  [29:0]                   x_last_store_address = ~0;
    reg  [TAG_BITS-1:0]           x_chk     = 0; // Tag check
    reg  [DC_LINE_INDEX_BITS-1:0] x_csi     = 0; // Cache Set Index (which cache in the set)
    reg  [DC_WORD_INDEX_BITS-1:0] x_wi      = 0; // Word Index (which word in the cache line)
@@ -189,9 +197,19 @@ module stage_M(input  wire        clock
    reg  [31:0]                m_store_data = 0;
    reg  [ 3:0]                m_byteena    = 0;
    reg  [ 5:0]                m_opcode     = 0;
-   wire [31:0]                dc_q;
-   wire [31:0]                q            = m_load ? dc_q : m_res_alu;
+   wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
+   always @(*) case (x_set)
+               0: x_lw_res = dc_q0;
+               1: x_lw_res = dc_q1;
+               2: x_lw_res = dc_q2;
+               3: x_lw_res = dc_q3;
+               endcase
+
    reg  [31:0]                m_res_alu    = 0;
+   reg  [31:0]                m_lw_res     = 0;
+   always @(posedge clock)    m_lw_res    <= x_lw_res;
+
+   wire [31:0]                q            = m_load ? m_lw_res : m_res_alu;
 
 
    // Store buffer
@@ -262,21 +280,103 @@ module stage_M(input  wire        clock
                .wraddress(fill_csi), .wrdata(fill_chk),
                .wren(dmem_readdatavalid && &fill_wi && fill_set == 3));
 
-   dpram #(32, CACHE_BITS -2, "dcache")
-      dcache_ram(.clock(clock),
-      // Write-through caches only write to caches on hits, but go to
-      // memory in all cases
-                 .address_a({x_set,x_csi,x_wi}),
-                 .byteena_a(x_byteena),
-                 .wrdata_a(x_store_data),
-                 .wren_a(x_store && x_hits),
-                 .rddata_a(dc_q),
+   /*
+    * Each way get its own memory block as we look up in all set in parallel
+    * and use a late select.
+    */
 
-                 .address_b({fill_set,fill_csi,fill_wi}),
-                 .byteena_b(4'hF), .wrdata_b(dmem_readdata),
-                 .wren_b(dmem_readdatavalid),
+   dpram #(32, CACHE_BITS -4, "dcache0")
+      dcache0_ram(.clock(clock),
+                 // Write-through caches only write to caches on hits, but go to
+                 // memory in all cases
+                 .address_a({d_csi,d_wi}),
+                 .rddata_a(dc_q0),
+                 .byteena_a(0),
+                 .wrdata_a(0),
+                 .wren_a(0),
+
+                 // Unfortunately, we have to use different port for
+                 // reading and writing now, as we can't write until
+                 // we know our way (pun intended). This means the
+                 // fill machinery has to use the stage X pipeline
+                 // registers.
+                 .address_b(outstanding_cache_miss ? {fill_csi,fill_wi} : {x_csi,x_wi}),
+                 .byteena_b(outstanding_cache_miss ? 4'hF               : x_byteena),
+                 .wrdata_b (outstanding_cache_miss ? dmem_readdata      : x_store_data),
+                 .wren_b(dmem_readdatavalid && fill_set == 0 ||
+                         x_store && x_hits && x_set == 0),
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
+
+   dpram #(32, CACHE_BITS -4, "dcache1")
+      dcache1_ram(.clock(clock),
+                 // Write-through caches only write to caches on hits, but go to
+                 // memory in all cases
+                 .address_a({d_csi,d_wi}),
+                 .rddata_a(dc_q1),
+                 .byteena_a(0),
+                 .wrdata_a(0),
+                 .wren_a(0),
+
+                 // Unfortunately, we have to use different port for
+                 // reading and writing now, as we can't write until
+                 // we know our way (pun intended). This means the
+                 // fill machinery has to use the stage X pipeline
+                 // registers.
+                 .address_b(outstanding_cache_miss ? {fill_csi,fill_wi} : {x_csi,x_wi}),
+                 .byteena_b(outstanding_cache_miss ? 4'hF               : x_byteena),
+                 .wrdata_b (outstanding_cache_miss ? dmem_readdata      : x_store_data),
+                 .wren_b(dmem_readdatavalid && fill_set == 1 ||
+                         x_store && x_hits && x_set == 1),
+                 .rddata_b());
+   //defparam    dcache_ram.debug = 1;
+
+   dpram #(32, CACHE_BITS -4, "dcache2")
+      dcache2_ram(.clock(clock),
+                 // Write-through caches only write to caches on hits, but go to
+                 // memory in all cases
+                 .address_a({d_csi,d_wi}),
+                 .rddata_a(dc_q2),
+                 .byteena_a(0),
+                 .wrdata_a(0),
+                 .wren_a(0),
+
+                 // Unfortunately, we have to use different port for
+                 // reading and writing now, as we can't write until
+                 // we know our way (pun intended). This means the
+                 // fill machinery has to use the stage X pipeline
+                 // registers.
+                 .address_b(outstanding_cache_miss ? {fill_csi,fill_wi} : {x_csi,x_wi}),
+                 .byteena_b(outstanding_cache_miss ? 4'hF               : x_byteena),
+                 .wrdata_b (outstanding_cache_miss ? dmem_readdata      : x_store_data),
+                 .wren_b(dmem_readdatavalid && fill_set == 2 ||
+                         x_store && x_hits && x_set == 2),
+                 .rddata_b());
+   //defparam    dcache_ram.debug = 1;
+
+   dpram #(32, CACHE_BITS -4, "dcache3")
+      dcache3_ram(.clock(clock),
+                 // Write-through caches only write to caches on hits, but go to
+                 // memory in all cases
+                 .address_a({d_csi,d_wi}),
+                 .rddata_a(dc_q3),
+                 .byteena_a(0),
+                 .wrdata_a(0),
+                 .wren_a(0),
+
+                 // Unfortunately, we have to use different port for
+                 // reading and writing now, as we can't write until
+                 // we know our way (pun intended). This means the
+                 // fill machinery has to use the stage X pipeline
+                 // registers.
+                 .address_b(outstanding_cache_miss ? {fill_csi,fill_wi} : {x_csi,x_wi}),
+                 .byteena_b(outstanding_cache_miss ? 4'hF               : x_byteena),
+                 .wrdata_b (outstanding_cache_miss ? dmem_readdata      : x_store_data),
+                 .wren_b(dmem_readdatavalid && fill_set == 3 ||
+                         x_store && x_hits && x_set == 3),
+                 .rddata_b());
+   //defparam    dcache_ram.debug = 1;
+
 
 
    reg         outstanding_cache_miss = 0;
@@ -288,6 +388,8 @@ module stage_M(input  wire        clock
    reg [32:0]  lfsr = 0;
 
    always @(posedge clock) begin
+      x_last_store_address <= ~0;
+
       lfsr <= {lfsr[31:0], ~lfsr[32] ^ lfsr[19]};
 
       if (~peripherals_res`HOLD) begin
@@ -357,6 +459,7 @@ module stage_M(input  wire        clock
             sb_was_full  <= 1;
             perf_sb_full <= perf_sb_full + 1;
          end else begin
+            x_last_store_address               <= x_address[31:2];
             store_buffer_addr[store_buffer_wp] <= x_address[31:2];
             store_buffer_data[store_buffer_wp] <= x_store_data;
             store_buffer_be[store_buffer_wp] <= x_byteena;
@@ -403,9 +506,32 @@ module stage_M(input  wire        clock
 
       // Cache loads
       if (x_load && x_address[31:24] != 8'hFF) begin
-         $display("%05d  ME %8x:load %8x hits %x in cache (set %d, csi %d, wi %d ; tags %x %x %x %x)", $time,
+         $display("%05d  ME %8x:load %8x x_hits %x in cache (set %d, csi %d, wi %d ; tags %x %x %x %x)", $time,
                   x_pc, x_address, x_hits, x_set, x_csi, x_wi,
-                  x_tag0, x_tag1, x_tag2, x_tag3);
+                  x_tag0, x_tag1, x_tag2, x_tag3, x_lw_res);
+         $display("         q %x %x %x %x -> %x", dc_q0, dc_q1, dc_q2, dc_q3, x_lw_res);
+
+         if (x_address[31:2] == x_last_store_address) begin
+            /*
+             * Previous instructino was a store to the location we're
+             * loading, but the store has finish yet as it happens one
+             * cycle out of phase of the load. We could forward the
+             * result, but that's tricky and expensive. Given how rare
+             * this is (expected to be), we simply restart.
+             */
+            m_restart    <= 1;
+            m_valid      <= 0;
+            m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            perf_load_hit_store_hazard <= perf_load_hit_store_hazard + 1;
+
+            $display("%05d  ME load hit store hazard, restarting %8x", $time,
+                     x_pc - 4 * x_is_delay_slot);
+         end
+
+         /*
+          * We don't need an else here as the two conditions cannot
+          * happen simultaneously.
+          */
 
          if (x_miss) begin
 
@@ -450,10 +576,10 @@ module stage_M(input  wire        clock
       end
 
       if (m_load & m_valid)
-         $display("%05d  ME load %8x -> %8x (%8x, %1d, %1d, %1d) [cache_q %8x]", $time,
+         $display("%05d  ME load %8x -> %8x (%8x, %1d, %1d, %1d) [x_lw_res %8x]", $time,
                   m_address, m_res,
                   q, m_set, m_csi, m_wi,
-                  dc_q);
+                  x_lw_res);
 
       if (dmem_readdatavalid) begin
          $display("%05d  D$ got [{%1d,%1d,%1d] <- %8x", $time,

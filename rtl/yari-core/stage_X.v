@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2007 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007,2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -76,11 +76,11 @@ module stage_X(input  wire        clock
 `include "config.h"
 
    wire               ops_eq           = d_op1_val == d_op2_val;
-   wire               negate_op2       = d_opcode == `SLTI ||
+   wire               negate_op2       = d_opcode == `SLTI  ||
                                          d_opcode == `SLTIU ||
-                                         d_opcode == `REG && (d_fn == `SLT ||
+                                         d_opcode == `REG && (d_fn == `SLT  ||
                                                               d_fn == `SLTU ||
-                                                              d_fn == `SUB ||
+                                                              d_fn == `SUB  ||
                                                               d_fn == `SUBU);
    wire [31:0]        sum;
    wire               carry_flag;
@@ -90,8 +90,6 @@ module stage_X(input  wire        clock
    wire               overflow_flag    = d_op1_val[31] == op2_val[31] &&
                                          d_op1_val[31] != sum[31];
    wire [4:0]         shift_dist       = d_fn[2] ? d_op1_val[4:0] : d_sa;
-   wire [31:0]        ashift_out;
-   wire [31:0]        lshift_out;
 
    // XXX BUG These architectural registers must live in ME or later
    // as ME can flush the pipe rendering an update of state in EX
@@ -114,20 +112,11 @@ module stage_X(input  wire        clock
                       cp0_errorepc = 0,
                       cp0_cause = 0;
 
-   arithshiftbidir arithshiftbidir(
-        .distance(shift_dist),
-        .data(d_op2_val),
-        .direction(d_fn[1]),
-        .result(ashift_out));
-
-   logshiftright logshiftright(
-        .distance(shift_dist),
-        .data(d_op2_val),
-        .result(lshift_out));
-
    reg x_has_delay_slot = 0;
 
    reg [31:0] tsc = 0; // Free running counter
+
+   reg branch_event = 0;
 
    always @(posedge clock) begin
       tsc                <= tsc + 1;
@@ -147,7 +136,14 @@ module stage_X(input  wire        clock
       x_flush_D          <= 0;
       x_synci            <= 0;
 
-`define MULT_RADIX_4 1
+
+      /* Stat counts aren't critical, so I delay them to keep them out
+         of the critical path */
+      if (branch_event)
+         perf_branch_hazard <= perf_branch_hazard + 1;
+      branch_event <= 0;
+
+//`define MULT_RADIX_4 1
 `ifdef MULT_RADIX_4
       // Radix-2 Multiplication Machine (this is not the best way to do this)
       if (mult_busy) begin
@@ -214,13 +210,12 @@ module stage_X(input  wire        clock
       case (d_opcode)
       `REG:
          case (d_fn)
-         `SLL: x_res <= ashift_out;
-         `SRL: x_res <= lshift_out;
-         `SRA: x_res <= ashift_out;
-
-         `SLLV: x_res <= ashift_out;
-         `SRLV: x_res <= lshift_out;
-         `SRAV: x_res <= ashift_out;
+         `SLL : x_res <= d_op2_val          << shift_dist;
+         `SRL : x_res <= d_op2_val          >> shift_dist;
+         `SRA : x_res <= $signed(d_op2_val) >> shift_dist;
+         `SLLV: x_res <= d_op2_val          << shift_dist;
+         `SRLV: x_res <= d_op2_val          >> shift_dist;
+         `SRAV: x_res <= $signed(d_op2_val) >> shift_dist;
 
          `JALR:
             begin
@@ -228,14 +223,14 @@ module stage_X(input  wire        clock
                if (d_valid) begin
                   x_restart    <= 1;
                   x_restart_pc <= d_op1_val;
-                  perf_branch_hazard <= perf_branch_hazard + 1;
+                  branch_event <= 1;
                end
             end
          `JR:
             if (d_valid) begin
                x_restart    <= 1;
                x_restart_pc <= d_op1_val;
-               perf_branch_hazard <= perf_branch_hazard + 1;
+               branch_event <= 1;
             end
 
 
@@ -435,26 +430,26 @@ module stage_X(input  wire        clock
             end else begin
                x_restart <= d_rt[0] ^ d_op1_val[31];
                x_res  <= d_npc + 4;
-               perf_branch_hazard <= perf_branch_hazard + 1;
+               branch_event <= 1;
             end
       `JAL:
          if (d_valid) begin
             x_restart <= 1;
             x_res  <= d_npc + 4;
-            perf_branch_hazard <= perf_branch_hazard + 1;
+            branch_event <= 1;
          end
       `J: if (d_valid) x_restart <= 1;
       `BEQ:
          if (d_valid) begin
             x_restart <=  ops_eq;
-            perf_branch_hazard <= perf_branch_hazard + ops_eq;
+            branch_event <= ops_eq;
             $display("%05d BEQ %8x == %8x (%1d)", $time,
                      d_op1_val, d_op2_val, ops_eq);
          end
       `BNE:
          if (d_valid) begin
             x_restart <= ~ops_eq;
-            perf_branch_hazard <= perf_branch_hazard + ~ops_eq;
+            branch_event <= ~ops_eq;
             $display("%05d BNE %8x == %8x (%1d)", $time,
                      d_op1_val, d_op2_val, ops_eq);
          end
@@ -462,16 +457,14 @@ module stage_X(input  wire        clock
       `BLEZ:
          if (d_valid) begin
             x_restart <= d_op1_val[31] || d_op1_val == 0;
-            perf_branch_hazard <= perf_branch_hazard +
-                                  (d_op1_val[31] || d_op1_val == 0);
+            branch_event <= (d_op1_val[31] || d_op1_val == 0);
          end
 
       `BGTZ:
          // XXX Share logic
          if (d_valid) begin
             x_restart <= !d_op1_val[31] && d_op1_val != 0;
-            perf_branch_hazard <= perf_branch_hazard +
-                                  (!d_op1_val[31] && d_op1_val != 0);
+            branch_event <= (!d_op1_val[31] && d_op1_val != 0);
          end
 
       `ADDI: x_res <= d_op1_val + d_op2_val;
