@@ -170,7 +170,7 @@ void __post_main(void)
 
 clock_t times(struct tms *buf)
 {
-  unsigned T = TSC/50000;
+  unsigned T = TSC/40000;
   buf->tms_utime = T;
   buf->tms_stime = buf->tms_cutime = buf->tms_cstime = 0;
   return T;
