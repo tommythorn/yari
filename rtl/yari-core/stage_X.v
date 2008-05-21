@@ -212,10 +212,10 @@ module stage_X(input  wire        clock
          case (d_fn)
          `SLL : x_res <= d_op2_val          << shift_dist;
          `SRL : x_res <= d_op2_val          >> shift_dist;
-         `SRA : x_res <= $signed(d_op2_val) >> shift_dist;
+         `SRA : x_res <= $signed(d_op2_val) >>> shift_dist;
          `SLLV: x_res <= d_op2_val          << shift_dist;
          `SRLV: x_res <= d_op2_val          >> shift_dist;
-         `SRAV: x_res <= $signed(d_op2_val) >> shift_dist;
+         `SRAV: x_res <= $signed(d_op2_val) >>> shift_dist;
 
          `JALR:
             begin
