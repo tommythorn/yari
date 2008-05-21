@@ -751,6 +751,11 @@ void run_simple(MIPS_state_t *state)
                         printf("\n");
                 }
 
+                if (segfault) {
+                        printf("Access violation, execution aborted\n");
+                        break;
+                }
+
                 if (r == 1) {
                         printf("Divergence detected\n");
 

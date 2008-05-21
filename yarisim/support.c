@@ -505,6 +505,7 @@ unsigned load(unsigned a,  // IN: address
         if (!(addr_mapped(a) && addr_mapped(a + c - 1))) {
                 // fatal("Loading from outside memory 0x%08x\n", a);
                 fprintf(stderr, "Loading from outside memory 0x%08x\n", a);
+                segfault = 1;
                 return 0;
         }
 

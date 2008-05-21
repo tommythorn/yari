@@ -109,6 +109,8 @@ long long unsigned n_icache_hits, n_icache_misses;
 extern int rs232in_fd;
 extern int rs232out_fd;
 
+unsigned segfault;
+
 void exception(char *kind);
 void loadsection(FILE *f, unsigned f_offset, unsigned f_len, unsigned m_addr, unsigned m_len);
 void readelf(char *name);
