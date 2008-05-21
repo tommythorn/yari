@@ -51,16 +51,6 @@ _DEFUN (memset, (m, c, n),
 	int c _AND
 	size_t n)
 {
-#if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__) || defined(__mips16)
-  char *s = (char *) m;
-
-  while (n-- != 0)
-    {
-      *s++ = (char) c;
-    }
-
-  return m;
-#else
   char *s = (char *) m;
   int i;
   unsigned wordtype buffer;
@@ -111,17 +101,48 @@ _DEFUN (memset, (m, c, n),
 	    }
         }
 
-      iter = n / (2*LBLOCKSIZE);
-      n = n % (2*LBLOCKSIZE);
-      while (iter > 0)
-	{
-	  aligned_addr[0] = buffer;
-	  aligned_addr[1] = buffer;
-	  aligned_addr += 2;
-	  iter--;
-	}
+      iter = n / (32*LBLOCKSIZE);
+      n = n % (32*LBLOCKSIZE);
+      if (iter) {
+          unsigned wordtype *the_end = aligned_addr + 32 * iter;
+          do {
+              aligned_addr[0] = buffer;
+              aligned_addr[1] = buffer;
+              aligned_addr[2] = buffer;
+              aligned_addr[3] = buffer;
+              aligned_addr[4] = buffer;
+              aligned_addr[5] = buffer;
+              aligned_addr[6] = buffer;
+              aligned_addr[7] = buffer;
+              aligned_addr[8] = buffer;
+              aligned_addr[9] = buffer;
+              aligned_addr[10] = buffer;
+              aligned_addr[11] = buffer;
+              aligned_addr[12] = buffer;
+              aligned_addr[13] = buffer;
+              aligned_addr[14] = buffer;
+              aligned_addr[15] = buffer;
+              aligned_addr[16] = buffer;
+              aligned_addr[17] = buffer;
+              aligned_addr[18] = buffer;
+              aligned_addr[19] = buffer;
+              aligned_addr[20] = buffer;
+              aligned_addr[21] = buffer;
+              aligned_addr[22] = buffer;
+              aligned_addr[23] = buffer;
+              aligned_addr[24] = buffer;
+              aligned_addr[25] = buffer;
+              aligned_addr[26] = buffer;
+              aligned_addr[27] = buffer;
+              aligned_addr[28] = buffer;
+              aligned_addr[29] = buffer;
+              aligned_addr[30] = buffer;
+              aligned_addr += 32;
+              aligned_addr[-1] = buffer; // Gcc isn't smart enough
+          } while (aligned_addr != the_end);
+      }
 
-      if (n >= LBLOCKSIZE)
+      while (n >= LBLOCKSIZE)
 	{
 	  *aligned_addr++ = buffer;
 	  n -= LBLOCKSIZE;
@@ -138,5 +159,4 @@ _DEFUN (memset, (m, c, n),
     }
 
   return m;
-#endif /* not PREFER_SIZE_OVER_SPEED */
 }

@@ -61,19 +61,6 @@ _DEFUN (memcpy, (dst0, src0, len0),
 	_CONST _PTR src0 _AND
 	size_t len0)
 {
-#if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__) || defined(__mips16)
-  char *dst = (char *) dst0;
-  char *src = (char *) src0;
-
-  _PTR save = dst0;
-
-  while (len0--)
-    {
-      *dst++ = *src++;
-    }
-
-  return save;
-#else
   char *dst = dst0;
   _CONST char *src = src0;
   wordtype *aligned_dst;
@@ -132,7 +119,7 @@ _DEFUN (memcpy, (dst0, src0, len0),
   /* Handle unaligned moves here, using lwr/lwl and swr/swl where possible */
   else
     {
-#ifndef NO_UNALIGNED_LOADSTORE
+#ifdef UNALIGNED_LOADSTORE
       int tmp;
       int *int_src = (int *)src;
       int *int_dst = (int *)dst;
@@ -160,5 +147,4 @@ _DEFUN (memcpy, (dst0, src0, len0),
 
       return dst0;
     }
-#endif /* not PREFER_SIZE_OVER_SPEED */
 }
