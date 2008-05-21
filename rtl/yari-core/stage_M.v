@@ -383,7 +383,7 @@ module stage_M(input  wire        clock
    reg         got_uncached_data = 0;
    reg         uncached_load_pending = 0;
    reg [31:0]  uncached_data = 0;
-   reg         sb_was_full = 0;
+   reg         one_shot_restart = 0;
 
    reg [32:0]  lfsr = 0;
 
@@ -402,9 +402,9 @@ module stage_M(input  wire        clock
 
       m_valid <= x_valid;
 
-      if (sb_was_full)
+      if (one_shot_restart)
          m_restart <= 0;
-      sb_was_full <= 0;
+      one_shot_restart <= 0;
 
       // Stalling for uncached_loads
       if (x_valid) begin
@@ -456,7 +456,7 @@ module stage_M(input  wire        clock
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
-            sb_was_full  <= 1;
+            one_shot_restart <= 1;
             perf_sb_full <= perf_sb_full + 1;
          end else begin
             x_last_store_address               <= x_address[31:2];
@@ -522,6 +522,7 @@ module stage_M(input  wire        clock
             m_restart    <= 1;
             m_valid      <= 0;
             m_restart_pc <= x_pc - 4 * x_is_delay_slot;
+            one_shot_restart <= 1;
             perf_load_hit_store_hazard <= perf_load_hit_store_hazard + 1;
 
             $display("%05d  ME load hit store hazard, restarting %8x", $time,
