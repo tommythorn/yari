@@ -93,13 +93,13 @@ int main(int argc, char **argv)
 	/* vm_args = cacao_options_prepare(argc, argv); */
 /*	char *tmp[] = {"cacao", "hello"};
 	vm_args = cacao_options_prepare(2, &tmp); 
-	char *tmp[] = {"cacao", "jbe.DoKernel"};
 	char *tmp[] = {"cacao", "jbe.DoMicro"};
 	char *tmp[] = {"cacao", "jbe.BenchKfl"};
 	char *tmp[] = {"cacao", "jbe.BenchLift"};
 	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
-*/
 	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
+*/
+	char *tmp[] = {"cacao", "jbe.DoKernel"};
 	vm_args = cacao_options_prepare(2, &tmp); 
 	
 	
