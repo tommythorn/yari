@@ -66,8 +66,10 @@ module stage_X(input  wire        clock
               ,input  wire [31:0] perf_icache_misses
               ,input  wire [31:0] perf_io_load_busy
               ,input  wire [31:0] perf_io_store_busy
+              ,input  wire [31:0] perf_load_hit_store_hazard
               ,output reg  [31:0] perf_load_use_hazard = 0
               ,output reg  [31:0] perf_mult_hazard = 0
+              ,input  wire [47:0] perf_retired_inst
               ,input  wire [31:0] perf_sb_full
               );
 
@@ -114,7 +116,7 @@ module stage_X(input  wire        clock
 
    reg x_has_delay_slot = 0;
 
-   reg [31:0] tsc = 0; // Free running counter
+   reg [35:0] tsc = 0; // Free running counter
 
    reg branch_event = 0;
 
@@ -480,10 +482,10 @@ module stage_X(input  wire        clock
       `RDHWR:
          if (d_fn == 59)
             case (d_rd)
-            0: x_res <= 0;
+            0: x_res <= 0; // # of processors-1
             1: x_res <= 4 << IC_WORD_INDEX_BITS;
-            2: x_res <= tsc;
-            3: x_res <= 1;
+            2: x_res <= tsc[35:4]; // @40 MHz 28 min before rollover
+            3: x_res <= 1 << 4;    // TSC scaling factor
             endcase
 
       `CP2: begin
@@ -510,8 +512,11 @@ module stage_X(input  wire        clock
                `PERF_ICACHE_MISSES:     x_res <= perf_icache_misses;
                `PERF_IO_LOAD_BUSY:      x_res <= perf_io_load_busy;
                `PERF_IO_STORE_BUSY:     x_res <= perf_io_store_busy;
+               `PERF_LOAD_HIT_STORE_HAZARD: x_res <= perf_load_hit_store_hazard;
                `PERF_LOAD_USE_HAZARD:   x_res <= perf_load_use_hazard;
                `PERF_MULT_HAZARD:       x_res <= perf_mult_hazard;
+               // Count 16 retired instructions. @40 MHz 1 CPI, it takes 28 min to roll over
+               `PERF_RETIRED_INST:      x_res <= perf_retired_inst[35:4];
                `PERF_SB_FULL:           x_res <= perf_sb_full;
                default:                 x_res <= ~0;
                endcase

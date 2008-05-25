@@ -129,16 +129,18 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   dmem_readdata;
    wire          dmem_readdatavalid;
 
-   wire [31:0]   perf_icache_misses;
-   wire [31:0]   perf_delay_slot_bubble;
    wire [31:0]   perf_branch_hazard;
-   wire [31:0]   perf_mult_hazard;
-   wire [31:0]   perf_div_hazard;
-   wire [31:0]   perf_load_use_hazard;
    wire [31:0]   perf_dcache_misses;
-   wire [31:0]   perf_sb_full;
+   wire [31:0]   perf_delay_slot_bubble;
+   wire [31:0]   perf_div_hazard;
+   wire [31:0]   perf_icache_misses;
    wire [31:0]   perf_io_load_busy;
    wire [31:0]   perf_io_store_busy;
+   wire [31:0]   perf_load_hit_store_hazard;
+   wire [31:0]   perf_load_use_hazard;
+   wire [31:0]   perf_mult_hazard;
+   wire [47:0]   perf_retired_inst;
+   wire [31:0]   perf_sb_full;
 
 
    reg [9:0] initialized = 0;
@@ -221,7 +223,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_flush_X(d_flush_X),
 
                .flush_D(flush_D),
-               .perf_delay_slot_bubble(perf_delay_slot_bubble)
+               .perf_delay_slot_bubble(perf_delay_slot_bubble),
+               .perf_retired_inst(perf_retired_inst)
                );
 
    stage_X stX(.clock(clock),
@@ -274,8 +277,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .perf_icache_misses(perf_icache_misses),
                .perf_io_load_busy(perf_io_load_busy),
                .perf_io_store_busy(perf_io_store_busy),
+               .perf_load_hit_store_hazard(perf_load_hit_store_hazard),
                .perf_load_use_hazard(perf_load_use_hazard),
                .perf_mult_hazard(perf_mult_hazard),
+               .perf_retired_inst(perf_retired_inst),
                .perf_sb_full(perf_sb_full)
                );
 
@@ -317,9 +322,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .m_restart_pc(m_restart_pc),
 
                .perf_dcache_misses(perf_dcache_misses),
-               .perf_sb_full(perf_sb_full),
                .perf_io_load_busy(perf_io_load_busy),
-               .perf_io_store_busy(perf_io_store_busy)
+               .perf_io_store_busy(perf_io_store_busy),
+               .perf_load_hit_store_hazard(perf_load_hit_store_hazard),
+               .perf_sb_full(perf_sb_full)
                );
 
 

@@ -63,6 +63,7 @@ module stage_D(input  wire        clock
 
               ,input  wire        flush_D
               ,output reg  [31:0] perf_delay_slot_bubble = 0
+              ,output reg  [47:0] perf_retired_inst = 0
               );
 
    parameter debug = 0;
@@ -293,6 +294,9 @@ module stage_D(input  wire        clock
          d_flush_X    <= 1;
          perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
       end
+
+      if (m_valid)
+         perf_retired_inst <= perf_retired_inst + 1;
    end
 
 

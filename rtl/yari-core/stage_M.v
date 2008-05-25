@@ -63,10 +63,10 @@ module stage_M(input  wire        clock
               ,output reg  [31:0] m_restart_pc
 
               ,output reg  [31:0] perf_dcache_misses = 0
+              ,output reg  [31:0] perf_io_load_busy = 0
+              ,output reg  [31:0] perf_io_store_busy = 0
               ,output reg  [31:0] perf_load_hit_store_hazard = 0
               ,output reg  [31:0] perf_sb_full = 0
-              ,output reg  [31:0] perf_io_store_busy = 0
-              ,output reg  [31:0] perf_io_load_busy = 0
               );
    parameter debug = 1;
 
