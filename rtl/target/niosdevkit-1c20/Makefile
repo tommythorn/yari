@@ -12,7 +12,7 @@
 
 IC_LINE_INDEX_BITS=7    # Each set has 128 lines
 IC_WORD_INDEX_BITS=2    # Each line has 4 32-bit words (128 bits)
-DC_LINE_INDEX_BITS=8    # Each set has 256 lines
+DC_LINE_INDEX_BITS=7    # Each set has 256 lines
 DC_WORD_INDEX_BITS=2    # Each line has 4 32-bit words (128 bits)
 
 config.h: Makefile ../../makeconfig.sh
