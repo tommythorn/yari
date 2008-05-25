@@ -1,4 +1,23 @@
-        .section .startup_code
+/*
+ * crt0_yari.S -- Minimal startup file for YARI targets running tinymon
+ *
+ * Copyright (c) 1995, 1996, 1997, 2000 Red Hat, Inc.
+ * Copyright (c) 2008 Tommy Thorn.
+ *
+ * The authors hereby grant permission to use, copy, modify, distribute,
+ * and license this software and its documentation for any purpose, provided
+ * that existing copyright notices are retained in all copies and that this
+ * notice is included verbatim in any distributions. No written agreement,
+ * license, or royalty fee is required for any of the authorized uses.
+ * Modifications to this software may be copyrighted by their authors
+ * and need not follow the licensing terms described here, provided that
+ * the new terms are clearly indicated on the first page of each file where
+ * they apply.
+ */
+
+#include "regs.S"
+        .text
+
         .set noreorder
         .globl  _start
         .set    noat
@@ -35,8 +54,8 @@ _start: li      $0, 0
         li      $30, 30
         li      $31, 31
 
-        la    $29,0x40100000 /* Stack ends where tinymon data begins. */
-        la    $28,_gp        /* Globals pointer. */
+        la      $29,0x40100000 /* Stack ends where tinymon data begins. */
+        la      $28,_gp        /* Globals pointer. */
 
         /* Clear the BSS segment. */
         la      $8, _fbss
@@ -46,6 +65,7 @@ _start: li      $0, 0
         subu    $4, $9, $8
         andi    $4, $4, 31 << 2
         beq     $4, $0, clear32_tail
+        nop
 
 clear1:
         addi    $4, $4, -4
@@ -97,21 +117,77 @@ clear32_tail:
         nop
 
 done_clearing:
+
+        .set	at
+        .set	reorder
+
+
+    /*
+     * initialize target specific stuff. Only execute these
+     * functions it they exist.
+     */
+	.globl	hardware_init_hook .text
+	.globl	software_init_hook .text
+//	.globl	__do_global_dtors .text
+	.globl	atexit .text
+	.globl	exit .text
+	.globl	init
+	.ent	init
+init:
+	la		t9, hardware_init_hook	# init the hardware if needed
+	beq		t9, zero, 6f
+	nop
+	jal		t9
+	nop
+6:
+	la		t9, software_init_hook	# init the software if needed
+	beq		t9, zero, 7f
+	nop
+	jal		t9
+	nop
+7:
+//	la		a0, __do_global_dtors
+//	jal		atexit
+//	nop
+
+#ifdef GCRT0
+	.globl	_ftext
+	.globl	_extext
+	la		a0, _ftext
+	la		a1, _etext
+	jal		monstartup
+	nop
+#endif
+
         jal     __pre_main
         nop
 
-        li      $4,1
         la      $5,argv
         jal     main
-        nop
+        li      $4,1
 
-        jal     __post_main
-        nop
+	# fall through to the "exit" routine
+	jal		exit					# call libc exit to run the G++
+									# destructors
+	move	a0, v0					# pass through the exit code
+	.end	init
 
-        li $2, 0x87654321
-        mtlo $2;
-        .word 0x48000000
-        break
+/*
+ * _exit -- Exit from the application. Normally we cause a user trap
+ *          to return to the ROM monitor for another run. NOTE: This is
+ *          the only other routine we provide in the crt0.o object, since
+ *          it may be tied to the "_start" routine. It also allows
+ *          executables that contain a complete world to be linked with
+ *          just the crt0.o object.
+ */
+	.globl	_exit
+	.ent	_exit
+_exit:
+7:
+	b		7b						# loop back just in-case
+	nop
+	.end	_exit
+
 
         .rdata
         .align  2
@@ -119,17 +195,4 @@ argv:   .word   argv0
         .word   0
 argv0:  .ascii  "prog\000"
 
-
-        .set noreorder
-        .globl  _exit
-        .set    noat
-	.align 4
-_exit: 
-        jal     __post_main
-        nop
-
-        li $2, 0x87654321
-        mtlo $2;
-        .word 0x48000000
-        break
-
+/* EOF crt0.S */

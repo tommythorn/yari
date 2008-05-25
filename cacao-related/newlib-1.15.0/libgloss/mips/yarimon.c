@@ -3,10 +3,11 @@
 
 #include <_syslist.h>
 #include <sys/times.h>
+#include <stdint.h>
+#include "yari_perfcounters.h"
 
 #define RS232IN_DATA (*(volatile unsigned *) 0xFF000004)
 #define RS232IN_TAG  (*(volatile unsigned *) 0xFF000008)
-#define TSC          (*(volatile unsigned *) 0xFF00000C)
 #define SER_OUTBUSY() (*(volatile unsigned *)0xFF000000 != 0)
 #define SER_OUT(data) (*(volatile unsigned *)0xFF000000 = (data))
 
@@ -127,9 +128,9 @@ get_mem_info (mem)
   mem->dcsize = YARI_DCACHE_SIZE;
 }
 
-static int yari_rdhwr_SYNCI_Step()
+static uint32_t yari_rdhwr_SYNCI_Step(void)
 {
-    int r;
+    uint32_t r;
 
     asm(".set push;"
         ".set mips32r2;"
@@ -139,11 +140,46 @@ static int yari_rdhwr_SYNCI_Step()
     return r;
 }
 
-typedef unsigned size_t;
+static uint64_t yari_rdhwr_TSC(void)
+{
+    uint32_t count;
+    uint32_t cycles_pr_count;
+
+    asm(".set push;"
+        ".set mips32r2;"
+        "rdhwr %0,$2;"
+        "rdhwr %1,$3;"
+        ".set pop" : "=r" (count), "=r" (cycles_pr_count) : "i" (2));
+
+    return (uint64_t) count * cycles_pr_count;
+}
+
+static inline uint32_t yari_rdhwr_mfcp2(int k)
+{
+    uint32_t r;
+
+    asm(".set push;"
+        ".set mips32r2;"
+        "mfc2 %0,$%1;"
+        ".set pop" : "=r" (r) : "i" (k));
+
+    return r;
+}
+
+static inline uint32_t yari_rdhwr_freq_khz(void)
+{
+    // XXX Read this from a configuration register
+    return 40000; // In kHz
+}
+
+
+
+
+typedef uint32_t size_t;
 
 void yari_flush_icache(void *location, size_t len)
 {
-    unsigned inc = yari_rdhwr_SYNCI_Step();
+    uint32_t inc = yari_rdhwr_SYNCI_Step();
     void *end = location + len;
 
     for (location = (void *) ((unsigned) location & ~(inc - 1));
@@ -156,24 +192,18 @@ void yari_flush_icache(void *location, size_t len)
     }
 }
 
-static unsigned __pre_main_t0;
-
-void __pre_main(void)
-{
-    __pre_main_t0 = TSC;
-}
-
-void __post_main(void)
-{
-    printf("Program spent %d cycles in main\n", TSC - __pre_main_t0);
-}
-
 clock_t times(struct tms *buf)
 {
-  unsigned T = TSC/40000;
-  buf->tms_utime = T;
-  buf->tms_stime = buf->tms_cutime = buf->tms_cstime = 0;
-  return T;
+    uint32_t T = 0;
+    uint32_t frequency = yari_rdhwr_freq_khz();
+
+    if (frequency)
+        T = yari_rdhwr_TSC() / frequency;
+
+    buf->tms_utime = T;
+    buf->tms_stime = buf->tms_cutime = buf->tms_cstime = 0;
+
+    return T;
 }
 
 int gettimeofday(struct timeval *__p, struct timezone *__z)
@@ -186,21 +216,71 @@ static char HEAP_MSG[] = "HEAP EXEEDS RAM!\n\0";
 void *
 sbrk (incr)
      int incr;
-{ 
-   extern char   end; /* Set by linker.  */
-   static char * heap_end; 
-   char *        prev_heap_end; 
-   unsigned x, i;
+{
+    extern char   end; /* Set by linker.  */
+    static char * heap_end;
+    char *        prev_heap_end;
+    unsigned x, i;
 
-   if (heap_end == 0)
-     heap_end = & end; 
+    if (heap_end == 0)
+        heap_end = & end;
 
-   prev_heap_end = heap_end; 
-   heap_end += incr; 
+    prev_heap_end = heap_end;
+    heap_end += incr;
 
-   if (heap_end > 0x40100000)
-     for (i = 0; i < 16;i++)
-      outbyte(HEAP_MSG[i]);
+    if (heap_end > 0x40100000)
+        for (i = 0; i < 16;i++)
+            outbyte(HEAP_MSG[i]);
 
-   return (void *) prev_heap_end; 
+    return (void *) prev_heap_end;
+}
+
+
+
+static uint32_t __perf_counter[PERF_COUNTERS];
+static uint64_t __pre_main_t0;
+
+unsigned PERFMON = 1;
+
+void __pre_main(void)
+{
+    /*
+     * We have to use the macro construct as mfc2 requires a constant
+     * argument and this is simpler than generating code on the fly.
+     */
+
+    extern void __post_main(void);
+
+    atexit(__post_main);
+
+#define X(H) __perf_counter[H] = -yari_rdhwr_mfcp2(H);
+    __FORALL_PERF_COUNTERS(X);
+#undef X
+    __pre_main_t0 = yari_rdhwr_TSC();
+}
+
+void __post_main(void)
+{
+    int i;
+
+    uint64_t c = yari_rdhwr_TSC() - __pre_main_t0;
+#define X(H) __perf_counter[H] += yari_rdhwr_mfcp2(H);
+    __FORALL_PERF_COUNTERS(X);
+#undef X
+
+    uint64_t mcpi = 0;
+    uint32_t time = c / yari_rdhwr_freq_khz();
+
+    if (__perf_counter[PERF_RETIRED_INST])
+        mcpi = (100 * c) / (16ULL * __perf_counter[PERF_RETIRED_INST]);
+
+    printf("Executed %llu instructions in %llu cycles (%u.%2u s) -> CPI: %llu.%02llu\n",
+           16ULL * __perf_counter[PERF_RETIRED_INST],
+           c, time / 100, time % 100,
+           mcpi / 100, mcpi % 100);
+
+    for (i = 0; i != PERF_COUNTERS; ++i)
+        printf("%-22s = %10d\n", __perf_counter_names[i], __perf_counter[i]);
+
+    printf("Finished\n");
 }
