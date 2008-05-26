@@ -99,10 +99,15 @@ int main(int argc, char **argv)
 	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
 	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
 */
-	char *tmp[] = {"cacao", "jbe.DoKernel"};
-	vm_args = cacao_options_prepare(2, &tmp); 
-	
-	
+	/*char *tmp[] = {"cacao", "hello"};*/
+	/*char *tmp[] = {"cacao", "jbe.DoKernel"};*/
+	/*char *tmp[] = {"cacao", "jbe.BenchKfl"};*/
+	/*char *tmp[] = {"cacao", "jbe.BenchLift"};*/
+	/*char *tmp[] = {"cacao", "jbe.DoMicro"};
+	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
+
+	vm_args = cacao_options_prepare(2, &tmp);
+
 	/* load and initialize a Java VM, return a JNI interface pointer in env */
 
 #if defined(ENABLE_LIBJVM) && !defined(WITH_STATIC_CLASSPATH)
