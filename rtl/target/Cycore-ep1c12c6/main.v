@@ -85,7 +85,7 @@ module main(
 
 
 
-   parameter FREQ = 40_000_000; // match clock frequency
+   parameter FREQ = 75_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
    wire [ 7:0]   rs232out_d;
@@ -146,6 +146,8 @@ module main(
       ,.sram_oe_n(rama_noe)
       ,.sram_we_n(rama_nwe)
       );
+
+   defparam sram_ctrl.need_wait = 1;
 
    rs232out rs232out_inst
       (.clock(clock),
