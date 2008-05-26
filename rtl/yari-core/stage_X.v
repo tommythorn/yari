@@ -77,6 +77,14 @@ module stage_X(input  wire        clock
 
 `include "config.h"
 
+   /* XXX Ideally, the core frequency is a configuration variable set
+    * at the top level, but as I'm using a different platform than the
+    * one we're comparing JOP to, I hardwire it here. This isn't
+    * cheating as this is the frequency we attain on a EP1C12C6 that
+    * the JOP numbers came from, but I don't have that particular FPGA.
+    */
+   wire [31:0]        perf_frequency   = 75000;
+
    wire               ops_eq           = d_op1_val == d_op2_val;
    wire               negate_op2       = d_opcode == `SLTI  ||
                                          d_opcode == `SLTIU ||
@@ -509,6 +517,7 @@ module stage_X(input  wire        clock
                `PERF_DCACHE_MISSES:     x_res <= perf_dcache_misses;
                `PERF_DELAY_SLOT_BUBBLE: x_res <= perf_delay_slot_bubble;
                `PERF_DIV_HAZARD:        x_res <= perf_div_hazard;
+               `PERF_FREQUENCY:         x_res <= perf_frequency;
                `PERF_ICACHE_MISSES:     x_res <= perf_icache_misses;
                `PERF_IO_LOAD_BUSY:      x_res <= perf_io_load_busy;
                `PERF_IO_STORE_BUSY:     x_res <= perf_io_store_busy;

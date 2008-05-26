@@ -168,8 +168,7 @@ static inline uint32_t yari_rdhwr_mfcp2(int k)
 
 static inline uint32_t yari_rdhwr_freq_khz(void)
 {
-    // XXX Read this from a configuration register
-    return 40000; // In kHz
+    return yari_rdhwr_mfcp2(PERF_FREQUENCY); // In kHz
 }
 
 
