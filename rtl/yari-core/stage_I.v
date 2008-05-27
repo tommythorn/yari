@@ -30,10 +30,8 @@
  */
 
 /*
- IF1
-    Calculates the next fetch address and leaves it in i_npc
-
- IF2
+ IF
+    Calculates the fetch address
     Looks up tags and instructions and does a late select, leaving
     the result in {i_valid,i_instr}
  */
@@ -71,7 +69,7 @@ module stage_I(input  wire        clock
               ,output reg  [31:0] perf_icache_misses = 0
               );
 
-   parameter debug = 0;
+   parameter debug = 1;
 
 `include "config.h"
 
@@ -108,9 +106,10 @@ module stage_I(input  wire        clock
    `define WDX [IC_WORD_INDEX_BITS+1:2]
 
    // Stage 1 - generate address.
-   assign                     i1_pc  = i_npc;
+   wire [31:0]                fetchaddress = restart ? restart_pc : i_npc;
+   assign                     i1_pc  = fetchaddress;
 
-   // Stage 2 - look up tags and instructions.
+   // Stage 1 - look up tags and instructions.
    assign                     i2_pc  = i_pc;
    wire [TAG_BITS-1:0]        tag0, tag1, tag2, tag3;
    wire [31:0]                ic_q0, ic_q1, ic_q2, ic_q3;
@@ -165,49 +164,49 @@ module stage_I(input  wire        clock
 
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag0")
-      tag0_ram(.clock(clock), .rdaddress(i_npc`CSI), .rddata(tag0),
+      tag0_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag0),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[0]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag1")
-      tag1_ram(.clock(clock), .rdaddress(i_npc`CSI), .rddata(tag1),
+      tag1_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag1),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[1]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag2")
-      tag2_ram(.clock(clock), .rdaddress(i_npc`CSI), .rddata(tag2),
+      tag2_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag2),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[2]));
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag3")
-      tag3_ram(.clock(clock), .rdaddress(i_npc`CSI), .rddata(tag3),
+      tag3_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag3),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[3]));
 
-   simpledpram #(32,CACHE_BITS - 4,"../../initmem0")
+   simpledpram #(32,CACHE_BITS - 4,"../../initmem")
       icache_ram0(.clock(clock),
-                  .rdaddress({i_npc`CSI,i_npc`WDX}), .rddata(ic_q0),
+                  .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q0),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 0 && state == S_FILLING && imem_readdatavalid));
 
    simpledpram #(32,CACHE_BITS - 4,"../../initmem1")
       icache_ram1(.clock(clock),
-                  .rdaddress({i_npc`CSI,i_npc`WDX}), .rddata(ic_q1),
+                  .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q1),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 1 && state == S_FILLING && imem_readdatavalid));
 
    simpledpram #(32,CACHE_BITS - 4,"../../initmem2")
       icache_ram2(.clock(clock),
-                  .rdaddress({i_npc`CSI,i_npc`WDX}), .rddata(ic_q2),
+                  .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q2),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 2 && state == S_FILLING && imem_readdatavalid));
 
    simpledpram #(32,CACHE_BITS - 4,"../../initmem3")
       icache_ram3(.clock(clock),
-                  .rdaddress({i_npc`CSI,i_npc`WDX}), .rddata(ic_q3),
+                  .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q3),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 3 && state == S_FILLING && imem_readdatavalid));
@@ -236,9 +235,8 @@ module stage_I(input  wire        clock
       S_RUNNING:
          if (synci | pending_synci) begin
             $display("%05d  I$ flushing line @ %x (index %d)", $time,
-                     synci ? synci_a : pending_synci_a,
-                     synci ? synci_a`CSI : pending_synci_a`CSI
-                     );
+                     synci ? synci_a     : pending_synci_a,
+                     synci ? synci_a`CSI : pending_synci_a`CSI);
             i_npc        <= synci ? synci_a : pending_synci_a;
             i1_valid     <= 0;
             i2_valid     <= 0;
@@ -253,15 +251,19 @@ module stage_I(input  wire        clock
              * Advance the pc; look up tags, word index, find hitting
              * set; look up cache word.
              */
-            i_pc         <= i_npc;
-            i_npc        <= i_npc + 4;
-            i2_valid     <= i1_valid;
+            i_pc         <= fetchaddress;
+            i_npc        <= fetchaddress + 4;
+            i2_valid     <= i1_valid | restart;
+            if (restart)
+               i1_valid  <= 1;
 
+            if (debug & restart)
+               $display("%05d  I$ DEBUG1 restart from %x", $time, restart_pc);
          end else begin
             // We missed in the cache, start the filling machine
             $display("%05d  I$ %8x missed, starting to fill", $time, i_pc);
             perf_icache_misses <= perf_icache_misses + 1;
-            i_npc        <= i_pc;
+            i_npc        <= restart ? restart_pc : i_pc;
             i2_valid     <= 0;
 
             fill_wi      <= 0;
@@ -271,6 +273,8 @@ module stage_I(input  wire        clock
             $display("%05d  I$ begin fetching from %8x", $time,
                      {i_pc[CACHEABLE_BITS-1:LINE_BITS],{(LINE_BITS){1'd0}}});
 
+            if (debug & restart)
+               $display("%05d  I$ DEBUG2 restart from %x", $time, restart_pc);
             state        <= S_FILLING;
          end
 
@@ -283,12 +287,12 @@ module stage_I(input  wire        clock
          if (|hits_2) begin
             $display("%05d  I$ flushing %x (= %x TAG) found a stale line from set %d (hits %x), index %d tags %x %x %x %x",
                      $time,
-                     i_npc, i_npc`CHK, set_2, hits_2, i_npc`CSI,
+                     fetchaddress, fetchaddress`CHK, set_2, hits_2, fetchaddress`CSI,
                      tag0, tag1, tag2, tag3);
          end else
             $display("%05d  I$ flushing %x (= %x TAG) found nothing (hits %x), index %d tags %x %x %x %x",
                      $time,
-                     i_npc, i_npc`CHK, hits_2, i_npc`CSI,
+                     fetchaddress, fetchaddress`CHK, hits_2, fetchaddress`CSI,
                      tag0, tag1, tag2, tag3);
 
          tag_wraddress  <= pending_synci_a`CSI;
@@ -297,13 +301,19 @@ module stage_I(input  wire        clock
          // XXX We must wait for SB to drain!  It happens to work as
          // is right now as the SB gets priority but that's actually a
          // bug.
-         i_npc <= pending_synci_pc;
-         i1_valid <= 1;
-         pending_synci <= 0;
-         state <= S_PRE_RUNNING; // To give a cycle for the tags to be written
+         i_npc          <= pending_synci_pc;
+         i1_valid       <= 1;
+         pending_synci  <= 0;
+         state          <= S_PRE_RUNNING; // To give a cycle for the tags to be written
       end
 
-      S_FILLING:
+      S_FILLING: begin
+         if (restart) begin
+            if (debug)
+               $display("%05d  I$ DEBUG3 restart from %x", $time, restart_pc);
+            i_npc <= restart_pc;
+         end
+
          if (imem_readdatavalid) begin
             $display("%05d  I$ {%1d,%1d,%1d} <- %8x", $time,
                      fill_set, i_pc`CSI, fill_wi, imem_readdata);
@@ -325,23 +335,27 @@ module stage_I(input  wire        clock
          end else
             if (debug)
                $display("%05d  I$ waiting for memory", $time);
+      end
 
-      S_PRE_RUNNING:
+      S_PRE_RUNNING: begin
          // This lame pause is to keep the tags interface simple (for now)
+         if (restart) begin
+            if (debug)
+               $display("%05d  I$ DEBUG3 restart from %x", $time, restart_pc);
+            i_npc <= restart_pc;
+         end
+
          state <= S_RUNNING;
+      end
       endcase
 
-      // Keep the restart & kill handling down here to take priority
-      if (!synci & !pending_synci)
-         if (restart) begin
-            i1_valid <= 1;
-            i2_valid <= 0;
-            i_npc    <= restart_pc;
-            $display("%05d  IF restarted at %8x", $time, restart_pc);
-         end else if (kill) begin
-            i1_valid <= 0;
-            i2_valid <= 0;
-         end
+      // Keep the kill handling down here to take priority
+      if (!synci & !pending_synci & kill & ~restart) begin
+         if (debug)
+               $display("%05d  I$ killed", $time);
+         i1_valid <= 0;
+         i2_valid <= 0;
+      end
 
       // Keep all debugging output down here to keep the logic readable
       if (debug) begin
@@ -349,7 +363,7 @@ module stage_I(input  wire        clock
             $display(
 "%05d  I$ running: PC %x (valid %d) <%x;%x;%x> -- PC %x (valid %d) HITS %x -- PC %x INST %x VALID %d",
                   $time,
-                  i_npc, i1_valid, set_2, i_npc`CSI, i_pc`WDX,
+                  fetchaddress, i1_valid, set_2, fetchaddress`CSI, i_pc`WDX,
                   i_pc, i_valid, hits_2,
                   i_pc, i_instr, i_valid);
       end
