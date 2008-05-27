@@ -45,7 +45,6 @@ module sram_ctrl
    parameter S_WRITE2   = 3;
    reg [1:0] state      = S_IDLE;
 
-   wire      sel        = mem_address[29:26] == 'h4;
    reg [burst_bits:0] cnt = ~0;
    reg        int_we_n     = 1;
    reg [1:0]  pendingid;

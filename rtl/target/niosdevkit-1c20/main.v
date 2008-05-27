@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2007 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007,2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 `endif
 
 module main(// Clock and reset
-             input  wire        clkin        // K5  PLL1 input clock (50 MHz)
+             input  wire        clkin        // K5  PLL input clock (50 MHz)
             ,output wire        pld_clkout   // L8  Clock to zero-skew buffer Lancelot board
             ,input  wire        pld_clkfb    // L14 Feedback from pld_clkout to PLL2
             ,input  wire        reset_n      // C4  CPU Reset button
@@ -118,12 +118,11 @@ module main(// Clock and reset
    //  PLLs and clock distribution
    // ------------------------------------------------------------------------
 
-   parameter FREQ = 25_000_000; // match clock frequency
+   // XXX Note 45 MHz appears to be the limit for the sram with just 1
+   // wait state (I happen to know the memory is good for much more
+   // with a trick I can't explain why works.)
+   parameter FREQ = 45_454_545; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
-
-   wire          clk100MHz;     //  100 MHz
-   wire          clk25MHz;
-   wire          video_clk;     //   25 MHz = screen pixel rate
 
    wire [ 7:0]   rs232out_d;
    wire          rs232out_w;
@@ -170,19 +169,17 @@ module main(// Clock and reset
 `ifdef SIMULATE_MAIN
    reg           clk = 0;
 `else
-   wire          pll1_locked;
+   wire          clk;
+   wire          pll_locked;
 
-   pll1 pll1(
+   pll pll(
         .inclk0(clkin),         // 50 MHz input clock
-        .c0(clk100MHz),         // x2/1 = 100 MHz output clock
-        .c1(clk25MHz),          // x1/2 =  25 MHz output clock
-        .locked(pll1_locked),
-        .e0(pld_clkout)         // External only output x1/2 = 25 MHz
+        .c0(clk),
+        .locked(pll_locked)
         );
 
    assign  led = {rled[0],rled[1],rled[2],rled[3],rled[4],rled[5],rled[6],rled[7]};
    reg  [7:0] rled = 0;
-   wire       clk = clk25MHz;
 `endif // SIMULATE_MAIN
 
    reg  [ 3:0] reset_count_up = 0;
@@ -256,6 +253,7 @@ module main(// Clock and reset
       ,.sram_oe_n(sram_oe_n)
       ,.sram_we_n(sram_we_n)
       );
+   defparam sram_ctrl_inst.need_wait = 1;
 `endif
 
    rs232out rs232out_inst

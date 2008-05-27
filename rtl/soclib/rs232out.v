@@ -23,15 +23,15 @@ module rs232out
     input  wire        we,
     output wire        busy);
 
-   parameter           bps         =     57_600;
-   parameter           frequency   = 25_000_000;
+   parameter           bps         = 0;
+   parameter           frequency   = 0;
 `ifndef __ICARUS__
    parameter           period      = (frequency + bps/2) / bps;
 `else
    // One of the very few simulation artifacts we have to deal with at the source level.
    parameter           period      = 0;
 `endif
-   parameter           TTYCLK_SIGN = 12; // 2^TTYCLK_SIGN > period * 2
+   parameter           TTYCLK_SIGN = 16; // 2^TTYCLK_SIGN > period * 2
    parameter           COUNT_SIGN  = 4;
 
    reg [TTYCLK_SIGN:0] ttyclk      = 0; // [-4096; 4095]

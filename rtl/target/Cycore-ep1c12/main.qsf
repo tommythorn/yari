@@ -275,8 +275,6 @@ set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
 set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/dpram.v
 set_global_assignment -name MIF_FILE ../../initmem.mif

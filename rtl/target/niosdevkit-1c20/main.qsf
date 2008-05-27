@@ -28,7 +28,7 @@
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "5.0 SP0.21"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:59:58  APRIL 13, 2004"
-set_global_assignment -name LAST_QUARTUS_VERSION 7.2
+set_global_assignment -name LAST_QUARTUS_VERSION "7.2 SP3"
 
 # Pin & Location Assignments
 # ==========================
@@ -315,17 +315,16 @@ set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 set_global_assignment -name AUTO_RESTART_CONFIGURATION ON
 
 set_global_assignment -name IGNORE_CLOCK_SETTINGS ON
-set_global_assignment -name FMAX_REQUIREMENT "200 MHz"
-set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
-set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
-set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
-set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA ON
-set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP ON
-set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME ON
+set_global_assignment -name FITTER_EFFORT "FAST FIT"
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA OFF
+set_global_assignment -name PHYSICAL_SYNTHESIS_MAP_LOGIC_TO_MEMORY_FOR_AREA OFF
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_WYSIWYG_REMAP OFF
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME OFF
 set_global_assignment -name CYCLONE_OPTIMIZATION_TECHNIQUE SPEED
 
 set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION AUTOMATICALLY
@@ -335,6 +334,7 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-
 
 
 set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE pll.v
 set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
 set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
 set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
@@ -353,8 +353,6 @@ set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
 set_global_assignment -name VERILOG_FILE ../../soclib/sram_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll1.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/pll2.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/logshiftright.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/arithshiftbidir.v
 set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
@@ -369,3 +367,9 @@ set_global_assignment -name CDF_FILE main.cdf
 set_global_assignment -name REMOVE_REDUNDANT_LOGIC_CELLS ON
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 1
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name AUTO_PACKED_REGISTERS_CYCLONE AUTO
+set_global_assignment -name ENABLE_CLOCK_LATENCY ON
+set_global_assignment -name SEED 3
