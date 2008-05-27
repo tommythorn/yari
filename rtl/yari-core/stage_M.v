@@ -80,20 +80,11 @@ module stage_M(input  wire        clock
     *
     * We split a physical address into
     *
-    *   | uncachable | check | cache line index | byte index |
+    *   | check | cache line index | byte index |
     *
     * for example
     *
-    *   |      0     |   20  |        5         |     7      |
-    *
-    * The "uncachable" bits represent the fact that there's no point in
-    * wasting precious tag bits to verify address that can never
-    * (resonable) occur.  If for example we never expect to address more
-    * than 64 MiB (2^26) then we can save 32-26=6 tag bits (and more
-    * importantly get a faster tag compare). However, doing this obviously
-    * creates aliases so if we use uncachable bits we must only detect
-    * hits on on one of the aliases. Another way to say this, is that
-    * uncachable corresponds to a constant part of the tags.
+    *   |   20  |        5         |     7      |
     *
     * The cache line index bits + byte index = 12 < log2(cache size) = 14
     * reflects the fact the more than one cache line can map to the same
@@ -101,7 +92,6 @@ module stage_M(input  wire        clock
     *
     * We do *not* have a present/non-present bit, as 0xFF...... as
     * uncachable so we use tags in that range to represent invalid.
-    * XXX Unfortunately, uncachable loads aren't implemented yet.
     */
 
    /* Derived meassures. */
@@ -112,8 +102,6 @@ module stage_M(input  wire        clock
    parameter SET_BITS        = DC_LINE_INDEX_BITS + LINE_BITS;
    /* Size in log2 bytes of the cache. */
    parameter CACHE_BITS      = DC_SET_INDEX_BITS + SET_BITS;
-
-   // Caching less than the full range would require a bit more work
    parameter TAG_BITS        = CACHEABLE_BITS - SET_BITS;
 
 
