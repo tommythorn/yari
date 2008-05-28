@@ -712,7 +712,9 @@ void run_simple(MIPS_state_t *state)
                 if (wbr) {
                         int is_load = (i.j.opcode >> 3) == 4;
                         int is_io_space = (address >> 24) == 0xFF;
-                        r = note_commit((is_load && is_io_space) || i.j.opcode == CP2,
+                        r = note_commit((is_load && is_io_space)
+                                        || i.j.opcode == CP2
+                                        || (i.j.opcode == RDHWR && i.r.funct == 59),
                                         pc_prev, wbr, &wbv,
                                         &rtl_pc, &rtl_wbr, &rtl_wbv);
                 }
