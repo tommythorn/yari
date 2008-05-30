@@ -69,7 +69,7 @@ module stage_I(input  wire        clock
               ,output reg  [31:0] perf_icache_misses = 0
               );
 
-   parameter debug = 1;
+   parameter debug = 0;
 
 `include "config.h"
 
