@@ -1090,30 +1090,30 @@ static void pre_compile_method(char *classname, char *methodname, char *signatur
 JNIEXPORT void JNICALL Java_jbe_LowLevel_preCompile () {
   mainclass = load_class_bootstrap(utf_new_char(mainstring));
   pre_compile_method("jbe/LowLevel", "getCycleCounter", "()I");
-  pre_compile_method("jbe/kfl/Mast", "loop", "()V");
-  pre_compile_method("jbe/kfl/Msg", "loop", "()V");
+  pre_compile_method("jbe/kfl/Msg", "crc", "(I)I");
+  pre_compile_method("jbe/kfl/JopSys", "simMsg", "(II)V");
   pre_compile_method("jbe/kfl/Msg", "doRcv", "()V");
-  pre_compile_method("jbe/kfl/Triac", "loop", "()V");
   pre_compile_method("jbe/kfl/Triac", "doOpto", "()V");
   pre_compile_method("jbe/kfl/Triac", "doSensor", "()V");
   pre_compile_method("jbe/kfl/Triac", "doStrom", "()V");
   pre_compile_method("jbe/kfl/Triac", "doPause", "()V");
+  pre_compile_method("jbe/kfl/JopSys", "masterPoll", "()V");
+  pre_compile_method("jbe/kfl/Msg", "write", "(I)V");
+  pre_compile_method("jbe/kfl/Msg", "doSend", "()V");
+  pre_compile_method("jbe/kfl/Msg", "readData", "()I");
+  pre_compile_method("jbe/kfl/Triac", "setMaxCnt", "(I)V");
+  pre_compile_method("jbe/kfl/Msg", "loop", "()V");
+  pre_compile_method("jbe/kfl/Triac", "loop", "()V");
   pre_compile_method("jbe/kfl/Mast", "chkMsgTimeout", "()V");
   pre_compile_method("jbe/kfl/Timer", "usedTime", "()I");
   pre_compile_method("jbe/kfl/JopSys", "benchLoop", "()V");
-  pre_compile_method("jbe/kfl/JopSys", "masterPoll", "()V");
-  pre_compile_method("jbe/kfl/JopSys", "simMsg", "(II)V");
-  pre_compile_method("jbe/kfl/Msg", "crc", "(I)I");
   pre_compile_method("jbe/kfl/Msg", "readCmd", "()I");
   pre_compile_method("jbe/kfl/Mast", "handleMsg", "(I)Z");
-  pre_compile_method("jbe/kfl/Msg", "write", "(I)V");
-  pre_compile_method("jbe/kfl/Msg", "doSend", "()V");
   pre_compile_method("jbe/kfl/JopSys", "masterCmd", "()V");
   pre_compile_method("jbe/kfl/Mast", "handleRest", "(I)Z");
-  pre_compile_method("jbe/kfl/Msg", "readData", "()I");
-  pre_compile_method("jbe/kfl/Triac", "setMaxCnt", "(I)V");
   pre_compile_method("jbe/kfl/Triac", "rauf", "()V");
   pre_compile_method("jbe/kfl/Triac", "doImpulsUp", "(I)V");
+  pre_compile_method("jbe/kfl/Mast", "loop", "()V");
   printf("pre compiling finished.\n");
 }
 
