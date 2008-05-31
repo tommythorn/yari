@@ -140,7 +140,7 @@ static uint32_t yari_rdhwr_SYNCI_Step(void)
     return r;
 }
 
-static uint64_t yari_rdhwr_TSC(void)
+uint64_t yari_rdhwr_TSC(void)
 {
     uint32_t count;
     uint32_t cycles_pr_count;
@@ -152,6 +152,11 @@ static uint64_t yari_rdhwr_TSC(void)
         ".set pop" : "=r" (count), "=r" (cycles_pr_count) : "i" (2));
 
     return (uint64_t) count * cycles_pr_count;
+}
+
+unsigned int yari_rdhwr_TSC_short(void)
+{
+  return yari_rdhwr_TSC();
 }
 
 static inline uint32_t yari_rdhwr_mfcp2(int k)
