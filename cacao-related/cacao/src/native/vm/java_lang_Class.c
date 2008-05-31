@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "vm/types.h"
+#include "vm/vm.h"
 
 #include "mm/memory.h"
 
@@ -1045,6 +1046,76 @@ JNIEXPORT s4 JNICALL Java_java_lang_VMClass_isMemberClass(JNIEnv *env, jclass cl
 
 #endif /* ENABLE_JAVASE */
 
+JNIEXPORT int JNICALL Java_jbe_LowLevel_getCycleCounter () {
+#ifdef __MIPS__
+  extern unsigned int yari_rdhwr_TSC_short(void);
+  return yari_rdhwr_TSC_short();
+#endif
+    return 1;
+}
+
+static void pre_compile_method(char *classname, char *methodname, char *signature) {
+  classinfo *clazz = load_class_bootstrap(utf_new_char(classname));
+  methodinfo *m;
+
+  /* create, load and link the main class */
+ 
+  if (clazz == NULL)
+          exceptions_print_stacktrace();
+
+  if (!link_class(clazz))
+          exceptions_print_stacktrace();
+
+  if (!initialize_class(clazz))
+          exceptions_print_stacktrace();
+
+  if (signature != NULL) {
+          m = class_resolvemethod(clazz,
+                                       utf_new_char(methodname),
+                                       utf_new_char(signature));
+  }
+  else {
+          m = class_resolvemethod(clazz,
+                                       utf_new_char(methodname),
+                                       NULL);
+  }
+
+  if (m == NULL)
+          vm_abort("vm_compile_method: java.lang.NoSuchMethodException: %s.%s\n",
+                   methodname, signature ? signature : "");
+
+  jit_compile(m);
+}
+
+JNIEXPORT void JNICALL Java_jbe_LowLevel_preCompile () {
+  mainclass = load_class_bootstrap(utf_new_char(mainstring));
+  pre_compile_method("jbe/LowLevel", "getCycleCounter", "()I");
+  pre_compile_method("jbe/kfl/Mast", "loop", "()V");
+  pre_compile_method("jbe/kfl/Msg", "loop", "()V");
+  pre_compile_method("jbe/kfl/Msg", "doRcv", "()V");
+  pre_compile_method("jbe/kfl/Triac", "loop", "()V");
+  pre_compile_method("jbe/kfl/Triac", "doOpto", "()V");
+  pre_compile_method("jbe/kfl/Triac", "doSensor", "()V");
+  pre_compile_method("jbe/kfl/Triac", "doStrom", "()V");
+  pre_compile_method("jbe/kfl/Triac", "doPause", "()V");
+  pre_compile_method("jbe/kfl/Mast", "chkMsgTimeout", "()V");
+  pre_compile_method("jbe/kfl/Timer", "usedTime", "()I");
+  pre_compile_method("jbe/kfl/JopSys", "benchLoop", "()V");
+  pre_compile_method("jbe/kfl/JopSys", "masterPoll", "()V");
+  pre_compile_method("jbe/kfl/JopSys", "simMsg", "(II)V");
+  pre_compile_method("jbe/kfl/Msg", "crc", "(I)I");
+  pre_compile_method("jbe/kfl/Msg", "readCmd", "()I");
+  pre_compile_method("jbe/kfl/Mast", "handleMsg", "(I)Z");
+  pre_compile_method("jbe/kfl/Msg", "write", "(I)V");
+  pre_compile_method("jbe/kfl/Msg", "doSend", "()V");
+  pre_compile_method("jbe/kfl/JopSys", "masterCmd", "()V");
+  pre_compile_method("jbe/kfl/Mast", "handleRest", "(I)Z");
+  pre_compile_method("jbe/kfl/Msg", "readData", "()I");
+  pre_compile_method("jbe/kfl/Triac", "setMaxCnt", "(I)V");
+  pre_compile_method("jbe/kfl/Triac", "rauf", "()V");
+  pre_compile_method("jbe/kfl/Triac", "doImpulsUp", "(I)V");
+  printf("pre compiling finished.\n");
+}
 
 /*
  * These are local overrides for various environment variables in Emacs.

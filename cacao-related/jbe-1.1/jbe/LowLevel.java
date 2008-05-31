@@ -25,6 +25,17 @@ public class LowLevel {
 	// static Perf p = Perf.getPerf();
 	// static long freq = p.highResFrequency();
 
+        /**
+         * Precompile some methods to eliminate compilation overhead after 
+         * mission start.
+         */
+        public static native void preCompile ();
+
+        /**
+         * Return the current value of the cycle counter.
+         */
+        public static native int getCycleCounter ();
+
 	/**
 	 * Get the current time in milli seconds (can be relative) as an integer.
 	 * 
