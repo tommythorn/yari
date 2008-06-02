@@ -373,3 +373,17 @@ set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name AUTO_PACKED_REGISTERS_CYCLONE AUTO
 set_global_assignment -name ENABLE_CLOCK_LATENCY ON
 set_global_assignment -name SEED 3
+
+
+# timing constraints for SRAM
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON        -to sram*
+set_instance_assignment -name TCO_REQUIREMENT "3   ns"       -to sram*
+set_instance_assignment -name FAST_OUTPUT_REGISTER ON        -to fse*
+set_instance_assignment -name TCO_REQUIREMENT "3   ns"       -to fse*
+set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to fse*_d
+set_instance_assignment -name TCO_REQUIREMENT "3   ns"       -to fse*_d
+set_instance_assignment -name TSU_REQUIREMENT "2.2 ns"       -to fse*_d
+
+# other default timings
+set_global_assignment -name TSU_REQUIREMENT "5 ns"
+set_global_assignment -name TCO_REQUIREMENT "10 ns"
