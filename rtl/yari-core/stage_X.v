@@ -143,6 +143,9 @@ module stage_X(input  wire        clock
    reg [31:0] x_special = 0; // A value that can be precomputed
    always @(posedge clock)
       case (d_opcode)
+      `REG:    x_special <= d_npc + 4;
+      `REGIMM: x_special <= d_npc + 4;
+      `JAL:    x_special <= d_npc + 4;
       `RDHWR:
          case (d_rd)
          0:  x_special <= 0; // # of processors-1
@@ -151,6 +154,7 @@ module stage_X(input  wire        clock
          3:  x_special <= 1 << 4;    // TSC scaling factor
          endcase
 
+      `LUI: x_special <= {d_simm[15: 0], 16'd0};
       `CP2:
          case (d_rd)
          `PERF_BRANCH_HAZARD:     x_special <= perf_branch_hazard;
@@ -186,7 +190,7 @@ module stage_X(input  wire        clock
          `SRLV:   x_res = x_op2_val          >>  x_shift_dist;
          `SRAV:   x_res = $signed(x_op2_val) >>> x_shift_dist;
 
-         `JALR:   x_res = x_npc + 4;
+         `JALR:   x_res = x_special;
          // XXX BUG See the comment above with mult_lo and mult_hi
          `MFHI:   x_res = mult_hi;
          `MFLO:   x_res = mult_lo;
@@ -203,16 +207,16 @@ module stage_X(input  wire        clock
          `SLTU:   x_res = {{31{1'b0}}, ~x_carry_flag};
          default: x_res = 'hX;
          endcase
-      `REGIMM:    x_res = x_npc + 4;// BLTZ, BGEZ, BLTZAL, BGEZAL
-      `JAL:       x_res = x_npc + 4;
+      `REGIMM:    x_res = x_special;// BLTZ, BGEZ, BLTZAL, BGEZAL
+      `JAL:       x_res = x_special;
       `ADDI:      x_res = x_sum;
       `ADDIU:     x_res = x_sum;
       `SLTI:      x_res = {{31{1'b0}}, x_sign_flag ^ x_overflow_flag};
       `SLTIU:     x_res = {{31{1'b0}}, ~x_carry_flag};
-      `ANDI:      x_res = {16'b0, x_op1_val[15:0] & x_op2_val[15:0]};
+      `ANDI:      x_res = {16'b0,            x_op1_val[15:0] & x_op2_val[15:0]};
       `ORI:       x_res = {x_op1_val[31:16], x_op1_val[15:0] | x_op2_val[15:0]};
       `XORI:      x_res = {x_op1_val[31:16], x_op1_val[15:0] ^ x_op2_val[15:0]};
-      `LUI:       x_res = {x_op2_val[15:0], 16'd0};
+      `LUI:       x_res = x_special;
       //`CP1:
       `RDHWR:     x_res = x_special;
       `CP2:       x_res = x_special;
