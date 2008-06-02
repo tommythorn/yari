@@ -292,8 +292,11 @@ module stage_D(input  wire        clock
          d_restart    <= 1;
          d_restart_pc <= d_pc;
          d_flush_X    <= 1;
-         perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
       end
+
+      // Delay the count one cycle to improve cycle time
+      if (d_restart)
+         perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
 
       if (m_valid)
          perf_retired_inst <= perf_retired_inst + 1;
