@@ -228,6 +228,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                );
 
    stage_X stX(.clock(clock),
+
+               .restart(restart),
+               .restart_pc(restart_pc),
+
                .d_valid(d_valid & ~flush_D),
                .d_instr(d_instr),
                .d_pc(d_pc),
