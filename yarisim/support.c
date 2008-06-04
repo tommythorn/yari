@@ -423,7 +423,21 @@ void disass(unsigned pc, inst_t i)
 */
                 break;
         case CP1:  sprintf(buf,"%-6s", "cp1"); break;
-        case CP2:  sprintf(buf,"%-6s", "cp2"); break;
+        case CP2:
+                /* Two possible formats */
+                if (i.r.rs & 0x10) {
+                        /* C1 format */
+                        sprintf(buf,"%-6s%08x", "cp2", i.raw); break;
+                } else {
+                        /* Regular r format with i.r.rs[3] ? MT : MF */
+                        sprintf(buf,
+                                "%-6s$%d,$%d (sel %d, rs %d)",
+                                i.r.rs & 4 ? "mtc2" : "mfc2",
+                                i.r.rt, i.r.rd,
+                                i.r.funct,
+                                i.r.rs);
+                }
+                break;
         case CP3:  sprintf(buf,"%-6s", "cp3"); break;
         case BEQL: sprintf(buf,"%-6s","bbql"); break;
         case RDHWR:

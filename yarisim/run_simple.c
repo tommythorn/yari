@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include "mips32.h"
 #include "runmips.h"
+#include "perfcounters.h"
 
 unsigned coverage[64+64+32];
 char *inst_name[64+64+32] = {
@@ -178,7 +179,8 @@ uint32_t icache_fetch(uint32_t address)
                         ++n_icache_hits;
 
                         if (ic_data != load(address, 4, 1))
-                                printf("CRITICAL WARNING: executing stale I$ data for %08x\n", address);
+                                printf("CRITICAL WARNING: executing stale I$ data for %08x\n",
+                                       address);
 
                         return ic_data;
                 }
@@ -210,7 +212,7 @@ static void synci(unsigned address)
                         icache_tag[way][line] = 0;
 }
 
-unsigned TSC;
+uint64_t TSC;
 
 static int rdhwr(unsigned r)
 {
@@ -220,9 +222,9 @@ static int rdhwr(unsigned r)
         case 1: // I$ line size
                 return 4 << IC_WORD_INDEX_BITS;
         case 2: // Free running counter
-                return TSC;
+                return TSC >> 4;
         case 3: // cycles pr above count
-                return 1;
+                return 1 << 4;
         default:
                 fatal("rdhwr on a non-existing register %d\n", r);
         }
@@ -493,6 +495,10 @@ void run_simple(MIPS_state_t *state)
                         if (s == t)
                                 pc_next = state->pc + (i.i.imm << 2);
                         branch_delay_slot_next = 1;
+
+                        /* Special hack. Terminate on endless loops */
+                        if (i.raw == 0x1000FFFF && icache_fetch(state->pc + 4) == 0)
+                                exit(0);
                         break;
                 case BNE:
                         wbr = 0;
@@ -648,12 +654,21 @@ void run_simple(MIPS_state_t *state)
                         if (~i.r.rs & 0x10)
                                 if (~i.r.rs & 4) {
                                         // printf("MFC2 here!\n");
-                                        wbv = 0;
-                                        break;
+                                        switch (i.r.rd) {
+                                        case PERF_RETIRED_INST:
+                                                wbv = TSC >> 4;
+                                                break;
+
+                                        case PERF_FREQUENCY:
+                                                wbv = 75000;
+                                                break;
+                                        default:
+                                                wbv = 0;
+                                                break;
+                                        }
                                 }
+                        break;
                 }
-
-
 
                 case RDHWR:
                         if (i.r.funct == 59) {
