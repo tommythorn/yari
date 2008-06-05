@@ -293,12 +293,23 @@ void run_simple(MIPS_state_t *state)
                         case LW: stat_gen_load_hazard++; break;
                         default: break;
                         }
-                if (last_load_dest && (last_load_dest == i.r.rs ||
-                                       last_load_dest == i.r.rt))
-                        stat_load_use_hazard++;
+
+                if (last_load_dest && last_load_dest == i.r.rs)
+                        stat_load_use_hazard_rs++;
+
+                if (last_load_dest && last_load_dest == i.r.rt)
+                        stat_load_use_hazard_rt++;
+
                 if (last_load32_dest && (last_load32_dest == i.r.rs ||
-                                         last_load32_dest == i.r.rt))
+                                         last_load32_dest == i.r.rt)) {
                         stat_load32_use_hazard++;
+                        printf("lw-use?  ");
+                        inst_t pi = {.raw = icache_fetch(pc_prev-4)};
+                        disass(pc_prev-4,pi);
+                        disass(pc_prev,i);
+                        printf("\n");
+                }
+
                 if (last_shift_dest && (last_shift_dest == i.r.rs ||
                                         last_shift_dest == i.r.rt))
                         stat_shift_use_hazard++;
