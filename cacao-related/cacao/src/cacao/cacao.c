@@ -97,7 +97,8 @@ int main(int argc, char **argv)
 	char *tmp[] = {"cacao", "jbe.BenchKfl"};
 	char *tmp[] = {"cacao", "jbe.BenchLift"};
 	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
-	char *tmp[] = {"cacao", "jbe.BenchUdpIp"};
+        char *tmp[] = {"cacao", "jbe.BenchUnpredictableKfl"};
+        char *tmp[] = {"cacao", "jbe.BenchPredictableKfl"};
 */
 	/*char *tmp[] = {"cacao", "hello"};*/
 	char *tmp[] = {"cacao", "jbe.DoKernel"};
