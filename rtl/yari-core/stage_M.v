@@ -157,14 +157,61 @@ module stage_M(input  wire        clock
                default:x_set = 2'bxx;
              endcase
 
-   // Shift and replicate the stored data
+   /*
+    * Store data unified data rotation (left wise) BIG ENDIAN!
+    * SW 4-byte aligned, no rotation
+    * SH 2-byte aligned   XX YY aa bb
+    *    0bxxx00 -> aa bb XX YY  2
+    *    0bxxx10 -> XX YY aa bb  0
+    * SB XX YY ZZ aa
+    *    0bxxx00 -> aa XX YY ZZ  1
+    *    0bxxx01 -> ZZ aa XX YY  2
+    *    0bxxx10 -> YY ZZ aa XX  3
+    *    0bxxx11 -> XX YY ZZ aa  0
+    * SWL aa bb cc dd
+    *    0bxxx00 -> aa bb cc dd  0
+    *    0bxxx01 -> dd aa bb cc  1
+    *    0bxxx10 -> cc dd aa bb  2
+    *    0bxxx11 -> bb cc dd aa  3
+    * SWR aa bb cc dd
+    *    0bxxx00 -> dd aa bb cc  1
+    *    0bxxx01 -> cc dd aa bb  2
+    *    0bxxx10 -> bb cc dd aa  3
+    *    0bxxx11 -> aa bb cc dd  0
+    *
+    * So rotation is (address & 3) + y, where
+    *    y = 0 for SW and SWL
+    *    y = 2 for SH
+    *    y = 1 for SB and SWR
+    */
+
+   reg [1:0] x_store_data_rotation_mode;
+   always @*
+      case (x_opcode)
+      `SW:  x_store_data_rotation_mode = 2'd0;
+      `SH:  x_store_data_rotation_mode = 2'd2;
+      `SB:  x_store_data_rotation_mode = 2'd1;
+      `SWL: x_store_data_rotation_mode = 2'd0;
+      `SWR: x_store_data_rotation_mode = 2'd1;
+      default: x_store_data_rotation_mode = 'hX;
+      endcase
+
+   // Warning: the x_store_data_rotation assignment is necessary to
+   // clamp the result to two bits. Without it, x_store_data is
+   // inferred as a latch and Quartus II gets confused to the point
+   // where the result misbehaves mysteriously. Sadly, Icarus Verilog
+   // simulates this fine, thus there's a semantic divergence between
+   // the synthesizer and it.
+   wire [1:0] x_store_data_rotation = x_address[1:0] + x_store_data_rotation_mode;
    reg [31:0] x_store_data;
    always @*
-      case (x_opcode[1:0])
-      0:       x_store_data = {x_rt_val[7:0], x_rt_val[7:0], x_rt_val[7:0], x_rt_val[7:0]};
-      1:       x_store_data = {x_rt_val[15:0], x_rt_val[15:0]};
-      default: x_store_data = x_rt_val;
+      case (x_store_data_rotation)
+      0: x_store_data = {x_rt_val[31:24], x_rt_val[23:16], x_rt_val[15: 8], x_rt_val[ 7: 0]};
+      1: x_store_data = {x_rt_val[ 7: 0], x_rt_val[31:24], x_rt_val[23:16], x_rt_val[15: 8]};
+      2: x_store_data = {x_rt_val[15: 8], x_rt_val[ 7: 0], x_rt_val[31:24], x_rt_val[23:16]};
+      3: x_store_data = {x_rt_val[23:16], x_rt_val[15: 8], x_rt_val[ 7: 0], x_rt_val[31:24]};
       endcase
+
    // Generated the byte enables (Big Endian!)
    // XXX Trap on unaligned access!!
    reg [3:0] x_byteena;
