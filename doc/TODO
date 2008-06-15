@@ -1,61 +1,45 @@
-Before YARI 0.1-RC2: Improve documentation
-Before YARI 0.2: Interrupts and exceptions!
-Before YARI 0.3: Improve the SOC generator and add more peripherals
-Before YARI 0.5: Improve the cycle time
-
-Before YARI 0.9: CP2 support, supervisor mode, trap illegal instructions
-Before YARI 1.0: Boot Linux!
-
 PIPELINE OVERVIEW:
 
     (Beware, currently there's a fairly loose mapping between pipeline
     stages and corresponding RTL files.)
 
 
-    IF1 IF2 IF3 DE EX      [EX2] WB
-                   ME1 ME2 [ME3]
+    IF DE EX/ME1 ME2 WB
 
-    IF1 - pc calculation / handle restarts and kill
+    IF  - pc calculation / handle restarts and kill
+          I$ tag lookup
+          I$ access
+          late select
 
-    IF2 - begin I$ tag lookup
+    DE  - begin register file lookup, partial decoding, address calc
 
-    IF3 - determine I$ way and begin I$ access
+    EX/ME1
+        - bypass and alu computations
+          D$ tag lookup
+          D$ access
+          late select
 
-    DE  - begin register file lookup, partial decoding
+    ME2 - load align
 
-    EX  - bypass and alu computations
-    ME1 - begin D$ tag lookup
-
-    ME2 - determine way and start D$ access
-
-    WB  - load subword extraction & sign extension, and
-          register file write-back.
-
-    It's possible that we get rid of IF1. If we switch to a directly
-    mapped I$ then we can get rid of IF2 also.
-
-    EX3/ME3 is under consideration but the bypass network is
-    terrifying.
-
-    As of 2007-12-13, the subword extraction & sign extension is the
-    critical path, followed closely by the shifters.
+    WB  - register file write-back.
 
 
 IDEAS
 
-* Finish the D$ work, given LW a 0 cycle latency
+* Decouple the cache fill part from the rest of the pipeline (both I$
+  and D$)
 
-* Finish the shifter work, stretching it over two cycles, restart on
-  shift-use hazards, and log those in performance counters.
+* Streamline the restart handling
+
+* Investigate replaying (eg. add a mux to the IF output and reduce
+  restart penalty by one cycle)
+
+* Investigate minimizing the branch penalty.
+
+* Implement interrupt support
 
 * Introduce a x_pc_restart rather than litter the RTL with the same
   calculation over and over.
-
-* Apply the same parallel cache transformation to the I$ and shorten
-  the pipeline by one stage (effectively getting back to the original
-  5 stage pipeline).
-
-* Further, investigate minimizing the branch penalty.
 
 * Extend D$ to be a write back cache (not as hard as I thought).
 
@@ -68,11 +52,11 @@ IDEAS
 
 * Write a SSRAM controller (for the DE2-70).
 
+* Write a PSRAM controller (for the LPRP).
+
 * preload the I$ with a boot-loader that copy the firmware in
   preloaded D$ to RAM.  This way we can get rid of the need for
   locking (wasting) half the I$ to firmware.
-
-* Write a PSRAM controller (for the LPRP).
 
 * We're dancing on eggshells; instructions modifying non-register
   state in EX wouldn't behave correctly when flushed from ME! (eg, lw
@@ -120,21 +104,9 @@ IDEAS
   written by hand). This is in preparation for moving many more
   configurable features to the config.h
 
-* Implement interrupt support
-
 * Port to Xilinx' ML401 and one of the Spartan-3 starter kits
 
 * Trap on ADD[I] and SUB overflow
-
-* (PERF) Sign-extension and shifting in ME is the critical
-  path.
-
-  Add an ME2 stage to handle that. Restart on LB/LBU/LH/LHU-use
-  hazards (LW keeps its 1-cycle latency, but LB/LBU/LH/LHU are now
-  2-cycle). Add an extra level of bypass.
-
-  This opens the door to EX2 and EX3, useful for multiply and shifts
-  especially.
 
 * (PERF) Make the video interface much more efficient and have all major
   parameters settable from IO space (where it makes sense). Lot's of
@@ -150,27 +122,10 @@ IDEAS
 OTHER:
 * Collect interesting workloads (SPECint, EEMBC, MiBench, ...)
 
-* Dynamically collect detailed statistics
-
-  - for each restart cause count the number of restart and number of
-    cycles lost to it
-
-  - for each stage count the number of valid instructions (to generate
-    a temperature strip of which stages are hot)
-
-  - (Optionally simulator only) Distances between the address
-    generation and the using load instruction, the load instruction
-    and the corresponding use.
-
-  - Bypass utilization staticstics
-
 * Improve documentation, notably how to build and port the RTL
 
 * Restructure the RTL so that it matches the actual pipeline better
   and all stage_XX outputs are guaranteed to be registers.
-
-* (PERF) Investigate the cycle penalty of going from the current three
-  stages for IF to just two stages.
 
 * (PERF) Make I$ cache words wider and use the extra bits for, say:
   - Poor-mans two bit branch prediction
@@ -233,11 +188,6 @@ OTHER:
   pipeline. Besides, does the cost of IO loads really matter that
   much?
 
-
-
-Old stuff below pending clean up .....
-
-FEATURES
 1. Debugging with the GDB stub:
 
    1a. Interrupts support
@@ -245,6 +195,7 @@ FEATURES
        RTL:    -- " -- + bind a Dev board button to break
 
    1b. Get single stepping working (GDB stub work mostly).
+
 
 3. SDRAM support.
 
@@ -276,6 +227,3 @@ OTHER
     * nets include an underscore `_' after the module prefix if
       they're one cycle delayed from the source registers.  Nearly all
       clocked registers applies.
-
-  + Convert more assigns to un-clocked registers (always @*'s) -- it's
-    easier to read (DEBATABLE)
