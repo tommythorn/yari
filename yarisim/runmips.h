@@ -33,6 +33,7 @@ uint64_t stat_load32_use_hazard;
 uint64_t stat_shift_use_hazard;
 uint64_t stat_nop;
 uint64_t stat_nop_delay_slots;
+uint64_t stat_nop_useless;
 
 /*
   The simulation space address to physical address translation is a

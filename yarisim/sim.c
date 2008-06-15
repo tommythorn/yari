@@ -139,6 +139,9 @@ void print_stats(void)
                stat_nop * 100.0 / n_issue);
         printf("Nops in delay slots:  %12llu (%5.2f%%)\n", stat_nop_delay_slots,
                stat_nop_delay_slots * 100.0 / n_issue);
+        printf("Nops after loads that aren't needed:\n"
+               "                      %12llu (%5.2f%%)\n", stat_nop_useless,
+               stat_nop_useless * 100.0 / n_issue);
 }
 
 int main(int argc, char **argv)

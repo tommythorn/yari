@@ -450,11 +450,15 @@ void disass(unsigned pc, inst_t i)
         case LB:   dis_load_store(buf, "lb", i); break;
         case LH:   dis_load_store(buf, "lh", i); break;
         case LW:   dis_load_store(buf, "lw", i); break;
+        case LWL:  dis_load_store(buf, "lwl", i); break;
+        case LWR:  dis_load_store(buf, "lwr", i); break;
         case LBU:  dis_load_store(buf, "lbu", i); break;
         case LHU:  dis_load_store(buf, "lhu", i); break;
         case SB:   dis_load_store(buf, "sb", i); break;
         case SH:   dis_load_store(buf, "sh", i); break;
         case SW:   dis_load_store(buf, "sw", i); break;
+        case SWL:  dis_load_store(buf, "swl", i); break;
+        case SWR:  dis_load_store(buf, "swr", i); break;
         case LWC1: dis_load_store_cp1(buf, "lwc1", i); break;
         case SWC1: dis_load_store_cp1(buf, "swc1", i); break;
         case LDC1: dis_load_store_cp1(buf, "ldc1", i); break;
