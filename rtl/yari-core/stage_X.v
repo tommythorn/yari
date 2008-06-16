@@ -198,7 +198,7 @@ module stage_X(input  wire        clock
          `AND:    x_res = x_op1_val & x_op2_val;
          `OR:     x_res = x_op1_val | x_op2_val;
          `XOR:    x_res = x_op1_val ^ x_op2_val;
-         `NOR:    x_res = x_op1_val | ~x_op2_val;
+         `NOR:    x_res = ~(x_op1_val | x_op2_val);
          `SLT:    x_res = {{31{1'b0}}, x_sign_flag ^ x_overflow_flag};
          `SLTU:   x_res = {{31{1'b0}}, ~x_carry_flag};
          default: x_res = 'hX;
