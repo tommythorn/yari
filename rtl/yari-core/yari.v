@@ -100,6 +100,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   x_pc;
    wire [ 5:0]   x_opcode;
    wire [31:0]   x_op1_val;
+   wire [ 5:0]   x_rt;
    wire [31:0]   x_rt_val;
    wire [ 5:0]   x_wbr;
    wire [31:0]   x_res;
@@ -262,6 +263,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_pc(x_pc),
                .x_opcode(x_opcode),
                .x_op1_val(x_op1_val),
+               .x_rt(x_rt),
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
                .x_res(x_res),
@@ -301,6 +303,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_pc(x_pc),
                .x_opcode(x_opcode),
                .x_op1_val(x_op1_val),
+               .x_rt(x_rt),
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
                .x_res(x_res)

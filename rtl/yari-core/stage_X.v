@@ -51,6 +51,7 @@ module stage_X(input  wire        clock
               ,output reg  [31:0] x_pc            = 0
               ,output reg  [ 5:0] x_opcode        = 0
               ,output reg  [31:0] x_op1_val       = 0 // XXX
+              ,output reg  [ 5:0] x_rt            = 0
               ,output reg  [31:0] x_rt_val        = 0 // for stores only
               ,output reg  [ 5:0] x_wbr           = 0
               ,output reg  [31:0] x_res
@@ -236,6 +237,7 @@ module stage_X(input  wire        clock
       x_rs               <= d_rs;
       x_op1_val          <= d_op1_val;
       x_op2_val          <= d_op2_val;
+      x_rt               <= d_rt;
       x_rt_val           <= d_rt_val;
       x_wbr              <= d_wbr;
       x_has_delay_slot   <= d_has_delay_slot & d_valid;
