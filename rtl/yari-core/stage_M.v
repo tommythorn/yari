@@ -158,42 +158,44 @@ module stage_M(input  wire        clock
              endcase
 
    /*
-    * Store data unified data rotation (left wise) BIG ENDIAN!
+    * Store data unified data rotation (left wise) BIG ENDIAN! (Little
+    * endian would have been simpler as SB would have been trivial).
+    *
     * SW 4-byte aligned, no rotation
     * SH 2-byte aligned   XX YY aa bb
-    *    0bxxx00 -> aa bb XX YY  2
-    *    0bxxx10 -> XX YY aa bb  0
-    * SB XX YY ZZ aa
-    *    0bxxx00 -> aa XX YY ZZ  1
-    *    0bxxx01 -> ZZ aa XX YY  2
-    *    0bxxx10 -> YY ZZ aa XX  3
-    *    0bxxx11 -> XX YY ZZ aa  0
+    *    0bxxx00 -> aa bb XX YY  2   1100
+    *    0bxxx10 -> XX YY aa bb  0   0011
+    * SB AA BB CC dd
+    *    0bxxx00 -> dd AA BB CC  1   1000
+    *    0bxxx01 -> CC dd AA BB  2   0100
+    *    0bxxx10 -> BB CC dd AA  3   0010
+    *    0bxxx11 -> AA BB CC dd  0   0001
     * SWL aa bb cc dd
-    *    0bxxx00 -> aa bb cc dd  0
-    *    0bxxx01 -> dd aa bb cc  1
-    *    0bxxx10 -> cc dd aa bb  2
-    *    0bxxx11 -> bb cc dd aa  3
+    *    0bxxx00 -> aa bb cc dd  0   1111
+    *    0bxxx01 -> DD aa bb cc  1   0111
+    *    0bxxx10 -> CC DD aa bb  2   0011
+    *    0bxxx11 -> BB CC DD aa  3   0001
     * SWR aa bb cc dd
-    *    0bxxx00 -> dd aa bb cc  1
-    *    0bxxx01 -> cc dd aa bb  2
-    *    0bxxx10 -> bb cc dd aa  3
-    *    0bxxx11 -> aa bb cc dd  0
+    *    0bxxx00 -> dd AA BB CC  1   1000
+    *    0bxxx01 -> cc dd AA BB  2   1100
+    *    0bxxx10 -> bb cc dd AA  3   1110
+    *    0bxxx11 -> aa bb cc dd  0   1111
     *
-    * So rotation is (address & 3) + y, where
-    *    y = 0 for SW and SWL
+    * So rotation is x^(address & 3) + y, where
+    *    y = 0 for SW, SWL
     *    y = 2 for SH
-    *    y = 1 for SB and SWR
+    *    y = 1 for SB, SWR
     */
 
-   reg [1:0] x_store_data_rotation_mode;
+   reg [1:0] x_store_data_rotation_delta;
    always @*
       case (x_opcode)
-      `SW:  x_store_data_rotation_mode = 2'd0;
-      `SH:  x_store_data_rotation_mode = 2'd2;
-      `SB:  x_store_data_rotation_mode = 2'd1;
-      `SWL: x_store_data_rotation_mode = 2'd0;
-      `SWR: x_store_data_rotation_mode = 2'd1;
-      default: x_store_data_rotation_mode = 'hX;
+      `SW:  x_store_data_rotation_delta = 0;
+      `SH:  x_store_data_rotation_delta = 2;
+      `SB:  x_store_data_rotation_delta = 1;
+      `SWL: x_store_data_rotation_delta = 0;
+      `SWR: x_store_data_rotation_delta = 1;
+      default: x_store_data_rotation_delta = 'hX;
       endcase
 
    // Warning: the x_store_data_rotation assignment is necessary to
@@ -202,7 +204,7 @@ module stage_M(input  wire        clock
    // where the result misbehaves mysteriously. Sadly, Icarus Verilog
    // simulates this fine, thus there's a semantic divergence between
    // the synthesizer and it.
-   wire [1:0] x_store_data_rotation = x_address[1:0] + x_store_data_rotation_mode;
+   wire [1:0] x_store_data_rotation = x_address[1:0] + x_store_data_rotation_delta;
    reg [31:0] x_store_data;
    always @*
       case (x_store_data_rotation)
@@ -216,11 +218,15 @@ module stage_M(input  wire        clock
    // XXX Trap on unaligned access!!
    reg [3:0] x_byteena;
    always @*
-      case (x_opcode[1:0])
-      0:       x_byteena = 4'h8 >> x_address[1:0];
-      1:       x_byteena = {~x_address[1],~x_address[1],x_address[1],x_address[1]};
-      default: x_byteena = 4'hF;
+      case (x_opcode)
+      `SW:  x_byteena = 4'hF;
+      `SH:  x_byteena = x_address[1] ? 4'h3 : 4'hC;
+      `SB:  x_byteena = 4'h8 >>  x_address[1:0];
+      `SWL: x_byteena = 4'hF >>  x_address[1:0];
+      `SWR: x_byteena = 4'hF << ~x_address[1:0];
+      default: x_byteena = 4'h0;
       endcase
+
    wire x_load  = x_valid & x_opcode[5:3] == 4;
    wire x_store = x_valid & x_opcode[5:3] == 5;
 
