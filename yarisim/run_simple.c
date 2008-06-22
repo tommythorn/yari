@@ -15,7 +15,7 @@
 unsigned coverage[64+64+32];
 char *inst_name[64+64+32] = {
         // ROOT MAP
-        // "REG", "REGIMM",
+        // "SPECIAL", "REGIMM",
         [2] = "J", "JAL", "BEQ", "BNE", "BLEZ", "BGTZ",
         [8]="ADDI", "ADDIU", "SLTI", "SLTIU", "ANDI", "ORI", "XORI", "LUI",
         [0x10]="CP0", "CP1", "CP2", // "CP3",
@@ -36,7 +36,7 @@ char *inst_name[64+64+32] = {
         //[0x30]="LL", "LWC1", "LWC2", "PREF", "LDC1", "LCD2",
         //[0x38]="SC", "SWC1", "SWC2", [0x3d]="SDC1", "SCD2",
 
-        // REG MAP
+        // SPECIAL MAP
         [64] = "SLL",
         [64+2] = "SRL", "SRA", "SLLV", [64+6] = "SRLV", "SRAV",
         [64+8] = "JR", "JALR", [64 + 0xC] = "SYSCALL", "BREAK",
@@ -44,13 +44,16 @@ char *inst_name[64+64+32] = {
         [64+0x18] = "MULT", "MULTU", "DIV", "DIVU",
         [64+0x20] = "ADD", "ADDU", "SUB", "SUBU", "AND", "OR", "XOR", "NOR",
         [64+0x2a] = "SLT", "SLTU",
+        [64+0x30] = "TGE",   "TGEU",  "TLT",  "TLTU",  "TEQ",  0, "TNE",
+        [64+0x34] = "TEQ",
 
         // REGIMM MAP
         [128+0] = "BLTZ",
         [128+1] = "BGEZ",
+        [128+0x08] = "TGEI", "TGEIU", "TLTI", "TLTIU", "TEQI", 0, "TNEI",
         [128+0x10] = "BLTZAL",
         [128+0x11] = "BGEZAL",
-        [128+31] = "SYNCI",
+        [128+0x1f] = "SYNCI",
 
 };
 
@@ -313,7 +316,7 @@ void run_simple(MIPS_state_t *state)
                 if (last_load_dest && last_load_dest == i.r.rt)
                         stat_load_use_hazard_rt++;
 
-                if (last_load32_dest && (last_load32_dest == i.r.rs ||
+                if (0 && last_load32_dest && (last_load32_dest == i.r.rs ||
                                          last_load32_dest == i.r.rt)) {
                         stat_load32_use_hazard++;
                         printf("lw-use?  ");
@@ -347,7 +350,7 @@ void run_simple(MIPS_state_t *state)
                 unsigned address = s + i.i.imm;
 
 
-                ++coverage[i.j.opcode == REG    ? 64 + i.r.funct :
+                ++coverage[i.j.opcode == SPECIAL?  64 + i.r.funct :
                            i.j.opcode == REGIMM ? 128 + i.r.rt :
                            /*                  */ i.j.opcode];
 
@@ -364,7 +367,7 @@ void run_simple(MIPS_state_t *state)
 
 
                 switch (i.j.opcode) {
-                case REG: // all R-type, thus rd is target register
+                case SPECIAL: // all R-type, thus rd is target register
                         wbr = i.r.rd;
                         switch (i.r.funct) {
                         case SLL:  last_shift_dest = wbr; wbv = t << i.r.sa; break;
@@ -462,6 +465,9 @@ void run_simple(MIPS_state_t *state)
 
                         case SLT:  wbv = (int) s < (int) t; break;
                         case SLTU: wbv = s < t; break;
+                        case TEQ:  if (s == t)
+                                        fatal("Trap %d %d", i.r.rd, i.r.sa);
+                                   break;
                         case BREAK:
                                 //pc_next = (cp0_status.bev ? 0xBFC00200 : 0x80000000) + 0x180;
                                 state->cp0_cause.exc_code = EXC_BP;
@@ -475,7 +481,7 @@ void run_simple(MIPS_state_t *state)
                                 wbr = 0;
                                 break;
                         default:
-                                fatal("REG sub-opcode %d not handled\n", i.r.funct);
+                                fatal("SPECIAL sub-opcode %d not handled\n", i.r.funct);
                                 break;
                         }
                         break;

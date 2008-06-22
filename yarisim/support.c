@@ -295,7 +295,7 @@ void disass(unsigned pc, inst_t i)
 
         switch (i.j.opcode) {
         default: fatal("Unknown instruction opcode 0d%d", i.j.opcode);
-        case REG:
+        case SPECIAL:
                 switch (i.r.funct) {
                 unhandled:
                 default:   sprintf(buf,"??0x%x?? $%d,$%d,%d", i.r.funct, i.r.rd, i.r.rt, i.r.sa);
@@ -349,6 +349,7 @@ void disass(unsigned pc, inst_t i)
                 case NOR:  sprintf(buf,"%-6s$%d,$%d,$%d","nor", i.r.rd, i.r.rs, i.r.rt); break;
                 case SLT:  sprintf(buf,"%-6s$%d,$%d,$%d","slt", i.r.rd, i.r.rs, i.r.rt); break;
                 case SLTU: sprintf(buf,"%-6s$%d,$%d,$%d","sltu", i.r.rd, i.r.rs, i.r.rt); break;
+                case TEQ:  sprintf(buf,"%-6s$%d,$%d,%d","teq", i.r.rs, i.r.rt, i.r.sa); break;
                 case BREAK:sprintf(buf,"%-6s","break"); break;
                 }
                 break;

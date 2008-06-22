@@ -1,13 +1,13 @@
 /*
 
-MIPS R3000-ish opcode map
+MIPS32R2 opcode map (incomplete)
 
-Root map: instr[31:26] (6 bit)
+Root map: instr [31:26] (6 bit)
 
          0      1      2      3      4      5      6      7
-00     REG REGIMM      j    jal    beq    bne   blez   bgtz
+00 SPECIAL REGIMM      j    jal    beq    bne   blez   bgtz
 08    addi  addiu   slti  sltiu   andi    ori   xori    lui
-10     cp0    cp1    cp2    cp3   beql   bnel  blezl  bgtzl
+10     cp0    cp1    cp2   cp1x   beql   bnel  blezl  bgtzl
 18       -      -      -      -      -      -      -  rdhwr
 20      lb     lh    lwl     lw    lbu    lhu    lwr      -
 28      sb     sh    swl     sw      -      -    swr  cache
@@ -17,28 +17,30 @@ Root map: instr[31:26] (6 bit)
 Reg map: instr[5:0] (6 bit)
 
          0      1      2      3      4      5      6      7
-00     sll      -    srl    sra   sllv      -   srlv   srav
-08      jr   jalr      -      - syscall break      -      -
+00     sll  movci    srl    sra   sllv      -   srlv   srav
+08      jr   jalr   movz   movn syscall break      -   sync
 10    mfhi   mthi   mflo   mtlo      -      -      -      -
 18    mult  multu    div   divu      -      -      -      -
 20     add   addu    sub   subu    and     or    xor    nor
 28       -      -    slt   sltu      -      -      -      -
-30       -      -      -      -      -      -      -      -
+30     tge   tgeu    tlt   tltu    teq      -    tne      -
 38       -      -      -      -      -      -      -      -
 
 Regimm map: instr[20:16] (5 bit)
 
          0      1      2      3      4      5      6      7
 00    bltz   bgez      -      -      -      -      -      -
-08       -      -      -      -      -      -      -      -
-10  bltzal bgezal      -      -      -      -      -      -
+08    tgei  tgeiu   tlti  tltiu   teqi      -   tnei      -
+10  bltzal bgezal bltzall bgezall    -      -      -      -
 18       -      -      -      -      -      -      -  synci
 
  */
 
 
+
+
 typedef enum root_map {
-        REG =0x00, REGIMM, J, JAL, BEQ, BNE, BLEZ, BGTZ,
+        SPECIAL =0x00, REGIMM, J, JAL, BEQ, BNE, BLEZ, BGTZ,
         ADDI=0x08, ADDIU, SLTI, SLTIU, ANDI, ORI, XORI, LUI,
         CP0 =0x10, CP1, CP2, CP3, BEQL, BNEL, BLEZL, BGTZL,
                                                  RDHWR = 0x1f,
@@ -54,7 +56,8 @@ typedef enum reg_map {
         MFHI=0x10, MTHI, MFLO, MTLO,
         MULT=0x18, MULTU, DIV, DIVU,
         ADD =0x20, ADDU, SUB, SUBU, AND, OR, XOR, NOR,
-        SLT =0x2a, SLTU
+        SLT =0x2a, SLTU,
+        TEQ =0x34
 } reg_map_t;
 
 typedef enum regimm_map {
@@ -438,3 +441,6 @@ typedef struct MIPS_state {
         u_int32_t epc;
 
 } MIPS_state_t;
+
+
+/* Decode map */
