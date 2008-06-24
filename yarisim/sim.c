@@ -222,6 +222,7 @@ int main(int argc, char **argv)
                 atexit(print_stats);
                 signal(SIGINT, exit);
                 mips_state.pc = program_entry;
+                init_reg_use_map();
                 run_simple(&mips_state);
                 break;
 

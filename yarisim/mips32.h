@@ -42,12 +42,12 @@ Regimm map: instr[20:16] (5 bit)
 typedef enum root_map {
         SPECIAL =0x00, REGIMM, J, JAL, BEQ, BNE, BLEZ, BGTZ,
         ADDI=0x08, ADDIU, SLTI, SLTIU, ANDI, ORI, XORI, LUI,
-        CP0 =0x10, CP1, CP2, CP3, BEQL, BNEL, BLEZL, BGTZL,
+        CP0 =0x10, CP1, CP2, CP1X, BEQL, BNEL, BLEZL, BGTZL,
                                                  RDHWR = 0x1f,
         LB  =0x20, LH, LWL, LW, LBU, LHU, LWR,
         SB  =0x28, SH, SWL, SW, SWR =0x2e, CACHE,
-        LL  =0x30, LWC1, LWC2, PREF, LDC1=0x35, LCD2,
-        SC  =0x38, SWC1, SWC2,       SDC1=0x3d, SCD2,
+        LL  =0x30, LWC1, LWC2, PREF, LDC1=0x35, LDC2,
+        SC  =0x38, SWC1, SWC2,       SDC1=0x3d, SDC2,
 } root_map_t;
 
 typedef enum reg_map {

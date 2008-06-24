@@ -57,6 +57,100 @@ char *inst_name[64+64+32] = {
 
 };
 
+/*
+ * Create a decode map showing which instructions use which
+ * fields. This is needed for an implementation to get a more precise
+ * load interlock. Simply assuming all instructions use both the rs
+ * (25:21) and rt (20:16) field leads to too many false interlocks.
+ * Developing and testing the map in the simulator is easier than in
+ * the actual implementation.
+ *
+ * We use the same compressed encoding as above. It may not be enough
+ * to cover all instructions.
+ *
+ * USE_RT_LATE marks instructions that use rt, but does so in a later
+ * stage. This matters as we _can_ forward load results to these
+ * instructions.
+ */
+enum { USE_RS = 1,
+       USE_RT = 2,
+       USE_RT_LATE = 4,
+};
+unsigned char reg_use_map[64+64+128];
+
+void init_reg_use_map(void)
+{
+        int i;
+        memset(reg_use_map, USE_RS | USE_RT, sizeof reg_use_map);
+
+        // Deal with SPECIAL instructions
+        reg_use_map[64 + SYSCALL] = 0;
+        reg_use_map[64 + BREAK]   = 0;
+
+        // Deal with REGIMM instructions
+        for (i = 0; i < 32; ++i)
+                reg_use_map[128 + i] = USE_RS;
+
+        // The main opcodes
+        reg_use_map[J]      = 0;
+        reg_use_map[JAL]    = 0;
+        reg_use_map[ADDI]   = USE_RS;
+        reg_use_map[ADDIU]  = USE_RS;
+        reg_use_map[SLTI]   = USE_RS;
+        reg_use_map[SLTIU]  = USE_RS;
+        reg_use_map[ANDI]   = USE_RS;
+        reg_use_map[ORI]    = USE_RS;
+        reg_use_map[XORI]   = USE_RS;
+        reg_use_map[LUI]    = 0;
+
+        reg_use_map[CP0]    = USE_RT; // Not all CP0 instruction use rt, but this is close enough
+        reg_use_map[CP1]    = USE_RT; // Not all CP1 instruction use rt, but this is close enough
+        reg_use_map[CP2]    = USE_RT; // Not all CP2 instruction use rt, but this is close enough
+        reg_use_map[CP1X]   = USE_RT; // Not all CP1X instruction use rt, but this is close enough
+                                      // XXX alnv.ps uses rs, but we don't implement that
+        //reg_use_map[LDL] = USE_RS;
+        //reg_use_map[LDR] = USE_RS;
+        //reg_use_map[SDBBP] = 0;
+        //reg_use_map[JALX] = 0;
+
+        reg_use_map[LB]     = USE_RS;
+        reg_use_map[LH]     = USE_RS;
+        reg_use_map[LWL]    = USE_RS | USE_RT_LATE;
+        reg_use_map[LW]     = USE_RS;
+        reg_use_map[LBU]    = USE_RS;
+        reg_use_map[LHU]    = USE_RS;
+        reg_use_map[LWR]    = USE_RS | USE_RT_LATE;
+        //reg_use_map[LWU]    = USE_RS;
+
+        reg_use_map[SB]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SH]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWL]    = USE_RS | USE_RT_LATE;
+        reg_use_map[SW]     = USE_RS | USE_RT_LATE;
+        //reg_use_map[SDL]     = USE_RS | USE_RT_LATE;
+        //reg_use_map[SDR]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWR]    = USE_RS | USE_RT_LATE;
+
+        reg_use_map[CACHE]  = USE_RS;
+        reg_use_map[LL]     = USE_RS;
+        reg_use_map[LWC1]   = USE_RS; // AKA L_S
+        reg_use_map[LWC2]   = USE_RS;
+        reg_use_map[PREF]   = USE_RS;
+        //reg_use_map[LLD]   = USE_RS;
+        //reg_use_map[L_D]   = USE_RS;
+        reg_use_map[LDC1]   = USE_RS; // AKA L_D
+        reg_use_map[LDC2]   = USE_RS;
+
+        reg_use_map[SC]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWC1]   = USE_RS | USE_RT_LATE; // AKA S_S
+        reg_use_map[SWC2]   = USE_RS | USE_RT_LATE;
+        //reg_use_map[59??]   = ??;
+        //reg_use_map[SCD]   = USE_RS | USE_RT_LATE;
+        reg_use_map[SDC1]   = USE_RS | USE_RT_LATE; // AKA S_D
+        reg_use_map[SDC2]   = USE_RS | USE_RT_LATE;
+        //reg_use_map[SD]   = USE_RS | USE_RT_LATE;
+}
+
+
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
 
@@ -345,6 +439,15 @@ void run_simple(MIPS_state_t *state)
 
                 s = state->r[i.r.rs];
                 t = state->r[i.r.rt];
+
+                unsigned reg_use = reg_use_map[i.j.opcode == SPECIAL?  64 + i.r.funct :
+                                               i.j.opcode == REGIMM ? 128 + i.r.rt :
+                                               /*                  */ i.j.opcode];
+                if (!(reg_use & USE_RS))
+                        s = 0xDEAD1111;
+                if (!(reg_use & (USE_RT | USE_RT_LATE)))
+                        t = 0xDEAD2222;
+
                 wbr = i.r.rt;
                 wbv = 0xDEADBEEF; // Never used, but have to shut up gcc.
                 unsigned address = s + i.i.imm;
@@ -761,7 +864,7 @@ void run_simple(MIPS_state_t *state)
                         fatal("%08x:%08x, opcode CP1 rs=0x%x not handled\n",
                               pc_prev, i.raw, i.r.rs);
                 }
-                case CP3:  fatal("%08x:%08x, opcode CP3 not handled\n", pc_prev, i.raw);
+                case CP1X:  fatal("%08x:%08x, opcode CP1X not handled\n", pc_prev, i.raw);
                 case BEQL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case BNEL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case LWC1: // XXX how are we going to cosimulate this? Extend the wbr address space?

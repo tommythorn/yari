@@ -123,6 +123,7 @@ unsigned load(unsigned a, int c, int fetch);
 void store(unsigned a, unsigned v, int c);
 void disass(unsigned pc, inst_t i);
 
+void init_reg_use_map(void);
 void run_simple(MIPS_state_t *s);
 void dump(char);
 void dump_tinymon(void);

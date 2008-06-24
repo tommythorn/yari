@@ -439,7 +439,7 @@ void disass(unsigned pc, inst_t i)
                                 i.r.rs);
                 }
                 break;
-        case CP3:  sprintf(buf,"%-6s", "cp3"); break;
+        case CP1X:  sprintf(buf,"%-6s", "cp1x"); break;
         case BEQL: sprintf(buf,"%-6s","bbql"); break;
         case RDHWR:
                 if (i.r.funct == 59) {
