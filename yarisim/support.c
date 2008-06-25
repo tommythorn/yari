@@ -697,7 +697,7 @@ static void tinymon_cmd(unsigned char cmd, unsigned val)
         putchar('\n');
 }
 
-void dump_tinymon(void)
+void dump_tinymon_old(void)
 {
         unsigned p, k;
 
@@ -708,6 +708,63 @@ void dump_tinymon(void)
                 unsigned end = section_start[k] + section_size[k];
                 for (p = section_start[k]; p < end; p += 4)
                         tinymon_cmd('w', load(p, 4, 1));
+        }
+
+        tinymon_cmd('e', program_entry);
+}
+
+/*
+ * Base85 encoding inspired by git, though much simplified by only
+ * considering word-at-a-time encoding. This makes this encoding 3%
+ * less efficient which I think we can live with. Note, bigendian
+ * encoding in to slightly simplify the decoder.
+ */
+static void tinymon_encode_word_base85(unsigned w)
+{
+        unsigned e = w % 85; w /= 85;
+        unsigned d = w % 85; w /= 85;
+        unsigned c = w % 85; w /= 85;
+        unsigned b = w % 85; w /= 85;
+        unsigned a = w % 85; w /= 85;
+        assert(w == 0);
+        putchar(a + '(');
+        putchar(b + '(');
+        putchar(c + '(');
+        putchar(d + '(');
+        putchar(e + '(');
+}
+
+/*
+ * Dump the section in base85. Format:
+ *
+ * x <size in words> \n
+ * <5 base85 bytes encoding a word> repeat size times
+ * <5 base85 bytes encoding the checksum>
+ */
+
+void dump_tinymon(void)
+{
+        unsigned p, k;
+
+        tinymon_cmd('c', 0);
+
+        for (k = 0; k < nsections; ++k) {
+                unsigned w = 0, chk = 0;
+                unsigned end = section_start[k] + section_size[k];
+                unsigned b;
+
+                tinymon_cmd('l', section_start[k]);
+                tinymon_cmd('x', section_size[k] / 4);
+                for (b = 1, p = section_start[k]; p < end; p += 4, b++) {
+                        w = load(p, 4, 1);
+                        chk += w;
+                        tinymon_encode_word_base85(w);
+
+                        if (b > 16)
+                                putchar('\n'), b = 0;
+                }
+                tinymon_encode_word_base85(-chk);
+                putchar('\n');
         }
 
         tinymon_cmd('e', program_entry);

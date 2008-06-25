@@ -23,7 +23,7 @@ rtlsim: tinymon-prom.data tinymon-prom.dis promote
 
 # Ugh, an unfortunate quick workaround for my broken xtool installation
 %.mipsel-s: %.c
-	mips-elf-gcc -D_mips_ -msoft-float -g -O -S $< -o $@
+	mips-elf-gcc -D_mips_ -msoft-float -g -Os -S $< -o $@
 
 %.mipsel-o: %.mipsel-s
 	mips-elf-as $< -o $@
@@ -44,7 +44,7 @@ rtlsim: tinymon-prom.data tinymon-prom.dis promote
 	-mips-elf-nm -a $< > $@
 
 hosttest:
-	cc -g tinymon.c -o tinymon
+	cc -g -DHOSTTEST tinymon.c -o tinymon
 	./tinymon < test.txt
 
 clean:
