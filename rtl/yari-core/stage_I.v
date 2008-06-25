@@ -361,11 +361,12 @@ module stage_I(input  wire        clock
       if (debug) begin
          if (state == S_RUNNING)
             $display(
-"%05d  I$ running: PC %x (valid %d) <%x;%x;%x> -- PC %x (valid %d) HITS %x -- PC %x INST %x VALID %d",
+"%05d  I$ running: PC %x (valid %d) <%x;%x;%x> -- PC %x (valid %d) HITS %x -- PC %x INST %x VALID %d | %d: %x %x %x %x",
                   $time,
                   fetchaddress, i1_valid, set_2, fetchaddress`CSI, i_pc`WDX,
                   i_pc, i_valid, hits_2,
-                  i_pc, i_instr, i_valid);
+                  i_pc, i_instr, i_valid,
+                     set_2, ic_q0, ic_q1, ic_q2, ic_q3);
       end
    end
 endmodule
