@@ -24,6 +24,9 @@
 
 module stage_M(input  wire        clock
 
+              ,input  wire        boot
+              ,input  wire [31:0] boot_pc
+
               ,input  wire [31:0] d_op1_val
               ,input  wire [31:0] d_simm
 
@@ -186,12 +189,11 @@ module stage_M(input  wire        clock
    reg  [ 3:0]                m_byteena    = 0;
    reg  [ 5:0]                m_opcode     = 0;
    wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
-   always @(*) case (x_set)
-               0: x_lw_res = dc_q0;
-               1: x_lw_res = dc_q1;
-               2: x_lw_res = dc_q2;
-               3: x_lw_res = dc_q3;
-               endcase
+
+   always @* x_lw_res = ((x_hits[0] ? dc_q0 : 0) |
+                         (x_hits[1] ? dc_q1 : 0) |
+                         (x_hits[2] ? dc_q2 : 0) |
+                         (x_hits[3] ? dc_q3 : 0));
 
    reg  [31:0]                m_res_alu    = 0;
    reg  [31:0]                m_lw_res     = 0;
@@ -590,6 +592,12 @@ module stage_M(input  wire        clock
          got_uncached_data <= 1;
          uncached_data <= peripherals_res`RD;
          m_restart <= 0;
+      end
+
+      if (boot) begin
+         m_restart <= 1;
+         one_shot_restart <= 1;
+         m_restart_pc <= boot_pc;
       end
 
       if (~dmem_waitrequest) begin

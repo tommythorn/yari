@@ -150,9 +150,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    // it with the interrupt mechanism (still to come)
    wire        boot = initialized[7] & ~initialized[8];
 
-   wire        restart = x_restart | m_restart | boot;
-   wire [31:0] restart_pc = (boot ? 'hBFC00000 :
-                             m_restart ? m_restart_pc :
+   wire        restart = x_restart | m_restart;
+   wire [31:0] restart_pc = (m_restart ? m_restart_pc :
                              /*********/ x_restart_pc);
    wire        flush_I = restart;
    wire        flush_D = m_restart | x_flush_D;
@@ -289,6 +288,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                );
 
    stage_M stM(.clock(clock),
+
+               .boot(boot),
+               .boot_pc('hBFC00000),
 
                .d_simm(d_simm),
                .d_op1_val(d_op1_val),

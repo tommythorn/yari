@@ -122,6 +122,8 @@ module stage_I(input  wire        clock
    // filling, and the matching tag when there is a hit (which implies
    // that tag update must be done no sooner than the last word
    // written to the cache line)
+
+`ifdef SIMULATE_MAIN
    reg  [IC_SET_INDEX_BITS-1:0]  set_2;
    always @* casex (hits_2)
              'b0001: set_2 = 0;
@@ -130,14 +132,12 @@ module stage_I(input  wire        clock
              'b1000: set_2 = 3;
              default:set_2 = 2'bxx;
              endcase
+`endif
 
-   // XXX Is it better to directly use hits_2?
-   always @* case (set_2)
-               0: i_instr = ic_q0;
-               1: i_instr = ic_q1;
-               2: i_instr = ic_q2;
-               3: i_instr = ic_q3;
-               endcase
+   always @* i_instr = ((hits_2[0] ? ic_q0 : 0) |
+                        (hits_2[1] ? ic_q1 : 0) |
+                        (hits_2[2] ? ic_q2 : 0) |
+                        (hits_2[3] ? ic_q3 : 0));
 
    always @* casex (hits_2)
              'b0001: i_valid = i2_valid & ~restart;
