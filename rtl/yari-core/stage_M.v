@@ -131,10 +131,10 @@ module stage_M(input  wire        clock
    // are out of phase with reads so we need to worry about a rare
    // hazard: immediately loading a stored word (note, this could be
    // fx. a sb followed by a lw).
-   reg  [29:0]                   x_last_store_address = ~0;
-   reg  [TAG_BITS-1:0]           x_chk     = 0; // Tag check
-   reg  [DC_LINE_INDEX_BITS-1:0] x_csi     = 0; // Cache Set Index (which cache in the set)
-   reg  [DC_WORD_INDEX_BITS-1:0] x_wi      = 0; // Word Index (which word in the cache line)
+   reg  [29:0]                   x_last_store_address = ~30'h0;
+   reg  [TAG_BITS-1:0]           x_chk     = 1'd0; // Tag check
+   reg  [DC_LINE_INDEX_BITS-1:0] x_csi     = 1'd0; // Cache Set Index (which cache in the set)
+   reg  [DC_WORD_INDEX_BITS-1:0] x_wi      = 1'd0; // Word Index (which word in the cache line)
 
    always @(posedge clock) begin
       x_address <= d_address;
