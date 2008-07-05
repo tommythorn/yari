@@ -42,6 +42,8 @@ module stage_X(input  wire        clock
               ,input  wire        d_restart
               ,input  wire [31:0] d_restart_pc
 
+              ,input  wire        d_load_use_hazard
+
               ,input  wire        m_valid
               ,input  wire [ 5:0] m_wbr
 
@@ -243,8 +245,8 @@ module stage_X(input  wire        clock
       x_has_delay_slot   <= d_has_delay_slot & d_valid;
       x_is_delay_slot    <= x_has_delay_slot & x_valid;
 
-      x_restart          <= d_restart;
-      x_restart_pc       <= d_valid ? d_target : d_restart_pc;
+      x_restart          <= 0;
+      x_restart_pc       <= d_target;
       x_flush_D          <= 0;
       x_synci            <= 0;
 
@@ -657,20 +659,7 @@ module stage_X(input  wire        clock
 `endif
       endcase
 
-      if (d_valid) begin
-         if (x_valid
-             && (d_rs == x_wbr || d_rt == x_wbr)
-             && x_opcode[5:3] == 4)
-            begin
-               x_restart <= 1;
-               x_flush_D <= 1;
-               x_valid   <= 0;
-               x_restart_pc <= d_pc; // Notice, we know that EX had a
-               // load, thus DE isn't a delay slot
-               perf_load_use_hazard <= perf_load_use_hazard + 1;
-               $display("%05d  *** load-use hazard, restarting %8x", $time,
-                        d_pc);
-            end
-      end
+      if (d_load_use_hazard)
+         perf_load_use_hazard <= perf_load_use_hazard + 1;
    end
 endmodule

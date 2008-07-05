@@ -93,6 +93,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire          d_restart;
    wire [31:0]   d_restart_pc;
    wire          d_flush_X;
+   wire          d_load_use_hazard;
 
    wire          x_valid;
    wire [31:0]   x_instr;
@@ -151,8 +152,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    // it with the interrupt mechanism (still to come)
    wire        boot = initialized[7] & ~initialized[8];
 
-   wire        restart = x_restart | m_restart;
-   wire [31:0] restart_pc = (m_restart ? m_restart_pc :
+   wire        restart = d_restart | x_restart | m_restart;
+   wire [31:0] restart_pc = (d_restart ? d_restart_pc :
+                             m_restart ? m_restart_pc :
                              /*********/ x_restart_pc);
    wire        flush_I = restart;
    wire        flush_D = m_restart | x_flush_D;
@@ -221,6 +223,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
                .d_flush_X(d_flush_X),
+               .d_load_use_hazard(d_load_use_hazard),
 
                .flush_D(flush_D),
                .perf_delay_slot_bubble(perf_delay_slot_bubble),
@@ -252,6 +255,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_simm(d_simm),
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
+               .d_load_use_hazard(d_load_use_hazard),
 
                .m_valid(m_valid),
                .m_wbr(m_wbr),

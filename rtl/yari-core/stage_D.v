@@ -61,6 +61,8 @@ module stage_D(input  wire        clock
               ,output reg  [31:0] d_restart_pc    = 0
               ,output reg         d_flush_X       = 0
 
+              ,output reg         d_load_use_hazard = 0
+
               ,input  wire        flush_D
               ,output reg  [31:0] perf_delay_slot_bubble = 0
               ,output reg  [47:0] perf_retired_inst = 0
@@ -300,6 +302,23 @@ module stage_D(input  wire        clock
 
       if (m_valid)
          perf_retired_inst <= perf_retired_inst + 1;
+
+      if (i_valid) begin
+         if (d_valid
+             && (i_rs == d_wbr || i_rt == d_wbr)
+             && i_opcode[5:3] == 4)
+            begin
+               d_valid      <= 0;
+               d_restart    <= 1;
+               d_restart_pc <= i_pc; // Notice, we know that DE had a
+               // load, thus IF isn't a delay slot
+               d_flush_X    <= 0;
+               $display("%05d  *** load-use hazard, restarting %8x", $time,
+                        i_pc);
+            end
+      end
+
+
    end
 
 
@@ -342,7 +361,7 @@ module stage_D(input  wire        clock
 
       if (debug) begin
          $display("%5db DE: instr %8x valid %d (m_wbr:%2x) (i_npc %8x i_offset*4 %8x target %8x)",
-                  $time, d_instr, d_valid,   m_wbr,
+                  $time, i_instr, i_valid,   m_wbr,
                   i_npc, i_offset << 2, i_jump_target);
 
          if (0)
@@ -350,9 +369,6 @@ module stage_D(input  wire        clock
                      regs[0], regs[1], regs[2], regs[3],
                      regs[4], regs[5], regs[6], regs[7],
                      regs[8], regs[9], regs[10], regs[11]);
-         if (1)
-            $display("%5db DE:   %x %x %x", $time,
-                     d_target, i_branch_target, i_jump_target);
       end
    end
 
