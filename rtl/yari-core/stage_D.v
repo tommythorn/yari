@@ -214,7 +214,7 @@ module stage_D(input  wire        clock
             `JALR:   d_has_delay_slot <= 1;
             `JR:     d_has_delay_slot <= 1;
             endcase
-      `REGIMM: d_has_delay_slot <= 1;
+      `REGIMM: if (i_rt[4:0] != `SYNCI) d_has_delay_slot <= 1;
       `BEQ:    d_has_delay_slot <= 1;
       `BNE:    d_has_delay_slot <= 1;
       `BLEZ:   d_has_delay_slot <= 1;
