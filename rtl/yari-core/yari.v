@@ -62,8 +62,11 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   i1_pc, i2_pc;
 
    wire          i_valid;
+   wire          i_valid_muxed;
    wire [31:0]   i_instr;
+   wire [31:0]   i_instr_muxed;
    wire [31:0]   i_pc;
+   wire [31:0]   i_pc_muxed;
    wire [31:0]   i_npc;
 
    wire          imem_waitrequest;
@@ -190,6 +193,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .i_instr(i_instr),
                .i_pc(i_pc),
                .i_npc(i_npc),
+
+               .i_valid_muxed(i_valid_muxed),
+               .i_pc_muxed(i_pc_muxed),
+               .i_instr_muxed(i_instr_muxed),
 
                .x_valid(x_valid & ~flush_X),
                .x_wbr(x_wbr),
@@ -374,30 +381,25 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
 `ifdef SIMULATE_MAIN
    always @(posedge clock) if (debug) begin
-      if (restart) begin
-         $display("%05d  restart pipe at %x", $time, restart_pc);
-         if (boot)
-            $display("%05d        boot vector", $time);
-         else if (m_restart)
-            $display("%05d        from stage ME", $time);
-         else if (x_restart)
-            $display("%05d        from stage EX", $time);
-      end
+      if (d_restart)
+         $display("%05d  RESTART %x FROM DE", $time, d_restart_pc);
+      else if (m_restart)
+         $display("%05d  RESTART %x FROM ME", $time, m_restart_pc);
+      else if (x_restart)
+         $display("%05d  RESTART %x FROM EX", $time, x_restart_pc);
 
       $display(
-"%05dz %x %x/0 I %8x %8x D %8x:%8x X %8x:%8x:%8x>%2x M %8x:%8x>%2x W %8x:%8x>%2x",
+"%05dz %x/0 I %8x D %8x:%8x X %8x:%8x:%8x>%2x M %8x:%8x>%2x W %8x:%8x>%2x",
 
                $time,
-               0,
 
                {flush_X,flush_D,flush_I},
 
                // IF
                i1_valid ? i1_pc : 'hZ,
-               i2_valid ? i2_pc : 'hZ,
 
                // DE
-               i_pc, i_valid & ~flush_I ? i_instr : 'hZ,
+               i_pc_muxed, i_valid_muxed ? i_instr_muxed : 'hZ,
 
                // EX
                d_pc, d_valid & ~flush_D ? d_op1_val : 'hZ,

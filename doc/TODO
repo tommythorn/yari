@@ -26,15 +26,9 @@ PIPELINE OVERVIEW:
 
 IDEAS
 
-* Decouple the cache fill part from the rest of the pipeline (both I$
-  and D$)
+* Decouple the I$ cache fill part from the rest of the pipeline
 
 * Streamline the restart handling
-
-* Investigate replaying (eg. add a mux to the IF output and reduce
-  restart penalty by one cycle)
-
-* Investigate minimizing the branch penalty.
 
 * Implement interrupt support
 

@@ -140,10 +140,10 @@ module stage_I(input  wire        clock
                         (hits_2[3] ? ic_q3 : 0));
 
    always @* casex (hits_2)
-             'b0001: i_valid = i2_valid & ~restart;
-             'b0010: i_valid = i2_valid & ~restart;
-             'b0100: i_valid = i2_valid & ~restart;
-             'b1000: i_valid = i2_valid & ~restart;
+             'b0001: i_valid = i2_valid;
+             'b0010: i_valid = i2_valid;
+             'b0100: i_valid = i2_valid;
+             'b1000: i_valid = i2_valid;
              default:i_valid = 0;
              endcase
 
@@ -242,7 +242,7 @@ module stage_I(input  wire        clock
             i2_valid     <= 0;
 
             state        <= S_LOOKUP;
-         end else if (|hits_2 | ~i2_valid | restart) begin
+         end else if (|hits_2 | ~i2_valid) begin
             if (debug)
                $display("%05d  I$ business as usual i_npc = %x", $time, i_npc);
 

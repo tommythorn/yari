@@ -95,7 +95,7 @@ module stage_X(input  wire        clock
     * cheating as this is the frequency we attain on a EP1C12C6 that
     * the JOP numbers came from, but I don't have that particular FPGA.
     */
-   wire [31:0]        perf_frequency   = 75000;
+   wire [31:0]        perf_frequency   = 80000;
 
    wire               d_ops_eq         = d_op1_val == d_op2_val;
    reg                x_negate_op2     = 0;
@@ -529,8 +529,8 @@ module stage_X(input  wire        clock
          if (d_valid) begin
             x_restart <= ~d_ops_eq;
             branch_event <= ~d_ops_eq;
-            $display("%05d BNE %8x == %8x (%1d)", $time,
-                     d_op1_val, d_op2_val, d_ops_eq);
+            $display("%05d BNE %8x != %8x (%1d) target %8x", $time,
+                     d_op1_val, d_op2_val, !d_ops_eq, d_target);
          end
 
       `BLEZ:
