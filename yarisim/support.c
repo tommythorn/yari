@@ -295,7 +295,7 @@ void disass(unsigned pc, inst_t i)
 
         switch (i.j.opcode) {
         default: fatal("Unknown instruction opcode 0d%d", i.j.opcode);
-        case REG:
+        case SPECIAL:
                 switch (i.r.funct) {
                 unhandled:
                 default:   sprintf(buf,"??0x%x?? $%d,$%d,%d", i.r.funct, i.r.rd, i.r.rt, i.r.sa);
@@ -349,6 +349,7 @@ void disass(unsigned pc, inst_t i)
                 case NOR:  sprintf(buf,"%-6s$%d,$%d,$%d","nor", i.r.rd, i.r.rs, i.r.rt); break;
                 case SLT:  sprintf(buf,"%-6s$%d,$%d,$%d","slt", i.r.rd, i.r.rs, i.r.rt); break;
                 case SLTU: sprintf(buf,"%-6s$%d,$%d,$%d","sltu", i.r.rd, i.r.rs, i.r.rt); break;
+                case TEQ:  sprintf(buf,"%-6s$%d,$%d,%d","teq", i.r.rs, i.r.rt, i.r.sa); break;
                 case BREAK:sprintf(buf,"%-6s","break"); break;
                 }
                 break;
@@ -438,7 +439,7 @@ void disass(unsigned pc, inst_t i)
                                 i.r.rs);
                 }
                 break;
-        case CP3:  sprintf(buf,"%-6s", "cp3"); break;
+        case CP1X:  sprintf(buf,"%-6s", "cp1x"); break;
         case BEQL: sprintf(buf,"%-6s","bbql"); break;
         case RDHWR:
                 if (i.r.funct == 59) {
@@ -450,11 +451,15 @@ void disass(unsigned pc, inst_t i)
         case LB:   dis_load_store(buf, "lb", i); break;
         case LH:   dis_load_store(buf, "lh", i); break;
         case LW:   dis_load_store(buf, "lw", i); break;
+        case LWL:  dis_load_store(buf, "lwl", i); break;
+        case LWR:  dis_load_store(buf, "lwr", i); break;
         case LBU:  dis_load_store(buf, "lbu", i); break;
         case LHU:  dis_load_store(buf, "lhu", i); break;
         case SB:   dis_load_store(buf, "sb", i); break;
         case SH:   dis_load_store(buf, "sh", i); break;
         case SW:   dis_load_store(buf, "sw", i); break;
+        case SWL:  dis_load_store(buf, "swl", i); break;
+        case SWR:  dis_load_store(buf, "swr", i); break;
         case LWC1: dis_load_store_cp1(buf, "lwc1", i); break;
         case SWC1: dis_load_store_cp1(buf, "swc1", i); break;
         case LDC1: dis_load_store_cp1(buf, "ldc1", i); break;
@@ -697,7 +702,7 @@ static void tinymon_cmd(unsigned char cmd, unsigned val)
         putchar('\n');
 }
 
-void dump_tinymon(void)
+void dump_tinymon_old(void)
 {
         unsigned p, k;
 
@@ -708,6 +713,63 @@ void dump_tinymon(void)
                 unsigned end = section_start[k] + section_size[k];
                 for (p = section_start[k]; p < end; p += 4)
                         tinymon_cmd('w', load(p, 4, 1));
+        }
+
+        tinymon_cmd('e', program_entry);
+}
+
+/*
+ * Base85 encoding inspired by git, though much simplified by only
+ * considering word-at-a-time encoding. This makes this encoding 3%
+ * less efficient which I think we can live with. Note, bigendian
+ * encoding in to slightly simplify the decoder.
+ */
+static void tinymon_encode_word_base85(unsigned w)
+{
+        unsigned e = w % 85; w /= 85;
+        unsigned d = w % 85; w /= 85;
+        unsigned c = w % 85; w /= 85;
+        unsigned b = w % 85; w /= 85;
+        unsigned a = w % 85; w /= 85;
+        assert(w == 0);
+        putchar(a + '(');
+        putchar(b + '(');
+        putchar(c + '(');
+        putchar(d + '(');
+        putchar(e + '(');
+}
+
+/*
+ * Dump the section in base85. Format:
+ *
+ * x <size in words> \n
+ * <5 base85 bytes encoding a word> repeat size times
+ * <5 base85 bytes encoding the checksum>
+ */
+
+void dump_tinymon(void)
+{
+        unsigned p, k;
+
+        tinymon_cmd('c', 0);
+
+        for (k = 0; k < nsections; ++k) {
+                unsigned w = 0, chk = 0;
+                unsigned end = section_start[k] + section_size[k];
+                unsigned b;
+
+                tinymon_cmd('l', section_start[k]);
+                tinymon_cmd('x', section_size[k] / 4);
+                for (b = 1, p = section_start[k]; p < end; p += 4, b++) {
+                        w = load(p, 4, 1);
+                        chk += w;
+                        tinymon_encode_word_base85(w);
+
+                        if (b > 16)
+                                putchar('\n'), b = 0;
+                }
+                tinymon_encode_word_base85(-chk);
+                putchar('\n');
         }
 
         tinymon_cmd('e', program_entry);

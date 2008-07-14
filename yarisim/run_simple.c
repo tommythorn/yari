@@ -15,29 +15,28 @@
 unsigned coverage[64+64+32];
 char *inst_name[64+64+32] = {
         // ROOT MAP
-        // "REG", "REGIMM",
+        // "SPECIAL", "REGIMM",
         [2] = "J", "JAL", "BEQ", "BNE", "BLEZ", "BGTZ",
         [8]="ADDI", "ADDIU", "SLTI", "SLTIU", "ANDI", "ORI", "XORI", "LUI",
-        [0x10]="CP0", "CP1",
-        // "CP2", "CP3",
+        [0x10]="CP0", "CP1", "CP2", // "CP3",
         [0x14]="BEQL", "BNEL", "BLEZL", "BGTZL",
 
         [0x20]="LB",
         [0x21]="LH",
-//        [0x22]="LWL",
+        [0x22]="LWL",
         [0x23]="LW",
         [0x24]="LBU",
-//        [0x25]="LHU",
-//        [0x26]="LWR",
+        [0x25]="LHU",
+        [0x26]="LWR",
         [0x28]="SB",
         [0x29]="SH",
-//        [0x2a]="SWL",
+        [0x2a]="SWL",
         [0x2b]="SW",
-//        [0x2e]="SWR", "CACHE",
+        [0x2e]="SWR", // "CACHE",
         //[0x30]="LL", "LWC1", "LWC2", "PREF", "LDC1", "LCD2",
         //[0x38]="SC", "SWC1", "SWC2", [0x3d]="SDC1", "SCD2",
 
-        // REG MAP
+        // SPECIAL MAP
         [64] = "SLL",
         [64+2] = "SRL", "SRA", "SLLV", [64+6] = "SRLV", "SRAV",
         [64+8] = "JR", "JALR", [64 + 0xC] = "SYSCALL", "BREAK",
@@ -45,15 +44,112 @@ char *inst_name[64+64+32] = {
         [64+0x18] = "MULT", "MULTU", "DIV", "DIVU",
         [64+0x20] = "ADD", "ADDU", "SUB", "SUBU", "AND", "OR", "XOR", "NOR",
         [64+0x2a] = "SLT", "SLTU",
+        [64+0x30] = "TGE",   "TGEU",  "TLT",  "TLTU",  "TEQ",  0, "TNE",
+        [64+0x34] = "TEQ",
 
         // REGIMM MAP
         [128+0] = "BLTZ",
         [128+1] = "BGEZ",
+        [128+0x08] = "TGEI", "TGEIU", "TLTI", "TLTIU", "TEQI", 0, "TNEI",
         [128+0x10] = "BLTZAL",
         [128+0x11] = "BGEZAL",
-        [128+31] = "SYNCI",
+        [128+0x1f] = "SYNCI",
 
 };
+
+/*
+ * Create a decode map showing which instructions use which
+ * fields. This is needed for an implementation to get a more precise
+ * load interlock. Simply assuming all instructions use both the rs
+ * (25:21) and rt (20:16) field leads to too many false interlocks.
+ * Developing and testing the map in the simulator is easier than in
+ * the actual implementation.
+ *
+ * We use the same compressed encoding as above. It may not be enough
+ * to cover all instructions.
+ *
+ * USE_RT_LATE marks instructions that use rt, but does so in a later
+ * stage. This matters as we _can_ forward load results to these
+ * instructions.
+ */
+enum { USE_RS = 1,
+       USE_RT = 2,
+       USE_RT_LATE = 4,
+};
+unsigned char reg_use_map[64+64+128];
+
+void init_reg_use_map(void)
+{
+        int i;
+        memset(reg_use_map, USE_RS | USE_RT, sizeof reg_use_map);
+
+        // Deal with SPECIAL instructions
+        reg_use_map[64 + SYSCALL] = 0;
+        reg_use_map[64 + BREAK]   = 0;
+
+        // Deal with REGIMM instructions
+        for (i = 0; i < 32; ++i)
+                reg_use_map[128 + i] = USE_RS;
+
+        // The main opcodes
+        reg_use_map[J]      = 0;
+        reg_use_map[JAL]    = 0;
+        reg_use_map[ADDI]   = USE_RS;
+        reg_use_map[ADDIU]  = USE_RS;
+        reg_use_map[SLTI]   = USE_RS;
+        reg_use_map[SLTIU]  = USE_RS;
+        reg_use_map[ANDI]   = USE_RS;
+        reg_use_map[ORI]    = USE_RS;
+        reg_use_map[XORI]   = USE_RS;
+        reg_use_map[LUI]    = 0;
+
+        reg_use_map[CP0]    = USE_RT; // Not all CP0 instruction use rt, but this is close enough
+        reg_use_map[CP1]    = USE_RT; // Not all CP1 instruction use rt, but this is close enough
+        reg_use_map[CP2]    = USE_RT; // Not all CP2 instruction use rt, but this is close enough
+        reg_use_map[CP1X]   = USE_RT; // Not all CP1X instruction use rt, but this is close enough
+                                      // XXX alnv.ps uses rs, but we don't implement that
+        //reg_use_map[LDL] = USE_RS;
+        //reg_use_map[LDR] = USE_RS;
+        //reg_use_map[SDBBP] = 0;
+        //reg_use_map[JALX] = 0;
+
+        reg_use_map[LB]     = USE_RS;
+        reg_use_map[LH]     = USE_RS;
+        reg_use_map[LWL]    = USE_RS | USE_RT_LATE;
+        reg_use_map[LW]     = USE_RS;
+        reg_use_map[LBU]    = USE_RS;
+        reg_use_map[LHU]    = USE_RS;
+        reg_use_map[LWR]    = USE_RS | USE_RT_LATE;
+        //reg_use_map[LWU]    = USE_RS;
+
+        reg_use_map[SB]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SH]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWL]    = USE_RS | USE_RT_LATE;
+        reg_use_map[SW]     = USE_RS | USE_RT_LATE;
+        //reg_use_map[SDL]     = USE_RS | USE_RT_LATE;
+        //reg_use_map[SDR]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWR]    = USE_RS | USE_RT_LATE;
+
+        reg_use_map[CACHE]  = USE_RS;
+        reg_use_map[LL]     = USE_RS;
+        reg_use_map[LWC1]   = USE_RS; // AKA L_S
+        reg_use_map[LWC2]   = USE_RS;
+        reg_use_map[PREF]   = USE_RS;
+        //reg_use_map[LLD]   = USE_RS;
+        //reg_use_map[L_D]   = USE_RS;
+        reg_use_map[LDC1]   = USE_RS; // AKA L_D
+        reg_use_map[LDC2]   = USE_RS;
+
+        reg_use_map[SC]     = USE_RS | USE_RT_LATE;
+        reg_use_map[SWC1]   = USE_RS | USE_RT_LATE; // AKA S_S
+        reg_use_map[SWC2]   = USE_RS | USE_RT_LATE;
+        //reg_use_map[59??]   = ??;
+        //reg_use_map[SCD]   = USE_RS | USE_RT_LATE;
+        reg_use_map[SDC1]   = USE_RS | USE_RT_LATE; // AKA S_D
+        reg_use_map[SDC2]   = USE_RS | USE_RT_LATE;
+        //reg_use_map[SD]   = USE_RS | USE_RT_LATE;
+}
+
 
 #define UNTESTED() ({ if (tested[__LINE__]++ == 0) printf(__FILE__ ":%d: not tested\n", __LINE__); })
 #define TESTED()
@@ -268,6 +364,7 @@ void run_simple(MIPS_state_t *state)
         for (;;) {
                 int j;
                 inst_t i;
+                uint32_t w, sh;
 
                 ++TSC; // Just an optimistic approximation
 
@@ -283,6 +380,15 @@ void run_simple(MIPS_state_t *state)
                         stat_nop++;
                         if (branch_delay_slot_next)
                                 stat_nop_delay_slots++;
+                        if (last_load_dest) {
+                                // lw <last_load_dest, ...
+                                // nop
+                                // next
+                                inst_t next = { .raw = load(state->pc, 4, 1) };
+                                // XXX This is quite approximative
+                                if (last_load32_dest != next.r.rs && last_load32_dest != next.r.rt)
+                                        stat_nop_useless++;
+                        }
                 }
                 if (wbr == i.r.rs)
                         switch (i.j.opcode) {
@@ -290,15 +396,30 @@ void run_simple(MIPS_state_t *state)
                         case LH:
                         case LBU:
                         case LHU:
-                        case LW: stat_gen_load_hazard++; break;
+                        case LW:
+                        case LWL:
+                        case LWR:
+                                 stat_gen_load_hazard++; break;
                         default: break;
                         }
-                if (last_load_dest && (last_load_dest == i.r.rs ||
-                                       last_load_dest == i.r.rt))
-                        stat_load_use_hazard++;
-                if (last_load32_dest && (last_load32_dest == i.r.rs ||
-                                         last_load32_dest == i.r.rt))
+
+                // XXX This is quite approximative
+                if (last_load_dest && last_load_dest == i.r.rs)
+                        stat_load_use_hazard_rs++;
+
+                if (last_load_dest && last_load_dest == i.r.rt)
+                        stat_load_use_hazard_rt++;
+
+                if (0 && last_load32_dest && (last_load32_dest == i.r.rs ||
+                                         last_load32_dest == i.r.rt)) {
                         stat_load32_use_hazard++;
+                        printf("lw-use?  ");
+                        inst_t pi = {.raw = load(pc_prev-4, 4, 1) };
+                        disass(pc_prev-4,pi);
+                        disass(pc_prev,i);
+                        printf("\n");
+                }
+
                 if (last_shift_dest && (last_shift_dest == i.r.rs ||
                                         last_shift_dest == i.r.rt))
                         stat_shift_use_hazard++;
@@ -318,12 +439,21 @@ void run_simple(MIPS_state_t *state)
 
                 s = state->r[i.r.rs];
                 t = state->r[i.r.rt];
+
+                unsigned reg_use = reg_use_map[i.j.opcode == SPECIAL?  64 + i.r.funct :
+                                               i.j.opcode == REGIMM ? 128 + i.r.rt :
+                                               /*                  */ i.j.opcode];
+                if (!(reg_use & USE_RS))
+                        s = 0xDEAD1111;
+                if (!(reg_use & (USE_RT | USE_RT_LATE)))
+                        t = 0xDEAD2222;
+
                 wbr = i.r.rt;
                 wbv = 0xDEADBEEF; // Never used, but have to shut up gcc.
                 unsigned address = s + i.i.imm;
 
 
-                ++coverage[i.j.opcode == REG    ? 64 + i.r.funct :
+                ++coverage[i.j.opcode == SPECIAL?  64 + i.r.funct :
                            i.j.opcode == REGIMM ? 128 + i.r.rt :
                            /*                  */ i.j.opcode];
 
@@ -333,12 +463,14 @@ void run_simple(MIPS_state_t *state)
                         switch (i.j.opcode) {
                         case SB:   st_old = LD8(address); break;
                         case SH:   st_old = LD16(address); break;
-                        case SW:   st_old = LD32(address); break;
+                        case SW:
+                        case SWL:
+                        case SWR:  st_old = LD32(address & ~3); break;
                         }
 
 
                 switch (i.j.opcode) {
-                case REG: // all R-type, thus rd is target register
+                case SPECIAL: // all R-type, thus rd is target register
                         wbr = i.r.rd;
                         switch (i.r.funct) {
                         case SLL:  last_shift_dest = wbr; wbv = t << i.r.sa; break;
@@ -436,6 +568,9 @@ void run_simple(MIPS_state_t *state)
 
                         case SLT:  wbv = (int) s < (int) t; break;
                         case SLTU: wbv = s < t; break;
+                        case TEQ:  if (s == t)
+                                        fatal("Trap %d %d", i.r.rd, i.r.sa);
+                                   break;
                         case BREAK:
                                 //pc_next = (cp0_status.bev ? 0xBFC00200 : 0x80000000) + 0x180;
                                 state->cp0_cause.exc_code = EXC_BP;
@@ -449,7 +584,7 @@ void run_simple(MIPS_state_t *state)
                                 wbr = 0;
                                 break;
                         default:
-                                fatal("REG sub-opcode %d not handled\n", i.r.funct);
+                                fatal("SPECIAL sub-opcode %d not handled\n", i.r.funct);
                                 break;
                         }
                         break;
@@ -682,9 +817,39 @@ void run_simple(MIPS_state_t *state)
                 case LBU:  last_load_dest = wbr; wbv = LD8(address); break;
                 case LHU:  last_load_dest = wbr; wbv = LD16(address); break;
                 case LW:   last_load_dest = last_load32_dest = wbr; wbv = LD32(address); break;
+                case LWL:
+                        last_load_dest = wbr;
+                        w = LD32(address & ~3);
+                        sh = (address & 3) * 8;
+                        wbv = w << sh | ~(~0 << sh) & t;
+                        /* printf("LWL [%08x]=%08x + t %08x -> %08x!\n", address, w, t, wbv); */
+                        break;
+
+                case LWR:
+                        last_load_dest = wbr;
+                        w = LD32(address & ~3);
+                        sh = 24 - (address & 3) * 8;
+                        wbv = w >> sh | ~(~0U >> sh) & t;
+                        /* printf("LWR [%08x]=%08x + t %08x -> %08x!\n", address, w, t, wbv); */
+                        break;
+
                 case SB:   wbr = 0; ST8(address,t); break;
                 case SH:   wbr = 0; ST16(address,t); break;
                 case SW:   wbr = 0; ST32(address,t); break;
+                case SWL:
+                        wbr = 0;
+                        w = LD32(address & ~3);
+                        sh = (address & 3) * 8;
+                        ST32(address & ~3, t >> sh | ~(~0U >> sh) & w);
+                        break;
+
+                case SWR:
+                        wbr = 0;
+                        w = LD32(address & ~3);
+                        sh = 24 - (address & 3) * 8;
+                        ST32(address & ~3, t << sh | ~(~0 << sh) & w);
+                        break;
+
                 case CP1:  {
                         if (i.r.rs == 16 /* S */)
                                 fatal("%08x:%08x, opcode 0x%x.s not handled\n",
@@ -699,7 +864,7 @@ void run_simple(MIPS_state_t *state)
                         fatal("%08x:%08x, opcode CP1 rs=0x%x not handled\n",
                               pc_prev, i.raw, i.r.rs);
                 }
-                case CP3:  fatal("%08x:%08x, opcode CP3 not handled\n", pc_prev, i.raw);
+                case CP1X:  fatal("%08x:%08x, opcode CP1X not handled\n", pc_prev, i.raw);
                 case BEQL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case BNEL: fatal("%08x:%08x, opcode BEQL not handled\n", pc_prev, i.raw);
                 case LWC1: // XXX how are we going to cosimulate this? Extend the wbr address space?
@@ -751,7 +916,9 @@ void run_simple(MIPS_state_t *state)
                         case LH:
                         case LBU:
                         case LHU:
-                        case LW:   printf(" [%08x]", address); break;
+                        case LW:
+                        case LWL:
+                        case LWR:  printf(" [%08x]", address); break;
                         case SB:   printf("[%08x] <- %02x (was %02x)",
                                           address, t & 0xFF, st_old);
                                    break;
@@ -760,6 +927,10 @@ void run_simple(MIPS_state_t *state)
                                    break;
                         case SW:   printf("[%08x] <- %08x (was %08x)",
                                           address, t, st_old);
+                                   break;
+                        case SWL:
+                        case SWR:  printf("[%08x] <- %08x (was %08x)",
+                                          address, LD32(address & ~3), st_old);
                                    break;
                         default:
                                 if (!enable_regwrites || !wbr)

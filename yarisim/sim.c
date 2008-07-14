@@ -122,18 +122,26 @@ void print_stats(void)
                        freq * 1e6 / (n_cycle / delta), freq);
         }
 
-        printf("Gen load hazards:   %12llu (%5.2f%%)\n", stat_gen_load_hazard,
+        printf("Gen load hazards:     %12llu (%5.2f%%)\n", stat_gen_load_hazard,
                 stat_gen_load_hazard * 100.0 / n_issue);
-        printf("Load use hazards:   %12llu (%5.2f%%)\n", stat_load_use_hazard,
-               stat_load_use_hazard * 100.0 / n_issue);
-        printf("LW use hazards:     %12llu (%5.2f%%)\n", stat_load32_use_hazard,
+
+        printf("Load use hazards, rs: %12llu (%5.2f%%)\n", stat_load_use_hazard_rs,
+               stat_load_use_hazard_rs * 100.0 / n_issue);
+
+        printf("                  rt: %12llu (%5.2f%%)\n", stat_load_use_hazard_rt,
+               stat_load_use_hazard_rt * 100.0 / n_issue);
+
+        printf("LW use hazards:       %12llu (%5.2f%%)\n", stat_load32_use_hazard,
                stat_load32_use_hazard * 100.0 / n_issue);
-        printf("Shift use hazards:  %12llu (%5.2f%%)\n", stat_shift_use_hazard,
+        printf("Shift use hazards:    %12llu (%5.2f%%)\n", stat_shift_use_hazard,
                stat_shift_use_hazard  * 100.0 / n_issue);
-        printf("Nops:               %12llu (%5.2f%%)\n", stat_nop,
+        printf("Nops:                 %12llu (%5.2f%%)\n", stat_nop,
                stat_nop * 100.0 / n_issue);
-        printf("Nops in delay slots:%12llu (%5.2f%%)\n", stat_nop_delay_slots,
+        printf("Nops in delay slots:  %12llu (%5.2f%%)\n", stat_nop_delay_slots,
                stat_nop_delay_slots * 100.0 / n_issue);
+        printf("Nops after loads that aren't needed:\n"
+               "                      %12llu (%5.2f%%)\n", stat_nop_useless,
+               stat_nop_useless * 100.0 / n_issue);
 }
 
 int main(int argc, char **argv)
@@ -214,6 +222,7 @@ int main(int argc, char **argv)
                 atexit(print_stats);
                 signal(SIGINT, exit);
                 mips_state.pc = program_entry;
+                init_reg_use_map();
                 run_simple(&mips_state);
                 break;
 

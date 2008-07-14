@@ -62,8 +62,11 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   i1_pc, i2_pc;
 
    wire          i_valid;
+   wire          i_valid_muxed;
    wire [31:0]   i_instr;
+   wire [31:0]   i_instr_muxed;
    wire [31:0]   i_pc;
+   wire [31:0]   i_pc_muxed;
    wire [31:0]   i_npc;
 
    wire          imem_waitrequest;
@@ -93,6 +96,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire          d_restart;
    wire [31:0]   d_restart_pc;
    wire          d_flush_X;
+   wire          d_load_use_hazard;
 
    wire          x_valid;
    wire [31:0]   x_instr;
@@ -100,6 +104,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    wire [31:0]   x_pc;
    wire [ 5:0]   x_opcode;
    wire [31:0]   x_op1_val;
+   wire [ 5:0]   x_rt;
    wire [31:0]   x_rt_val;
    wire [ 5:0]   x_wbr;
    wire [31:0]   x_res;
@@ -150,8 +155,8 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
    // it with the interrupt mechanism (still to come)
    wire        boot = initialized[7] & ~initialized[8];
 
-   wire        restart = x_restart | m_restart | boot;
-   wire [31:0] restart_pc = (boot ? 'hBFC00000 :
+   wire        restart = d_restart | x_restart | m_restart;
+   wire [31:0] restart_pc = (d_restart ? d_restart_pc :
                              m_restart ? m_restart_pc :
                              /*********/ x_restart_pc);
    wire        flush_I = restart;
@@ -189,6 +194,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .i_pc(i_pc),
                .i_npc(i_npc),
 
+               .i_valid_muxed(i_valid_muxed),
+               .i_pc_muxed(i_pc_muxed),
+               .i_instr_muxed(i_instr_muxed),
+
                .x_valid(x_valid & ~flush_X),
                .x_wbr(x_wbr),
                .x_res(x_res),
@@ -221,6 +230,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
                .d_flush_X(d_flush_X),
+               .d_load_use_hazard(d_load_use_hazard),
 
                .flush_D(flush_D),
                .perf_delay_slot_bubble(perf_delay_slot_bubble),
@@ -228,6 +238,10 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                );
 
    stage_X stX(.clock(clock),
+
+               .restart(restart),
+               .restart_pc(restart_pc),
+
                .d_valid(d_valid & ~flush_D),
                .d_instr(d_instr),
                .d_pc(d_pc),
@@ -248,6 +262,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .d_simm(d_simm),
                .d_restart(d_restart),
                .d_restart_pc(d_restart_pc),
+               .d_load_use_hazard(d_load_use_hazard),
 
                .m_valid(m_valid),
                .m_wbr(m_wbr),
@@ -259,6 +274,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_pc(x_pc),
                .x_opcode(x_opcode),
                .x_op1_val(x_op1_val),
+               .x_rt(x_rt),
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
                .x_res(x_res),
@@ -286,6 +302,9 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
    stage_M stM(.clock(clock),
 
+               .boot(boot),
+               .boot_pc('hBFC00000),
+
                .d_simm(d_simm),
                .d_op1_val(d_op1_val),
 
@@ -295,6 +314,7 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
                .x_pc(x_pc),
                .x_opcode(x_opcode),
                .x_op1_val(x_op1_val),
+               .x_rt(x_rt),
                .x_rt_val(x_rt_val),
                .x_wbr(x_wbr),
                .x_res(x_res)
@@ -361,30 +381,25 @@ module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
 
 `ifdef SIMULATE_MAIN
    always @(posedge clock) if (debug) begin
-      if (restart) begin
-         $display("%05d  restart pipe at %x", $time, restart_pc);
-         if (boot)
-            $display("%05d        boot vector", $time);
-         else if (m_restart)
-            $display("%05d        from stage ME", $time);
-         else if (x_restart)
-            $display("%05d        from stage EX", $time);
-      end
+      if (d_restart)
+         $display("%05d  RESTART %x FROM DE", $time, d_restart_pc);
+      else if (m_restart)
+         $display("%05d  RESTART %x FROM ME", $time, m_restart_pc);
+      else if (x_restart)
+         $display("%05d  RESTART %x FROM EX", $time, x_restart_pc);
 
       $display(
-"%05dz %x %x/0 I %8x %8x D %8x:%8x X %8x:%8x:%8x>%2x M %8x:%8x>%2x W %8x:%8x>%2x",
+"%05dz %x/0 I %8x D %8x:%8x X %8x:%8x:%8x>%2x M %8x:%8x>%2x W %8x:%8x>%2x",
 
                $time,
-               0,
 
                {flush_X,flush_D,flush_I},
 
                // IF
                i1_valid ? i1_pc : 'hZ,
-               i2_valid ? i2_pc : 'hZ,
 
                // DE
-               i_pc, i_valid & ~flush_I ? i_instr : 'hZ,
+               i_pc_muxed, i_valid_muxed ? i_instr_muxed : 'hZ,
 
                // EX
                d_pc, d_valid & ~flush_D ? d_op1_val : 'hZ,

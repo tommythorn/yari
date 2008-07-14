@@ -179,16 +179,16 @@ hw2.mips: hw2.S
 	mips-elf-ld -Tsram.ld hw2.o -o hw2.mips
 
 rtlsim: $(PROG).txt $(PROG).data $(TINYMON).data
-	grep -A99999 ^e $< > ../rtl/target/Icarus/input.txt
+	egrep -A99999 '^e4[0-9a-f]+ [0-9a-f][0-9a-f]' $< > ../rtl/target/Icarus/input.txt
 	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate
 
 isasim: $(PROG).txt $(SIM) $(TINYMON).mips
-	grep -A99999 ^e $< > input.txt
+	egrep -A99999 '^e4[0-9a-f]+ [0-9a-f][0-9a-f]' $< > input.txt
 	make -C ../yarisim FLAGS="-i ../testcases/input.txt "$(VERB) FIRMWARE=$(TINYMON).mips TESTPROG=../testcases/$(PROG).mips run
 
 cosim:  $(PROG).txt $(PROG).data $(SIM) $(TINYMON).mips $(TINYMON).data
-	grep -A99999 ^e $< > ../rtl/target/Icarus/input.txt
-	grep -A99999 ^e $< > input.txt
+	egrep -A99999 '^e4[0-9a-f]+ [0-9a-f][0-9a-f]' $< > ../rtl/target/Icarus/input.txt
+	egrep -A99999 '^e4[0-9a-f]+ [0-9a-f][0-9a-f]' $< > input.txt
 	make -C ../rtl/target/Icarus TESTPROG=../$(TINYMON).data SRAM_INIT=../../../testcases/$(PROG) simulate | \
 	make -C ../yarisim FLAGS="-i ../testcases/input.txt --cosim $(VERB)" FIRMWARE=$(TINYMON).mips TESTPROG=../testcases/$(PROG).mips run
 

@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------
 //
-//   Copyright 2004,2007 Tommy Thorn - All Rights Reserved
+//   Copyright 2004,2007,2008 Tommy Thorn - All Rights Reserved
 //
 //   This program is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
@@ -61,9 +61,17 @@ module stage_D(input  wire        clock
               ,output reg  [31:0] d_restart_pc    = 0
               ,output reg         d_flush_X       = 0
 
+              ,output reg         d_load_use_hazard = 0
+
               ,input  wire        flush_D
               ,output reg  [31:0] perf_delay_slot_bubble = 0
               ,output reg  [47:0] perf_retired_inst = 0
+
+              // For debugging only
+              ,output wire        i_valid_muxed
+              ,output wire [31:0] i_pc_muxed
+              ,output wire [31:0] i_npc_muxed
+              ,output wire [31:0] i_instr_muxed
               );
 
    parameter debug = 0;
@@ -75,17 +83,27 @@ module stage_D(input  wire        clock
    wire [ 4:0] i_sa;
    wire [ 5:0] i_fn;
 
-   assign {i_opcode,i__rs,i__rt,i_rd,i_sa,i_fn} = i_instr;
+   /*
+    * When we restart instructions from DE due to load-use hazards,
+    * reuse the already seen instruction rather than wait for it to
+    * tickle down from IF.
+    */
+   assign i_valid_muxed = i_valid | d_load_use_hazard;
+   assign i_pc_muxed    = d_load_use_hazard ? d_pc    : i_pc;
+   assign i_npc_muxed   = d_load_use_hazard ? d_npc   : i_npc;
+   assign i_instr_muxed = d_load_use_hazard ? d_instr : i_instr;
+
+   assign {i_opcode,i__rs,i__rt,i_rd,i_sa,i_fn} = i_instr_muxed;
    assign i_rs = {1'b1,i__rs}; // Bit 5 means valid.
    assign i_rt = {1'b1,i__rt};
 
-   wire [25:0] i_offset = i_instr[25:0];
+   wire [25:0] i_offset = i_instr_muxed[25:0];
 
    // Sign-extend immediate field
-   wire [31:0] i_simm = {{16{i_instr[15]}}, i_instr[15:0]};
+   wire [31:0] i_simm = {{16{i_instr_muxed[15]}}, i_instr_muxed[15:0]};
 
-   wire [31:0] i_branch_target = i_npc + {i_simm[29:0], 2'h0};
-   wire [31:0] i_jump_target   = {i_npc[31:28],i_offset,2'h0};
+   wire [31:0] i_branch_target = i_npc_muxed + {i_simm[29:0], 2'h0};
+   wire [31:0] i_jump_target   = {i_npc_muxed[31:28],i_offset,2'h0};
 
    always @(posedge clock) d_simm <= i_simm;
 
@@ -139,18 +157,14 @@ module stage_D(input  wire        clock
                        d_forward_w_to_t ? w_res :
                        rt_reg_val);
 
-   // XXX PERF This is immensely stupid; all opcodes know whether they
-   // want the immediate or the register themself, so reduce the cost
-   // of d_op2_val by not letting it cover d_simm and adjust all users
-   // of d_op2_val. The only drawback slightly less sharing for a few
-   // instructions. (And while there rename op1 -> rs, op2 -> rt).
    assign d_op2_val = d_op2_is_imm ? d_simm : d_rt_val;
 
+   reg delay_slot_bubble = 0;
    always @(posedge clock) begin
-      d_valid   <= i_valid;
-      d_pc      <= i_pc;
-      d_npc     <= i_npc;
-      d_instr   <= i_instr;         // XXX Just for debugging
+      d_valid   <= i_valid_muxed;
+      d_pc      <= i_pc_muxed;
+      d_npc     <= i_npc_muxed;
+      d_instr   <= i_instr_muxed;
       {d_opcode,d_rs,d_rt,d_rd,d_sa,d_fn} <= {i_opcode,i_rs,i_rt,i_rd,i_sa,i_fn};
       d_restart <= 0;
       d_flush_X <= 0;
@@ -190,7 +204,7 @@ module stage_D(input  wire        clock
       `BGTZ:   d_target <= i_branch_target;
       `JAL:    d_target <= i_jump_target;
       `J:      d_target <= i_jump_target;
-      default: d_target <= debug ? i_pc : 32'hxxxxxxxx;
+      default: d_target <= debug ? i_pc_muxed : 32'hxxxxxxxx;
       endcase
 
       // Detect control transfers
@@ -200,7 +214,7 @@ module stage_D(input  wire        clock
             `JALR:   d_has_delay_slot <= 1;
             `JR:     d_has_delay_slot <= 1;
             endcase
-      `REGIMM: d_has_delay_slot <= 1;
+      `REGIMM: if (i_rt[4:0] != `SYNCI) d_has_delay_slot <= 1;
       `BEQ:    d_has_delay_slot <= 1;
       `BNE:    d_has_delay_slot <= 1;
       `BLEZ:   d_has_delay_slot <= 1;
@@ -285,18 +299,39 @@ module stage_D(input  wire        clock
        * doesn't have this property.
        */
 
-      if (d_valid & ~flush_D & d_has_delay_slot & ~i_valid) begin
-         $display("%05d  *** Taken-branch w/bubble delay slot, restarting branch at %8x",
+      delay_slot_bubble <= 0;
+      if (d_valid & ~flush_D & d_has_delay_slot & ~i_valid_muxed) begin
+         $display("%05d  DE: *** Taken-branch w/bubble delay slot, restarting branch at %8x",
                   $time, d_pc);
          d_valid      <= 0;
          d_restart    <= 1;
          d_restart_pc <= d_pc;
          d_flush_X    <= 1;
-         perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
+         delay_slot_bubble <= 1;
       end
+
+      // Delay the count one cycle to improve cycle time
+      if (delay_slot_bubble)
+         perf_delay_slot_bubble <= perf_delay_slot_bubble + 1;
 
       if (m_valid)
          perf_retired_inst <= perf_retired_inst + 1;
+
+      d_load_use_hazard <= 0;
+      if (i_valid_muxed &&
+          d_valid &&
+          d_opcode[5:3] == 4 &&                    // Load in stage DE
+          (i_rs == d_wbr ||
+           (i_rt == d_wbr && i_opcode[5:4] != 2))) // load/store forward t
+         begin
+            d_valid      <= 0;
+            d_restart    <= 1;
+            d_restart_pc <= i_npc_muxed; // Notice, we know that DE had a
+            // load, thus IF isn't a delay slot
+            d_load_use_hazard <= 1;
+            $display("%05d  DE: *** load-use hazard, restarting %8x", $time,
+                     i_pc_muxed);
+      end
    end
 
 
@@ -339,17 +374,14 @@ module stage_D(input  wire        clock
 
       if (debug) begin
          $display("%5db DE: instr %8x valid %d (m_wbr:%2x) (i_npc %8x i_offset*4 %8x target %8x)",
-                  $time, d_instr, d_valid,   m_wbr,
-                  i_npc, i_offset << 2, i_jump_target);
+                  $time, i_instr_muxed, i_valid_muxed,   m_wbr,
+                  i_npc_muxed, i_offset << 2, i_jump_target);
 
          if (0)
             $display("%5db DE:   %x %x %x %x %x %x %x %x %x %x %x %x ", $time,
                      regs[0], regs[1], regs[2], regs[3],
                      regs[4], regs[5], regs[6], regs[7],
                      regs[8], regs[9], regs[10], regs[11]);
-         if (1)
-            $display("%5db DE:   %x %x %x", $time,
-                     d_target, i_branch_target, i_jump_target);
       end
    end
 

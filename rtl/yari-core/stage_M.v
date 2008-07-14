@@ -24,6 +24,9 @@
 
 module stage_M(input  wire        clock
 
+              ,input  wire        boot
+              ,input  wire [31:0] boot_pc
+
               ,input  wire [31:0] d_op1_val
               ,input  wire [31:0] d_simm
 
@@ -33,7 +36,8 @@ module stage_M(input  wire        clock
               ,input  wire [31:0] x_pc
               ,input  wire [ 5:0] x_opcode
               ,input  wire [31:0] x_op1_val
-              ,input  wire [31:0] x_rt_val // for stores only
+              ,input  wire [ 5:0] x_rt
+              ,input  wire [31:0] x_rt_val
               ,input  wire [ 5:0] x_wbr
               ,input  wire [31:0] x_res
               ,output reg  [31:0] x_lw_res // lw has latecy 1, other loads 2
@@ -127,10 +131,10 @@ module stage_M(input  wire        clock
    // are out of phase with reads so we need to worry about a rare
    // hazard: immediately loading a stored word (note, this could be
    // fx. a sb followed by a lw).
-   reg  [29:0]                   x_last_store_address = ~0;
-   reg  [TAG_BITS-1:0]           x_chk     = 0; // Tag check
-   reg  [DC_LINE_INDEX_BITS-1:0] x_csi     = 0; // Cache Set Index (which cache in the set)
-   reg  [DC_WORD_INDEX_BITS-1:0] x_wi      = 0; // Word Index (which word in the cache line)
+   reg  [29:0]                   x_last_store_address = ~30'h0;
+   reg  [TAG_BITS-1:0]           x_chk     = 1'd0; // Tag check
+   reg  [DC_LINE_INDEX_BITS-1:0] x_csi     = 1'd0; // Cache Set Index (which cache in the set)
+   reg  [DC_WORD_INDEX_BITS-1:0] x_wi      = 1'd0; // Word Index (which word in the cache line)
 
    always @(posedge clock) begin
       x_address <= d_address;
@@ -154,23 +158,77 @@ module stage_M(input  wire        clock
                default:x_set = 2'bxx;
              endcase
 
-   // Shift and replicate the stored data
-   reg [31:0] x_store_data;
+   /*
+    * Store data unified data rotation (left wise) BIG ENDIAN! (Little
+    * endian would have been simpler as SB would have been trivial).
+    *
+    * SW 4-byte aligned, no rotation
+    * SH 2-byte aligned   XX YY aa bb
+    *    0bxxx00 -> aa bb XX YY  2   1100
+    *    0bxxx10 -> XX YY aa bb  0   0011
+    * SB AA BB CC dd
+    *    0bxxx00 -> dd AA BB CC  1   1000
+    *    0bxxx01 -> CC dd AA BB  2   0100
+    *    0bxxx10 -> BB CC dd AA  3   0010
+    *    0bxxx11 -> AA BB CC dd  0   0001
+    * SWL aa bb cc dd
+    *    0bxxx00 -> aa bb cc dd  0   1111
+    *    0bxxx01 -> DD aa bb cc  1   0111
+    *    0bxxx10 -> CC DD aa bb  2   0011
+    *    0bxxx11 -> BB CC DD aa  3   0001
+    * SWR aa bb cc dd
+    *    0bxxx00 -> dd AA BB CC  1   1000
+    *    0bxxx01 -> cc dd AA BB  2   1100
+    *    0bxxx10 -> bb cc dd AA  3   1110
+    *    0bxxx11 -> aa bb cc dd  0   1111
+    *
+    * So rotation is x^(address & 3) + y, where
+    *    y = 0 for SW, SWL
+    *    y = 2 for SH
+    *    y = 1 for SB, SWR
+    */
+
+   reg [1:0] x_store_data_rotation_delta;
    always @*
-      case (x_opcode[1:0])
-      0:       x_store_data = {x_rt_val[7:0], x_rt_val[7:0], x_rt_val[7:0], x_rt_val[7:0]};
-      1:       x_store_data = {x_rt_val[15:0], x_rt_val[15:0]};
-      default: x_store_data = x_rt_val;
+      case (x_opcode)
+      `SW:  x_store_data_rotation_delta = 0;
+      `SH:  x_store_data_rotation_delta = 2;
+      `SB:  x_store_data_rotation_delta = 1;
+      `SWL: x_store_data_rotation_delta = 0;
+      `SWR: x_store_data_rotation_delta = 1;
+      default: x_store_data_rotation_delta = 'hX;
       endcase
+
+   // Warning: the x_store_data_rotation assignment is necessary to
+   // clamp the result to two bits. Without it, x_store_data is
+   // inferred as a latch and Quartus II gets confused to the point
+   // where the result misbehaves mysteriously. Sadly, Icarus Verilog
+   // simulates this fine, thus there's a semantic divergence between
+   // the synthesizer and it.
+   wire [31:0] x_rt_fwd = m_valid && m_opcode[5:3] == 4 && m_wbr == x_rt ? m_res : x_rt_val;
+   wire [ 1:0] x_store_data_rotation = x_address[1:0] + x_store_data_rotation_delta;
+   reg  [31:0] x_store_data;
+   always @*
+      case (x_store_data_rotation)
+      0: x_store_data = {x_rt_fwd[31:24], x_rt_fwd[23:16], x_rt_fwd[15: 8], x_rt_fwd[ 7: 0]};
+      1: x_store_data = {x_rt_fwd[ 7: 0], x_rt_fwd[31:24], x_rt_fwd[23:16], x_rt_fwd[15: 8]};
+      2: x_store_data = {x_rt_fwd[15: 8], x_rt_fwd[ 7: 0], x_rt_fwd[31:24], x_rt_fwd[23:16]};
+      3: x_store_data = {x_rt_fwd[23:16], x_rt_fwd[15: 8], x_rt_fwd[ 7: 0], x_rt_fwd[31:24]};
+      endcase
+
    // Generated the byte enables (Big Endian!)
    // XXX Trap on unaligned access!!
    reg [3:0] x_byteena;
    always @*
-      case (x_opcode[1:0])
-      0:       x_byteena = 4'h8 >> x_address[1:0];
-      1:       x_byteena = {~x_address[1],~x_address[1],x_address[1],x_address[1]};
-      default: x_byteena = 4'hF;
+      case (x_opcode)
+      `SW:  x_byteena = 4'hF;
+      `SH:  x_byteena = x_address[1] ? 4'h3 : 4'hC;
+      `SB:  x_byteena = 4'h8 >>  x_address[1:0];
+      `SWL: x_byteena = 4'hF >>  x_address[1:0];
+      `SWR: x_byteena = 4'hF << ~x_address[1:0];
+      default: x_byteena = 4'h0;
       endcase
+
    wire x_load  = x_valid & x_opcode[5:3] == 4;
    wire x_store = x_valid & x_opcode[5:3] == 5;
 
@@ -186,19 +244,15 @@ module stage_M(input  wire        clock
    reg  [ 3:0]                m_byteena    = 0;
    reg  [ 5:0]                m_opcode     = 0;
    wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
-   always @(*) case (x_set)
-               0: x_lw_res = dc_q0;
-               1: x_lw_res = dc_q1;
-               2: x_lw_res = dc_q2;
-               3: x_lw_res = dc_q3;
-               endcase
+
+   always @* x_lw_res = ((x_hits[0] ? dc_q0 : 0) |
+                         (x_hits[1] ? dc_q1 : 0) |
+                         (x_hits[2] ? dc_q2 : 0) |
+                         (x_hits[3] ? dc_q3 : 0));
 
    reg  [31:0]                m_res_alu    = 0;
    reg  [31:0]                m_lw_res     = 0;
    always @(posedge clock)    m_lw_res    <= x_lw_res;
-
-   wire [31:0]                q            = m_load ? m_lw_res : m_res_alu;
-
 
    // Store buffer
    reg  [31:0]                 store_buffer_data[0:(1 << STORE_BUFFER_BITS) - 1];
@@ -219,29 +273,110 @@ module stage_M(input  wire        clock
 
    // ------------------------------------------------------------
 
-   reg  [15:0] q_half_shifted = 0;
-   reg  [ 7:0] q_byte_shifted = 0;
+   /*
+    * Load data unified data rotation (left wise) BIG ENDIAN! (Little
+    * endian would have been simpler as SB would have been trivial).
+    *
+    * Assume word loaded is aa bb cc dd (notation: sA/../sD is 00 or FF
+    * as pr sign of the corresponding byte, tA/../tD is the corresponding
+    * byte from the target register (with forwarding!))
+    *
+    * LW         -> aa bb cc dd
+    * LHU
+    *    0bxxx00 -> 00 00 aa bb  2
+    *    0bxxx10 -> 00 00 cc dd  0
+    * LH
+    *    0bxxx00 -> sA sA aa bb  2
+    *    0bxxx10 -> sC sC cc dd  0
+    * LBU
+    *    0bxxx00 -> 00 00 00 aa  3
+    *    0bxxx01 -> 00 00 00 bb  2
+    *    0bxxx10 -> 00 00 00 cc  1
+    *    0bxxx11 -> 00 00 00 dd  0
+    * LB
+    *    0bxxx00 -> sA sA sA aa  3
+    *    0bxxx01 -> sB sB sB bb  2
+    *    0bxxx10 -> sC sC sC cc  1
+    *    0bxxx11 -> sD sD sD dd  0
+    * LWL aa bb cc dd
+    *    0bxxx00 -> aa bb cc dd  0
+    *    0bxxx01 -> bb cc dd tD  3
+    *    0bxxx10 -> cc dd tC tD  2
+    *    0bxxx11 -> dd tB tC tD  1
+    * LWR aa bb cc dd
+    *    0bxxx00 -> tA tB tC aa  3
+    *    0bxxx01 -> tA tB aa bb  2
+    *    0bxxx10 -> tA aa bb cc  1
+    *    0bxxx11 -> aa bb cc dd  0
+    *
+    * So rotation is x^(address & 3) + y, where
+    *    y = 0 for SW, SWL
+    *    y = 2 for SH
+    *    y = 1 for SB, SWR
+    *
+    * b[0] in {00, sA, sB, sC, sD, aa, bb, cc, dd, tA}
+    * b[1] in {00, sA, sB, sC, sD, aa, bb, cc, dd, tB}
+    * b[2] in {00, sA, sB, sC, sD, aa, bb, cc, dd, tC}
+    * b[3] in {00,                 aa, bb, cc, dd, tD}
+    */
 
+   // Name the parts for convenience
+   reg  [31:0] m_rt_val = 0;
+   always @(posedge clock) m_rt_val <= x_rt_fwd;
 
-   // Shifting and sign-extending the loaded result (if any).
-   always @* begin
-      case (m_address[1]) // BE
-        1: q_half_shifted = q[15: 0];
-        0: q_half_shifted = q[31:16];
-      endcase
-      case (m_address[0]) // BE
-        1: q_byte_shifted = q_half_shifted[ 7: 0];
-        0: q_byte_shifted = q_half_shifted[15: 8];
-      endcase
-      case (m_opcode[5:3])
-         4: case (m_opcode[1:0])
-              0: m_res = {{24{q_byte_shifted[ 7] & ~m_opcode[2]}}, q_byte_shifted};
-              1: m_res = {{16{q_half_shifted[15] & ~m_opcode[2]}}, q_half_shifted};
-              default: m_res = q;
+   wire [31:0] q  = m_load ? m_lw_res : m_res_alu;
+   wire [ 7:0] zz = 0;
+   wire [ 7:0] aa = q[31:24];
+   wire [ 7:0] bb = q[23:16];
+   wire [ 7:0] cc = q[15: 8];
+   wire [ 7:0] dd = q[ 7: 0];
+   wire [ 7:0] sA = {8{aa[7]}};
+   wire [ 7:0] sB = {8{bb[7]}};
+   wire [ 7:0] sC = {8{cc[7]}};
+   wire [ 7:0] sD = {8{dd[7]}};
+   wire [ 7:0] tA = m_rt_val[31:24];
+   wire [ 7:0] tB = m_rt_val[23:16];
+   wire [ 7:0] tC = m_rt_val[15: 8];
+   wire [ 7:0] tD = m_rt_val[ 7: 0];
+
+   // XXX This a large mux, but I haven't been able to find a useful
+   // pattern to simplify this
+   always @*
+      case (m_opcode)
+      `LHU: case (m_address[1])
+            0:     m_res = {zz, zz, aa, bb};
+            1:     m_res = {zz, zz, cc, dd};
             endcase
-         default: m_res = q;
+      `LH:  case (m_address[1])
+            0:     m_res = {sA, sA, aa, bb};
+            1:     m_res = {sC, sC, cc, dd};
+            endcase
+      `LBU: case (m_address[1:0])
+            2'b00: m_res = {zz, zz, zz, aa};
+            2'b01: m_res = {zz, zz, zz, bb};
+            2'b10: m_res = {zz, zz, zz, cc};
+            2'b11: m_res = {zz, zz, zz, dd};
+            endcase
+      `LB:  case (m_address[1:0])
+            2'b00: m_res = {sA, sA, sA, aa};
+            2'b01: m_res = {sB, sB, sB, bb};
+            2'b10: m_res = {sC, sC, sC, cc};
+            2'b11: m_res = {sD, sD, sD, dd};
+           endcase
+      `LWL: case (m_address[1:0])
+            2'b00: m_res = {aa, bb, cc, dd};
+            2'b01: m_res = {bb, cc, dd, tD};
+            2'b10: m_res = {cc, dd, tC, tD};
+            2'b11: m_res = {dd, tB, tC, tD};
+            endcase
+      `LWR: case (m_address[1:0])
+            2'b00: m_res = {tA, tB, tC, aa};
+            2'b01: m_res = {tA, tB, aa, bb};
+            2'b10: m_res = {tA, aa, bb, cc};
+            2'b11: m_res = {aa, bb, cc, dd};
+            endcase
+      default: m_res = q;
       endcase
-   end
 
    /*
     * Memory interface
@@ -496,8 +631,9 @@ module stage_M(input  wire        clock
       if (x_load && x_address[31:24] != 8'hFF) begin
          $display("%05d  ME %8x:load %8x x_hits %x in cache (set %d, csi %d, wi %d ; tags %x %x %x %x)", $time,
                   x_pc, x_address, x_hits, x_set, x_csi, x_wi,
-                  x_tag0, x_tag1, x_tag2, x_tag3, x_lw_res);
-         $display("         q %x %x %x %x -> %x", dc_q0, dc_q1, dc_q2, dc_q3, x_lw_res);
+                  x_tag0, x_tag1, x_tag2, x_tag3);
+         $display("         q %x %x %x %x -> %x (rt %x )",
+                  dc_q0, dc_q1, dc_q2, dc_q3, x_lw_res, x_rt_fwd);
 
          if (x_address[31:2] == x_last_store_address) begin
             /*
@@ -567,7 +703,7 @@ module stage_M(input  wire        clock
       if (m_load & m_valid)
          $display("%05d  ME load %8x -> %8x (%8x, %1d, %1d, %1d) [x_lw_res %8x]", $time,
                   m_address, m_res,
-                  q, m_set, m_csi, m_wi,
+                  m_lw_res, m_set, m_csi, m_wi,
                   x_lw_res);
 
       if (dmem_readdatavalid) begin
@@ -590,6 +726,12 @@ module stage_M(input  wire        clock
          got_uncached_data <= 1;
          uncached_data <= peripherals_res`RD;
          m_restart <= 0;
+      end
+
+      if (boot) begin
+         m_restart <= 1;
+         one_shot_restart <= 1;
+         m_restart_pc <= boot_pc;
       end
 
       if (~dmem_waitrequest) begin

@@ -27,11 +27,13 @@ extern struct timeval stat_start_time, stat_stop_time;
 /* The hazards here count def-use cases with no intervening cycles,
    not all hazards today */
 uint64_t stat_gen_load_hazard;
-uint64_t stat_load_use_hazard;
+uint64_t stat_load_use_hazard_rs;
+uint64_t stat_load_use_hazard_rt;
 uint64_t stat_load32_use_hazard;
 uint64_t stat_shift_use_hazard;
 uint64_t stat_nop;
 uint64_t stat_nop_delay_slots;
+uint64_t stat_nop_useless;
 
 /*
   The simulation space address to physical address translation is a
@@ -121,6 +123,7 @@ unsigned load(unsigned a, int c, int fetch);
 void store(unsigned a, unsigned v, int c);
 void disass(unsigned pc, inst_t i);
 
+void init_reg_use_map(void);
 void run_simple(MIPS_state_t *s);
 void dump(char);
 void dump_tinymon(void);

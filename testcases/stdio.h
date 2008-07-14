@@ -409,6 +409,7 @@ void memset(void *d, char v, unsigned size)
         up[5] = vvvv;
         up[6] = vvvv;
         up[7] = vvvv;
+        up += 8;
         size -= 32;
     }
 

@@ -17,7 +17,7 @@
  * Opcodes.
  * XXX Maybe prefix with OP_
  */
-`define REG      0
+`define REG      0  // XXX Rename this SPECIAL
 `define REGIMM   1
 `define J        2
 `define JAL      3
@@ -36,7 +36,7 @@
 `define CP0     16
 `define CP1     17
 `define CP2     18
-
+`define CP1X    19
 `define BBQL    20
 
 `define BGTZL   23
@@ -56,6 +56,22 @@
 `define SW      43
 
 `define SWR     46
+`define CACHE   47
+
+`define LL      48
+`define LWC1    49
+`define LWC2    50
+`define PREF    51
+
+`define LDC1    53
+`define LDC2    54
+
+`define SC      56
+`define SWC1    57
+`define SWC2    58
+
+`define SDC1    61
+`define SDC2    62
 
 /*
  * Funct - subcodes of REG
