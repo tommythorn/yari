@@ -85,7 +85,7 @@ module main(
 
 
 
-   parameter FREQ = 75_000_000; // match clock frequency
+   parameter FREQ = 80_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
    wire [ 7:0]   rs232out_d;
