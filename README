@@ -1,6 +1,6 @@
               YARI -- Yet Another RISC Implementation
 
-Last update: 2008-09-23
+Last update: 2008-11-24
 
 INTRODUCTION
 
@@ -27,6 +27,7 @@ implementation currently comprises:
   + Async SRAM interface (32-bit and 16-bit)
   + Sync burst SRAM interface (32-bit)
   + Serial in/out
+  + 1024x768x8 video interface
 
   Simulation
   + Enough support to fully simulate the RTL with Icarus Verilog.

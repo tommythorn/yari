@@ -28,12 +28,8 @@ set_global_assignment -name DEVICE EP2C70F896C6
 set_global_assignment -name TOP_LEVEL_ENTITY main
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "7.2 SP3"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "18:46:57  MAY 4, 2008"
-set_global_assignment -name LAST_QUARTUS_VERSION "8.0 SP1"
+set_global_assignment -name LAST_QUARTUS_VERSION 8.1
 set_global_assignment -name USE_GENERATED_PHYSICAL_CONSTRAINTS OFF -section_id eda_palace
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
-set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 set_location_assignment PIN_D27 -to oENET_CLK
 set_location_assignment PIN_E16 -to iCLK_28
@@ -568,8 +564,15 @@ set_location_assignment PIN_H19 -to oVGA_VS
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
 set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
 
+
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS OUTPUT DRIVING AN UNSPECIFIED SIGNAL"
+
+
+set_global_assignment -name VERILOG_FILE video.v
 set_global_assignment -name VERILOG_FILE main.v
 set_global_assignment -name VERILOG_FILE mega/pll.v
+set_global_assignment -name QIP_FILE mega/video_pll.qip
 set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
 set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
 set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
@@ -595,9 +598,15 @@ set_global_assignment -name MIF_FILE tags1.mif
 set_global_assignment -name MIF_FILE tags2.mif
 set_global_assignment -name MIF_FILE tags3.mif
 set_global_assignment -name CDF_FILE main.cdf
-
-set_global_assignment -name USE_CONFIGURATION_DEVICE ON
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS OUTPUT DRIVING AN UNSPECIFIED SIGNAL"
-
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
 set_global_assignment -name PARTITION_COLOR 14622752 -section_id Top
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name QIP_FILE mega/video_fifo.qip
+
+set_global_assignment -name CYCLONEII_M4K_COMPATIBILITY OFF
+
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name ENABLE_SIGNALTAP OFF
+set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp

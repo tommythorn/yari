@@ -14,37 +14,55 @@
 `include "../../soclib/pipeconnect.h"
 module main
    (input         iCLK_50
+   ,input         iCLK_28 // Actually 28.86 MHz
 
    ,input         iUART_RXD
    ,output        oUART_TXD
 
    ,output [18:0] oSRAM_A
-   ,output        oSRAM_ADSC_N		// Burst control
-   ,output        oSRAM_ADSP_N		// --
-   ,output        oSRAM_ADV_N		// --
+   ,output        oSRAM_ADSC_N          // Burst control
+   ,output        oSRAM_ADSP_N          // --
+   ,output        oSRAM_ADV_N           // --
    ,output [ 3:0] oSRAM_BE_N
    ,output        oSRAM_CE1_N
    ,output        oSRAM_CE2
    ,output        oSRAM_CE3_N
    ,output        oSRAM_CLK
-   ,inout  [ 3:0] SRAM_DPA		// ssram parity data bus
+   ,inout  [ 3:0] SRAM_DPA              // ssram parity data bus
    ,inout  [31:0] SRAM_DQ
-   ,output        oSRAM_GW_N		// global write (overrides byte enable)
+   ,output        oSRAM_GW_N            // global write (overrides byte enable)
    ,output        oSRAM_OE_N
    ,output        oSRAM_WE_N
-   ,output [ 7:0] oLEDG
-   ,output [17:0] oLEDR
+   ,output reg [ 7:0] oLEDG = 0
+   ,output reg [17:0] oLEDR = 0
+
+   ,output             oVGA_CLOCK
+   ,output wire [ 9:0] oVGA_R
+   ,output wire [ 9:0] oVGA_B
+   ,output wire [ 9:0] oVGA_G
+   ,output wire        oVGA_BLANK_N
+   ,output wire        oVGA_HS
+   ,output wire        oVGA_VS
+   ,output             oVGA_SYNC_N
    );
 
    parameter FREQ = 50_000_000; // match clock frequency
    parameter BPS  =    115_200; // Serial speed
 
-   wire      clock; // The master clock
-   wire      clock_locked;
+   // Copied from yari.v
+   parameter   ID_DC              = 2'd1;
+   parameter   ID_IC              = 2'd2;
+   parameter   ID_FB              = 2'd3;
 
-   // Actually, just a 1-1 clock filter at this point
+   wire        clock; // The master clock
+   wire        video_clock;
+   wire        clock_locked;
+
+   // Actually, just a 1-1 clock filter for c0
+   // and a 65 MHz for video_clock
    pll  pll_inst(.inclk0(iCLK_50)
                 ,.c0(clock)
+                ,.c2(video_clock)
                 ,.locked(clock_locked));
    wire          reset = !clock_locked;
 
@@ -65,64 +83,57 @@ module main
    wire   [31:0] mem_readdata;
    wire    [1:0] mem_readdataid;
 
+   wire          yari_mem_waitrequest;
+   wire    [1:0] yari_mem_id;
+   wire   [29:0] yari_mem_address;
+   wire          yari_mem_read;
+   wire          yari_mem_write;
+   wire   [31:0] yari_mem_writedata;
+   wire    [3:0] yari_mem_writedatamask;
+
+   wire   [29:0] fb_address;
+   wire          fb_read;
+
    wire `REQ     rs232_req;
    wire `RES     rs232_res;
 
-//`define TEST_SSRAM_CTRL 1
-`ifndef TEST_SSRAM_CTRL
    yari yari_inst(
          .clock(clock)
         ,.rst(reset)
 
-        ,.mem_waitrequest(mem_waitrequest)
-        ,.mem_id(mem_id)
-        ,.mem_address(mem_address)
-        ,.mem_read(mem_read)
-        ,.mem_write(mem_write)
-        ,.mem_writedata(mem_writedata)
-        ,.mem_writedatamask(mem_writedatamask)
-        ,.mem_readdata(mem_readdata)
-        ,.mem_readdataid(mem_readdataid)
+        // Inputs
+        ,.mem_waitrequest  (yari_mem_waitrequest)
+        ,.mem_readdata     (mem_readdata)
+        ,.mem_readdataid   (mem_readdataid)
+
+        // Outputs
+        ,.mem_id           (yari_mem_id)
+        ,.mem_address      (yari_mem_address)
+        ,.mem_read         (yari_mem_read)
+        ,.mem_write        (yari_mem_write)
+        ,.mem_writedata    (yari_mem_writedata)
+        ,.mem_writedatamask(yari_mem_writedatamask)
 
         ,.peripherals_req(rs232_req)
         ,.peripherals_res(rs232_res)
         );
-`else
-   wire   [31:0] errors;
-   assign {oLEDR,oLEDG} = errors;
-
-   dummy_master dummy_master(
-         .clock(clock)
-        ,.reset(reset)
-
-        ,.mem_waitrequest(mem_waitrequest)
-        ,.mem_id(mem_id)
-        ,.mem_address(mem_address)
-        ,.mem_read(mem_read)
-        ,.mem_write(mem_write)
-        ,.mem_writedata(mem_writedata)
-        ,.mem_writedatamask(mem_writedatamask)
-        ,.mem_readdata(mem_readdata)
-        ,.mem_readdataid(mem_readdataid)
-
-        ,.errors(errors)
-   );
-`endif
-
-   // Note SRAM_ZZ is pulled low and is not connected to FPGA (AFAICT)
 
    ssram_ctrl the_ssram_ctrl
       (.clock(clock)
       ,.reset(reset)
-      ,.mem_waitrequest(mem_waitrequest)
-      ,.mem_id(mem_id)
-      ,.mem_address(mem_address)
-      ,.mem_read(mem_read)
-      ,.mem_write(mem_write)
-      ,.mem_writedata(mem_writedata)
+
+      // Outputs
+      ,.mem_waitrequest  (mem_waitrequest)
+      ,.mem_readdata     (mem_readdata)
+      ,.mem_readdataid   (mem_readdataid)
+
+      // Inputs
+      ,.mem_id           (mem_id)
+      ,.mem_address      (mem_address)
+      ,.mem_read         (mem_read)
+      ,.mem_write        (mem_write)
+      ,.mem_writedata    (mem_writedata)
       ,.mem_writedatamask(mem_writedatamask)
-      ,.mem_readdata(mem_readdata)
-      ,.mem_readdataid(mem_readdataid)
 
       ,.sram_clk   (oSRAM_CLK)
       ,.sram_adsc_n(oSRAM_ADSC_N)
@@ -172,4 +183,71 @@ module main
                .rs232out_busy(rs232out_busy),
                .rs232out_w   (rs232out_write_enable),
                .rs232out_d   (rs232out_transmit_data));
+
+
+   wire        fb_access = fb_read /* & !yari_mem_read & !yari_mem_write */;
+
+   assign      mem_id             = fb_access ? ID_FB      : yari_mem_id;
+   assign      mem_address        = fb_access ? fb_address : yari_mem_address;
+   assign      mem_read           = fb_access ? fb_read    : yari_mem_read;
+   assign      mem_write          = fb_access ? 1'd0       : yari_mem_write;
+   assign      mem_writedata      =                          yari_mem_writedata;
+   assign      mem_writedatamask  =                          yari_mem_writedatamask;
+
+   wire        fb_waitrequest       = mem_waitrequest;
+   assign      yari_mem_waitrequest = mem_waitrequest | fb_access;
+
+
+/*
+ Sadly, iCLK_50 can at most feed one PLL
+   video_pll video_pll_inst
+      (.inclk0(iCLK_50)
+       ,.c0(video_clock));
+ */
+
+   video video_inst
+      (.memory_clock    (clock)
+      ,.fb_waitrequest  (fb_waitrequest)
+      ,.fb_readdata     (mem_readdata)
+      ,.fb_readdatavalid(mem_readdataid == ID_FB)
+      ,.fb_address      (fb_address)
+      ,.fb_read         (fb_read)
+
+      ,.video_clock(video_clock)
+      ,.oVGA_CLOCK(oVGA_CLOCK)
+      ,.oVGA_R(oVGA_R)
+      ,.oVGA_B(oVGA_B)
+      ,.oVGA_G(oVGA_G)
+      ,.oVGA_BLANK_N(oVGA_BLANK_N)
+      ,.oVGA_HS(oVGA_HS)
+      ,.oVGA_VS(oVGA_VS)
+      ,.oVGA_SYNC_N(oVGA_SYNC_N)
+      );
+
+   /* Attractive sub 1 MiB options
+
+    VESA
+    ModeLine "1024x768_60.00"  65.0    1024 1048 1184 1344  768  771  777  806 -hsync -vsync
+
+    GTF
+    ModeLine "1152x864_75.00" 108.0    1152 1216 1344 1600  864  865  868  900 +hsync +vsync
+    ModeLine "1280x768_60.00"  80.14   1280 1344 1480 1680  768  769  772  795 -hsync +vsync
+
+    GTF, but may not work with LCD?
+    Modeline "1280x819_60.00"  85.48   1280 1344 1480 1680  819  820  823  848 -HSync +Vsync
+    Modeline "1368x766_60.00"  85.64   1368 1440 1584 1800  766  767  770  793 -HSync +Vsync
+   */
+   defparam    video_inst.FB_BEGIN = 1024*1024 / 4,
+               video_inst.FB_MASK  = ~0,
+               video_inst.M1 = 12'd1024,
+               video_inst.M2 = 12'd1048,
+               video_inst.M3 = 12'd1184,
+               video_inst.M4 = 12'd1344,
+
+               video_inst.M5 = 12'd768,
+               video_inst.M6 = 12'd771,
+               video_inst.M7 = 12'd777,
+               video_inst.M8 = 12'd806,
+               video_inst.HS_NEG = 1'd0,
+               video_inst.VS_NEG = 1'd0;
 endmodule
