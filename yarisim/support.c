@@ -52,7 +52,7 @@ void initialize_memory(void)
 
         // See mymips.ld
         // ensure_mapped_memory_range(0, megabyte); // XXX Don't !
-        ensure_mapped_memory_range(0x40000000, megabyte);
+        ensure_mapped_memory_range(0x40000000, megabyte * 2);
         // ensure_mapped_memory_range(0x90000000, megabyte);
         // ensure_mapped_memory_range(0x80000000-megabyte+1, megabyte-1);
         ensure_mapped_memory_range(0xBFC00000, megabyte); // Really only 16KiB
@@ -623,6 +623,9 @@ void store(unsigned a, unsigned v, int c)
         case 4: *(u_int32_t*)(phys = addr2phys(a)) = W(v); break;
         default: exit(1);
         }
+
+        if ((unsigned) (a - framebuffer_start) < framebuffer_size)
+                ++framebuffer_generation;
 }
 
 static unsigned char

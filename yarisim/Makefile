@@ -1,4 +1,5 @@
-CFLAGS=-g -Wall -MD -O2
+CFLAGS=-g -Wall -MD -O2 $(shell sdl-config --cflags)
+LDFLAGS=$(shell sdl-config --libs)
 TESTPROG=please-set-TESTPROG
 FLAGS=
 

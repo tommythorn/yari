@@ -1,3 +1,4 @@
+#include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +32,7 @@ void    *memory_segment[NSEGMENT];
 unsigned memory_segment_size[NSEGMENT];
 
 unsigned program_entry = 0;
+static SDL_Surface *screen;
 
 /*
  * struct option {
@@ -144,6 +146,97 @@ void print_stats(void)
                stat_nop_useless * 100.0 / n_issue);
 }
 
+void mainloop(void)
+{
+        unsigned last_generation = 0;
+
+        for (;;) {
+                SDL_Event event;
+
+                while (SDL_PollEvent(&event)) {
+                        switch (event.type) {
+                        case SDL_MOUSEMOTION:
+                                /*printf("Mouse moved by %d,%d to (%d,%d)\n",
+                                       event.motion.xrel, event.motion.yrel,
+                                       event.motion.x, event.motion.y);*/
+                                break;
+                        case SDL_MOUSEBUTTONDOWN:
+                                /*printf("Mouse button %d pressed at (%d,%d)\n",
+                                  event.button.button, event.button.x, event.button.y);*/
+                                break;
+                        case SDL_KEYDOWN:
+                                //printf("Key down: %s\n", SDL_GetKeyName(event.key.keysym.sym));
+                                if (event.key.keysym.sym == SDLK_ESCAPE)
+                                        return;
+                                break;
+                        case SDL_KEYUP:
+                                //printf("Key down: %s\n", SDL_GetKeyName(event.key.keysym.sym));
+                                break;
+                        case SDL_QUIT:
+                                printf("Quit\n");
+                                return;
+                        default:
+                                //printf("Unknown event: %d\n", event.type);
+                                break;
+                        }
+                }
+
+                /* Only update the screen if the framebuffer has been written
+                   since last update */
+                if (last_generation != framebuffer_generation) {
+                        last_generation = framebuffer_generation;
+                        memcpy(screen->pixels, addr2phys(framebuffer_start),
+                               framebuffer_size);
+
+                        SDL_UpdateRect(screen, 0, 0, screen->w, screen->h);
+                        // SDL_Flip(screen); either seem to work
+                }
+
+                SDL_Delay(1000 / 30); // 30 fps
+        }
+}
+
+void start_sdl(void)
+{
+        framebuffer_start = 0x40000000 + 1024*1024;
+        framebuffer_size  = 1024*768;
+
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+                fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+                return;
+        }
+
+        atexit(SDL_Quit);
+
+        screen = SDL_SetVideoMode(1024, 768, 8, SDL_SWSURFACE);
+        if (screen == NULL) {
+                fprintf(stderr, "Unable to set video: %s\n", SDL_GetError());
+                return;
+        }
+
+        /* Set the window caption */
+        SDL_WM_SetCaption("Yarisim framebuffer", "YARISIM");
+
+        /* Populate the palette */
+        SDL_Color colors[256];
+        int i;
+
+        /* Fill colors with color information RGB332 */
+        for (i = 0; i < 256; ++i) {
+                colors[i].r = (i >> 5) * (255 / 7.0);
+                colors[i].g = ((i >> 2) & 7) * (255 / 7.0);
+                colors[i].b = (i & 3) * (255 / 3.0);
+        }
+
+        /* Set palette */
+        if (!SDL_SetColors(screen, colors, 0, 256)) {
+                fprintf(stderr, "Unable to create framebuffer palette: %s\n",
+                        SDL_GetError());
+                screen = 0; //XXX should free it
+                return;
+        }
+}
+
 int main(int argc, char **argv)
 {
         /* The Global MIPS State */
@@ -219,11 +312,17 @@ int main(int argc, char **argv)
 
         switch (run) {
         case '1':
+                start_sdl();
                 atexit(print_stats);
                 signal(SIGINT, exit);
                 mips_state.pc = program_entry;
                 init_reg_use_map();
-                run_simple(&mips_state);
+
+                if (screen) {
+                        SDL_CreateThread((int (*)(void *))run_simple, &mips_state);
+                        mainloop();
+                } else
+                        run_simple(&mips_state);
                 break;
 
         case 'r':

@@ -1,6 +1,7 @@
 #ifndef _RUNMIPS_H_
 #define _RUNMIPS_H_ 1
 
+#include <SDL.h>
 #include <sys/time.h>
 #include <stdint.h>
 
@@ -112,6 +113,8 @@ extern int rs232in_fd;
 extern int rs232out_fd;
 
 unsigned segfault;
+uint32_t framebuffer_start, framebuffer_size;
+unsigned framebuffer_generation;
 
 void exception(char *kind);
 void loadsection(FILE *f, unsigned f_offset, unsigned f_len, unsigned m_addr, unsigned m_len);
