@@ -468,6 +468,8 @@ void disass(unsigned pc, inst_t i)
         printf("%-24s", buf);
 }
 
+uint32_t vsynccnt = 0;
+
 unsigned load(unsigned a,  // IN: address
               int c,       // IN: count of bytes to load
               int fetch)   // IN: instruction or data?
@@ -478,8 +480,8 @@ unsigned load(unsigned a,  // IN: address
          * Handle special load devices.
          * So far we only have a serial output port.
          */
-        if (!fetch && (a >> 4) == 0xFF00000) {
-                switch ((a >> 2) & 0xF) {
+        if (!fetch && (a & 0xFF000000) == 0xFF000000) {
+                switch ((a >> 2) & 0xFF) {
                 case 0: // rs232out_busy
                         if (serial_wait) {
                                 serial_wait--;  // Not quite accurate, but ..
@@ -504,6 +506,14 @@ unsigned load(unsigned a,  // IN: address
                 case 3:
                         // TSC
                         res = TSC;
+                        break;
+
+                case 4:
+                        res = keys;
+                        break;
+
+                case 5:
+                        res = vsynccnt++;
                         break;
 
                 default:

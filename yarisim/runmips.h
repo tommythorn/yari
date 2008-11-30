@@ -112,6 +112,8 @@ long long unsigned n_icache_hits, n_icache_misses;
 extern int rs232in_fd;
 extern int rs232out_fd;
 
+unsigned keys;
+
 unsigned segfault;
 uint32_t framebuffer_start, framebuffer_size;
 unsigned framebuffer_generation;

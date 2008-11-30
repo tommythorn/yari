@@ -166,14 +166,40 @@ void mainloop(void)
                                 break;
                         case SDL_KEYDOWN:
                                 //printf("Key down: %s\n", SDL_GetKeyName(event.key.keysym.sym));
-                                if (event.key.keysym.sym == SDLK_ESCAPE)
-                                        return;
+                                switch (event.key.keysym.sym) {
+                                case SDLK_ESCAPE: return;
+                                case SDLK_0: keys |= 1 << 0; break;
+                                case SDLK_1: keys |= 1 << 1; break;
+                                case SDLK_2: keys |= 1 << 2; break;
+                                case SDLK_3: keys |= 1 << 3; break;
+                                case SDLK_4: keys |= 1 << 4; break;
+                                case SDLK_5: keys |= 1 << 5; break;
+                                case SDLK_6: keys |= 1 << 6; break;
+                                case SDLK_7: keys |= 1 << 7; break;
+                                case SDLK_8: keys |= 1 << 8; break;
+                                case SDLK_9: keys |= 1 << 9; break;
+                                default: break;
+                                }
                                 break;
                         case SDL_KEYUP:
                                 //printf("Key down: %s\n", SDL_GetKeyName(event.key.keysym.sym));
+                                switch (event.key.keysym.sym) {
+                                case SDLK_ESCAPE: return;
+                                case SDLK_0: keys &= ~(1 << 0); break;
+                                case SDLK_1: keys &= ~(1 << 1); break;
+                                case SDLK_2: keys &= ~(1 << 2); break;
+                                case SDLK_3: keys &= ~(1 << 3); break;
+                                case SDLK_4: keys &= ~(1 << 4); break;
+                                case SDLK_5: keys &= ~(1 << 5); break;
+                                case SDLK_6: keys &= ~(1 << 6); break;
+                                case SDLK_7: keys &= ~(1 << 7); break;
+                                case SDLK_8: keys &= ~(1 << 8); break;
+                                case SDLK_9: keys &= ~(1 << 9); break;
+                                default: break;
+                                }
                                 break;
                         case SDL_QUIT:
-                                printf("Quit\n");
+                                //printf("Quit\n");
                                 return;
                         default:
                                 //printf("Unknown event: %d\n", event.type);

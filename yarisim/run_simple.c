@@ -318,7 +318,20 @@ static int rdhwr(unsigned r)
         case 1: // I$ line size
                 return 4 << IC_WORD_INDEX_BITS;
         case 2: // Free running counter
+        {
+                struct timeval t;
+                gettimeofday(&t, NULL);
+
+                TSC = (t.tv_sec + t.tv_usec * 1e-6) * 50e6;
+
+                /*
+                printf("t.tv_sec = %llu, t.tv_usec = %llu, TSC=%llu sec = %llu\n",
+                       (uint64_t) t.tv_sec, (uint64_t) t.tv_usec,
+                       TSC, TSC / 50000000);
+                */
+
                 return TSC >> 4;
+        }
         case 3: // cycles pr above count
                 return 1 << 4;
         default:
