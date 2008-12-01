@@ -571,6 +571,7 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS OUTPUT DRI
 
 set_global_assignment -name VERILOG_FILE video.v
 set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE rs232.v
 set_global_assignment -name VERILOG_FILE mega/pll.v
 set_global_assignment -name QIP_FILE mega/video_pll.qip
 set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
@@ -583,7 +584,6 @@ set_global_assignment -name VERILOG_FILE "../../yari-core/stage_M.v"
 set_global_assignment -name VERILOG_FILE ../../soclib/dmem.v
 set_global_assignment -name VERILOG_FILE ../../soclib/peri_ctrl.v
 set_global_assignment -name VERILOG_FILE ../../soclib/pipeconnect.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232.v
 set_global_assignment -name VERILOG_FILE ../../soclib/rs232in.v
 set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
 set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v

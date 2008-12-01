@@ -40,6 +40,7 @@ module video
    ,input              fb_readdatavalid
    ,output reg [29:0]  fb_address
    ,output reg         fb_read = 0
+   ,output reg [31:0]  vsynccnt = 0
 
    // video clock domain
    ,input              video_clock
@@ -130,9 +131,10 @@ module video
    always @(posedge memory_clock)
       if (!fb_waitrequest) begin
          fb_read <= 0;
-         if (vsync & !vsync_)
+         if (vsync & !vsync_) begin
+            vsynccnt <= vsynccnt + 1;
             next <= FB_BEGIN;
-         else if (!vsync & !fifo_full & !fifo_used[5]) begin
+         end else if (!vsync & !fifo_full & !fifo_used[5]) begin
             fb_read    <= 1;
             fb_address <= next;
             next       <= (next + 4) & FB_MASK; // useful for looping around

@@ -14,10 +14,15 @@
 `include "../../soclib/pipeconnect.h"
 module main
    (input         iCLK_50
-   ,input         iCLK_28 // Actually 28.86 MHz
+   ,input         iCLK_28 // Actually 28.63636 MHz
 
    ,input         iUART_RXD
    ,output        oUART_TXD
+
+   ,input  [ 3:0] iKEY
+   ,input  [17:0] iSW
+   ,output [ 7:0] oLEDG
+   ,output [17:0] oLEDR
 
    ,output [18:0] oSRAM_A
    ,output        oSRAM_ADSC_N          // Burst control
@@ -33,8 +38,6 @@ module main
    ,output        oSRAM_GW_N            // global write (overrides byte enable)
    ,output        oSRAM_OE_N
    ,output        oSRAM_WE_N
-   ,output reg [ 7:0] oLEDG = 0
-   ,output reg [17:0] oLEDR = 0
 
    ,output             oVGA_CLOCK
    ,output wire [ 9:0] oVGA_R
@@ -171,8 +174,13 @@ module main
    defparam rs232in_inst.frequency = FREQ,
             rs232in_inst.bps       = BPS;
 
+   wire [31:0] vsynccnt;
+
    rs232 rs232_inst(.clk(clock),
                .rst(reset),
+
+               .iKEY({iKEY[0],iKEY[1],iKEY[2],iKEY[3]}),
+               .vsynccnt(vsynccnt),
 
                .rs232_req(rs232_req),
                .rs232_res(rs232_res),
@@ -197,7 +205,6 @@ module main
    wire        fb_waitrequest       = mem_waitrequest;
    assign      yari_mem_waitrequest = mem_waitrequest | fb_access;
 
-
 /*
  Sadly, iCLK_50 can at most feed one PLL
    video_pll video_pll_inst
@@ -212,6 +219,7 @@ module main
       ,.fb_readdatavalid(mem_readdataid == ID_FB)
       ,.fb_address      (fb_address)
       ,.fb_read         (fb_read)
+      ,.vsynccnt        (vsynccnt)
 
       ,.video_clock(video_clock)
       ,.oVGA_CLOCK(oVGA_CLOCK)
