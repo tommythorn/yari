@@ -1,12 +1,11 @@
 # setup some configuration variables
-builddir=/tmp/build-xtools #$PWD
+builddir=$YARI_XTOOLS_BUILDDIR
 srcroot=$PWD
-target=mips-elf
-install_prefix=/opt/$target
-export PATH=$install_prefix/bin:$PATH
-make_option=-j4
+target=$YARI_XTOOLS_TARGET
+install_prefix=$YARI_XTOOLS_INSTALL_PREFIX
+make_option=$YARI_XTOOLS_MAKE_OPTION
 # enable this if you install into a directory that you don't own
-sudo= #sudo
+sudo=$YARI_XTOOLS_SUDO
 
 
 GNUsrc=~/Downloads/FSF  #$PWD
