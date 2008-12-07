@@ -308,9 +308,12 @@ int main(int argc, char **argv)
                 readelf(argv[optind++]);
         }
 
+        int is_bidir = serial_output_file && serial_input_file &&
+                strcmp(serial_input_file, serial_output_file) == 0;
+
         if (serial_input_file) {
                 printf("serial input %s\n", serial_input_file);
-                rs232in_fd = open(serial_input_file, O_RDONLY | O_NONBLOCK);
+                rs232in_fd = open(serial_input_file, (is_bidir ? O_RDWR : O_RDONLY) | O_NONBLOCK);
                 if (rs232in_fd < 0)
                         perror(optarg), exit(1);
 
@@ -327,12 +330,15 @@ int main(int argc, char **argv)
                 }
         }
 
-        if (serial_output_file) {
+        if (serial_output_file && !is_bidir) {
                 printf("serial output %s\n", serial_output_file);
                 rs232out_fd = open(serial_output_file, O_WRONLY | O_NONBLOCK);
                 if (rs232out_fd < 0)
                         perror(optarg), exit(1);
         }
+
+        if (is_bidir)
+                rs232out_fd = rs232in_fd;
 
         gettimeofday(&stat_start_time, NULL);
 
