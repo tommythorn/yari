@@ -96,5 +96,9 @@
 #undef __WIN32__
 #define __WIN32__	1
 #endif
+#if defined(R3000)
+#undef __YARI__
+#define __YARI__	1
+#endif
 
 #endif /* _SDL_platform_h */

@@ -401,6 +401,9 @@ extern VideoBootStrap RISCOS_bootstrap;
 #if SDL_VIDEO_DRIVER_OS2FS
 extern VideoBootStrap OS2FSLib_bootstrap;
 #endif
+#if SDL_VIDEO_DRIVER_YARI
+extern VideoBootStrap YARI_bootstrap;
+#endif
 #if SDL_VIDEO_DRIVER_AALIB
 extern VideoBootStrap AALIB_bootstrap;
 #endif
