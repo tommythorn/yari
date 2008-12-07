@@ -99,10 +99,16 @@ TEST = \
 
 all: $(TARGET) $(SDLMAIN_TARGET)
 
-$(TARGET): copy_config $(OBJS) Makefile.yari
+install: all
+	install -d                          $(YARI_XTOOLS_INSTALL_PREFIX)/mips-elf/lib \
+					    $(YARI_XTOOLS_INSTALL_PREFIX)/mips-elf/include
+	install $(TARGET) $(SDLMAIN_TARGET) $(YARI_XTOOLS_INSTALL_PREFIX)/mips-elf/lib
+	install include/*                   $(YARI_XTOOLS_INSTALL_PREFIX)/mips-elf/include
+
+$(TARGET): copy_config $(OBJS) Makefile
 	$(AR) rcs $(TARGET) $(OBJS)
 
-$(SDLMAIN_TARGET): $(SDLMAIN_OBJ) Makefile.yari
+$(SDLMAIN_TARGET): $(SDLMAIN_OBJ) Makefile
 	$(AR) rcs $(SDLMAIN_TARGET) $(SDLMAIN_OBJ)
 
 copy_config:

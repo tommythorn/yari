@@ -11,7 +11,7 @@ cd $builddir-binutils
 tar -xjf $GNUsrc/$binutilsdist.tar.bz2
 
 # Binutils-2.18 is very old and autoconfigure was broken. Fix it
-patch -p0 < $srcroot/binutils-2.18.patch
+#patch -p0 < $srcroot/binutils-2.18.patch
 
 # configure, make and install binutils
 mkdir -p build-binutils

@@ -9,9 +9,10 @@ sudo=$YARI_XTOOLS_SUDO
 
 
 GNUsrc=~/Downloads/FSF  #$PWD
-gccdist=gcc-4.2.3
-binutilsdist=binutils-2.18
+gccdist=gcc-4.2.4
+binutilsdist=binutils-2.19
 newlibdist=newlib-1.16.0
+gdbdist=gdb-6.8
 
 download () {
     location=$1

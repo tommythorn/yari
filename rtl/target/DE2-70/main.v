@@ -47,6 +47,17 @@ module main
    ,output wire        oVGA_HS
    ,output wire        oVGA_VS
    ,output             oVGA_SYNC_N
+
+   ,inout       [14:0] FLASH_DQ       // FLASH Data bus 15 Bits (0 to 14)
+   ,inout              FLASH_DQ15_AM1 // FLASH Data bus Bit 15 or Address A-1
+   ,output      [21:0] oFLASH_A       // FLASH Address bus 22 Bits
+   ,output             oFLASH_WE_N    // FLASH Write Enable
+   ,output             oFLASH_RST_N   // FLASH Reset
+   ,output             oFLASH_WP_N    // FLASH Write Protect /Programming Acceleration
+   ,input              iFLASH_RY_N    // FLASH Ready/Busy output
+   ,output             oFLASH_BYTE_N  // FLASH Byte/Word Mode Configuration
+   ,output             oFLASH_OE_N    // FLASH Output Enable
+   ,output             oFLASH_CE_N    // FLASH Chip Enable
    );
 
    parameter FREQ = 50_000_000; // match clock frequency

@@ -5,6 +5,9 @@ FLAGS=
 
 all: sim
 
+install: sim
+	cp sim $(YARI_XTOOLS_INSTALL_PREFIX)/bin/yarisim
+
 run: sim
 	./sim $(FLAGS) $(TESTPROG) $(FIRMWARE)
 
