@@ -55,6 +55,7 @@ module video
    );
 
    parameter      FB_BEGIN = 1024*1024/4;
+   parameter      FB_SIZE  = 1024*768/4;
    parameter      FB_MASK  = ~0;
 
    parameter      M1 = 12'd1280;
@@ -100,6 +101,7 @@ module video
    wire    [31:0] fifo_write_data = fb_readdata;
    wire           fifo_full;
    wire     [6:0] fifo_used;
+   reg [24:0]     vsync_count_down = 0;
    reg            vsync = 1'd0, vsync_next = 1'd0;
 
    always @(posedge memory_clock) vsync_next <= video_vsync; // Clock domain crossing!
@@ -128,18 +130,26 @@ module video
 
    // Pixel pump (really: very simply master that issues reads to the frame buffer)
    reg [29:0] next = 1'd0;
-   always @(posedge memory_clock)
+   always @(posedge memory_clock) begin
       if (!fb_waitrequest) begin
          fb_read <= 0;
          if (vsync & !vsync_) begin
-            vsynccnt <= vsynccnt + 1;
             next <= FB_BEGIN;
+            vsync_count_down <= FB_SIZE - 2;
          end else if (!vsync & !fifo_full & !fifo_used[5]) begin
             fb_read    <= 1;
             fb_address <= next;
             next       <= (next + 4) & FB_MASK; // useful for looping around
          end
       end
+
+      // Crap, this doesn't appear to work at all!
+      if (vsync_count_down[24]) begin
+         vsynccnt <= vsynccnt + 1;
+         vsync_count_down <= FB_SIZE - 2;
+      end else
+         vsync_count_down <= vsync_count_down - 1;
+   end
 
 
    // Video generation - dot clock domain

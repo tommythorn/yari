@@ -274,6 +274,7 @@ module main
     Modeline "1368x766_60.00"  85.64   1368 1440 1584 1800  766  767  770  793 -HSync +Vsync
    */
    defparam    video_inst.FB_BEGIN = 1024*1024 / 4,
+               video_inst.FB_SIZE  = 1024*768 / 4,
                video_inst.FB_MASK  = ~0,
                video_inst.M1 = 12'd1024,
                video_inst.M2 = 12'd1048,
