@@ -7,8 +7,8 @@ SIM=../../yarisim/sim
 hilbert-host: hilbert.c
 	cc -g hilbert.c -o hilbert-host
 
-test-font1.mips: test-font1.c font1.c
-	mips-elf-gcc $(LDFLAGS) $(CFLAGS) test-font1.c font1.c -o $@
+test-font1.mips: test-font1.c font-fixed-6x13.c
+	mips-elf-gcc $(LDFLAGS) $(CFLAGS) $^ -o $@
 
 all: hilbert.txt
 
