@@ -11,7 +11,7 @@ promote: firmware
 $(RUNYARI):
 	make -C ../yarisim sim
 
-firmware: tinymon-prom.mif tinymon-prom.data tinymon-prom.dis tinymon-prom.nm
+firmware: tinymon-prom.mif tinymon-prom.data tinymon-prom.dis tinymon-prom.nm tinymon-prom.bin
 
 isasim: tinymon-prom.mips tinymon-prom.dis
 	make -C ../yarisim FLAGS='-i ../firmware/test.txt --firm --verb --regwrites' TESTPROG=../firmware/tinymon-prom.mips run
@@ -36,6 +36,9 @@ rtlsim: tinymon-prom.data tinymon-prom.dis promote
 
 %-prom.data: %-prom.mips %-prom.mif $(RUNYARI)
 	$(RUNYARI) --data $< > $@ || rm $@
+
+%-prom.bin: %-prom.mips %-prom.mif $(RUNYARI)
+	$(RUNYARI) --bin $< > $@ || rm $@
 
 %.dis: %.mips
 	-mips-elf-objdump $(OBJDUMP_FLAGS) $< > $@
