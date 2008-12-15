@@ -1,5 +1,5 @@
 # Please change to match your preferences
-export YARI_XTOOLS_INSTALL_PREFIX=/tmp/$(YARI_XTOOLS_TARGET)
+export YARI_XTOOLS_INSTALL_PREFIX=/opt/$(YARI_XTOOLS_TARGET)
 export YARI_XTOOLS_SUDO= #sudo
 export YARI_XTOOLS_BUILDDIR=/tmp/build-xtools/build
 export YARI_XTOOLS_TARGET=mips-elf
