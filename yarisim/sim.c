@@ -49,6 +49,7 @@ static char *filename = 0;
 
 static struct option long_options[] = {
         {"help",           0, NULL, '?'},
+        {"bin-generation", 0, &run, 'b'}, // for Terasic Control panel
         {"data-generation",0, &run, 'd'}, // for Icarus Verilog simulation
         {"hex-generation", 0, &run, 'h'}, // for Quartus (HEX)
         {"mif-generation", 0, &run, 'm'}, // for Quartus (MIF)
@@ -357,6 +358,7 @@ int main(int argc, char **argv)
                         run_simple(&mips_state);
                 break;
 
+        case 'b':
         case 'r':
         case 'd':
         case 'm':

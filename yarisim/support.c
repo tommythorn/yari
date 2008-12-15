@@ -671,15 +671,27 @@ void dump(char kind)
         for (i = 0; p < text_start + text_size; p += 4, ++i) {
                 unsigned data = load(p, 4, 1);
 
-                if (kind == 'd')
+                switch (kind) {
+                case 'b':
+                        /* Binary blob - big endian */
+                        putchar(255 & (data >> 24));
+                        putchar(255 & (data >> 16));
+                        putchar(255 & (data >>  8));
+                        putchar(255 & (data      ));
+                        break;
+                case 'd':
                         printf("%08X\n", data);
-                else if (kind == 'm') {
+                        break;
+                case 'm':
                         printf("\t%08x : %08x;\n", i, data);
-                } else {
+                        break;
+                default: {
                         unsigned char checksum;
                         checksum = 4 + chksum(i) + chksum(data);
                         printf(":04%04x00%08x%02x",
                                i, data, checksum);
+                        break;
+                }
                 }
         }
 
