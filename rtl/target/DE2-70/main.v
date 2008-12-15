@@ -78,7 +78,13 @@ module main
                 ,.c0(clock)
                 ,.c2(video_clock)
                 ,.locked(clock_locked));
-   wire          reset = !clock_locked;
+   reg           iSW17_, iSW17, manual_reset;
+   wire          reset = !clock_locked | manual_reset;
+   always @(posedge clock) begin
+      iSW17_ <= iSW[17];
+      iSW17 <= iSW17_;
+      manual_reset <= iSW17;
+   end
 
    wire [ 7:0]   rs232out_transmit_data;
    wire          rs232out_write_enable;
@@ -163,6 +169,17 @@ module main
       ,.sram_ce2   (oSRAM_CE2    )
       ,.sram_ce3_n (oSRAM_CE3_N  )
       ,.sram_gw_n  (oSRAM_GW_N   )
+
+      ,.FLASH_DQ(FLASH_DQ)
+      ,.FLASH_DQ15_AM1(FLASH_DQ15_AM1)
+      ,.oFLASH_A(oFLASH_A)
+      ,.oFLASH_WE_N(oFLASH_WE_N)
+      ,.oFLASH_RST_N(oFLASH_RST_N)
+      ,.oFLASH_WP_N(oFLASH_WP_N)
+      ,.iFLASH_RY_N(iFLASH_RY_N)
+      ,.oFLASH_BYTE_N(oFLASH_BYTE_N)
+      ,.oFLASH_OE_N(oFLASH_OE_N)
+      ,.oFLASH_CE_N(oFLASH_CE_N)
       );
 
    rs232out rs232out_inst
