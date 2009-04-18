@@ -21,6 +21,7 @@
 //
 
 `timescale 1ns/10ps
+`include "../soclib/pipeconnect.h"
 
 module stage_M(input  wire        clock
 
@@ -205,6 +206,7 @@ module stage_M(input  wire        clock
    // where the result misbehaves mysteriously. Sadly, Icarus Verilog
    // simulates this fine, thus there's a semantic divergence between
    // the synthesizer and it.
+   reg  [ 5:0] m_opcode = 0;
    wire [31:0] x_rt_fwd = m_valid && m_opcode[5:3] == 4 && m_wbr == x_rt ? m_res : x_rt_val;
    wire [ 1:0] x_store_data_rotation = x_address[1:0] + x_store_data_rotation_delta;
    reg  [31:0] x_store_data;
@@ -242,7 +244,7 @@ module stage_M(input  wire        clock
    reg  [DC_WORD_INDEX_BITS-1:0] m_wi      = 0; // Word Index (which word in the cache line)
    reg  [31:0]                m_store_data = 0;
    reg  [ 3:0]                m_byteena    = 0;
-   reg  [ 5:0]                m_opcode     = 0;
+
    wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
 
    always @* x_lw_res = ((x_hits[0] ? dc_q0 : 0) |
@@ -382,6 +384,7 @@ module stage_M(input  wire        clock
     * Memory interface
     */
    reg         peripherals_readdatavalid = 0;
+   reg         outstanding_cache_miss = 0;
 
    simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag0")
       tag0_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag0),
@@ -502,7 +505,6 @@ module stage_M(input  wire        clock
 
 
 
-   reg         outstanding_cache_miss = 0;
    reg         got_uncached_data = 0;
    reg         uncached_load_pending = 0;
    reg [31:0]  uncached_data = 0;

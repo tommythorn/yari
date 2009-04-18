@@ -37,6 +37,7 @@
  */
 
 `timescale 1ns/10ps
+`include "../soclib/pipeconnect.h"
 
 module stage_I(input  wire        clock
               ,input  wire        kill             // Empty the pipeline
@@ -284,6 +285,7 @@ module stage_I(input  wire        clock
       end
 
       S_INVALIDATE: begin
+`ifdef SIMULATE_MAIN
          if (|hits_2) begin
             $display("%05d  I$ flushing %x (= %x TAG) found a stale line from set %d (hits %x), index %d tags %x %x %x %x",
                      $time,
@@ -294,7 +296,7 @@ module stage_I(input  wire        clock
                      $time,
                      fetchaddress, fetchaddress`CHK, hits_2, fetchaddress`CSI,
                      tag0, tag1, tag2, tag3);
-
+`endif
          tag_wraddress  <= pending_synci_a`CSI;
          tag_write_data <= ~0;
          tag_write_ena  <= hits_2;
@@ -356,7 +358,7 @@ module stage_I(input  wire        clock
          i1_valid <= 0;
          i2_valid <= 0;
       end
-
+`ifdef SIMULATE_MAIN
       // Keep all debugging output down here to keep the logic readable
       if (debug) begin
          if (state == S_RUNNING)
@@ -368,5 +370,6 @@ module stage_I(input  wire        clock
                   i_pc, i_instr, i_valid,
                      set_2, ic_q0, ic_q1, ic_q2, ic_q3);
       end
+`endif
    end
 endmodule
