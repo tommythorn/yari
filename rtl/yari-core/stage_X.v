@@ -129,7 +129,10 @@ module stage_X(input  wire        clock
 
    reg                div_busy = 0, div_neg_res, div_neg_rem;
    reg [31:0]         divisor = 0, div_hi = 0, div_lo = 0;
-   reg [32:0]         diff = 0;
+
+   wire [64:0]        div_shifted = {div_hi, div_lo, 1'd0};
+   wire [32:0]        div_diff    = div_shifted[64:32] - divisor;
+
    reg [ 6:0]         div_n = 0;
 
    reg [31:0]         cp0_status = 0,     // XXX -- " --
@@ -300,16 +303,19 @@ module stage_X(input  wire        clock
       end
 `endif
 
-      // XXX the use of non-blocking assignments here is intentional
-      // (easier to read), but it has the unfortunate consequence of
-      // making the final negation more expensive than it should have
-      // been. Rework this.
+      /*
+       * Division uses a simple algorithm:
+       * for 1 .. 32:
+       *    divident = divident << 1
+       *    if (divident >= (divisor << 32)):
+       *       divident = divident - (divisor << 32) + 1
+       * result = divisor & 0xFFFF_FFFF
+       */
       if (!div_n[6]) begin
-         {div_hi,div_lo} = {div_hi,div_lo} << 1;
-         diff = div_hi - divisor;
-         if (!diff[32]) begin
-            div_hi = diff[31:0];
-            div_lo[0] = 1;
+         {div_hi,div_lo} <= div_shifted;
+         if (!div_diff[32]) begin
+            div_hi    <= div_diff[31:0];
+            div_lo[0] <= 1'd1;
          end
          div_n <= div_n - 1'd1;
       end else if (div_busy) begin
