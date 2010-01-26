@@ -19,7 +19,7 @@ cd build-gcc
   --prefix=$install_prefix                 \
   --with-newlib                            \
   --with-libgloss                          \
-  --target=mips-elf                        \
+  --target=$target                         \
   --with-gnu-as                            \
   --with-gnu-ar
 
