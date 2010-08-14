@@ -24,6 +24,7 @@ int enable_testcases  = 0;
 int enable_regwrites  = 1; // XXX
 int enable_firmware_mode = 0;
 int enable_cosimulation = 0;
+int enable_graphics = 0;
 
 int endian_is_big = 0;
 struct timeval stat_start_time, stat_stop_time;
@@ -63,6 +64,7 @@ static struct option long_options[] = {
         {"regwrites",      0, &enable_regwrites, 1},
         {"firmware",       0, &enable_firmware_mode, 1}, // load only .text
         {"cosimulation",   0, &enable_cosimulation, 1},
+        {"graphics",       0, &enable_graphics, 1},
         // {"file",        1, 0, 'f'}, // 1 = required arg
         // {"serial_in",   1, 0, 'i'}, // 1 = required arg
         // {"serial_out",  1, 0, 'o'}, // 1 = required arg
@@ -345,7 +347,8 @@ int main(int argc, char **argv)
 
         switch (run) {
         case '1':
-                start_sdl();
+                if (enable_graphics)
+                        start_sdl();
                 atexit(print_stats);
                 signal(SIGINT, exit);
                 mips_state.pc = program_entry;
