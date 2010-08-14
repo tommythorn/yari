@@ -21,7 +21,9 @@ cd build-gcc
   --with-libgloss                          \
   --target=$target                         \
   --with-gnu-as                            \
-  --with-gnu-ar
+  --with-gnu-ar				   \
+  --with-gmp=/opt/fsf --with-mpfr=/opt/fsf --with-mpc=/opt/fsf
+
 
 make $make_option
 $sudo make install

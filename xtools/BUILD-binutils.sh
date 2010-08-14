@@ -20,7 +20,8 @@ cd build-binutils
   --target=$target  \
   --prefix=$install_prefix  \
   --with-gnu-as     \
-  --with-gnu-ld
+  --with-gnu-ld     \
+  --disable-werror
 
 make $make_option
 $sudo make install
