@@ -50,7 +50,6 @@ module altsyncram(clocken0,
    parameter             ram_block_type = "AUTO";
    parameter             init_file = "dcache.mif";
    parameter             lpm_type = "altsyncram";
-   parameter             width_byteena_a = 4;
 
    // Dummys
    parameter             address_aclr_b = "NONE";
