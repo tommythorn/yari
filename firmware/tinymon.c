@@ -238,11 +238,6 @@ int main()
 
         serial_out('\n');
         serial_out('\n');
-        out4('Tiny');
-        out4('mon ');
-        out4('2008');
-        out4('-06-');
-        out4('24\n');
 
         /*
          * Very simple protocol
@@ -268,9 +263,17 @@ int main()
                 unsigned char cmd, chk_ext;
                 unsigned char error_code = ' ';
 
-                do
-                        c = serial_in_lowercase();
-                while (c == '\n' || c == '\r' || c == ' ');
+                do {
+                        out4('Tiny');
+                        out4('mon ');
+                        out4('2010');
+                        out4('-09-');
+                        out4('03\n');
+
+                        do
+                            c = serial_in_lowercase();
+                        while (c == '\r' || c == ' ');
+                } while (c == '\n');
 
                 /* Skip cruft until a command is encountered. */
                 while (c != 'c' && c != 'l' && c != 'w' && c != 'r' && c != 'e' &&
