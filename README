@@ -1,6 +1,6 @@
               YARI -- Yet Another RISC Implementation
 
-Last update: 2008-11-24
+Last update: 2010-09-04
 
 INTRODUCTION
 
@@ -56,8 +56,7 @@ There are a few prerequisites for full YARI enjoyment:
   version from http://www.icarus.com/eda/verilog
 
 - For synthesis: currently I've only tested with Quartus 7.2sp1, 8.0,
-  and 8.0sp1.  Get it for free from http://www.altera.com (alas, only
-  works with Windows, whereas everything else here expects Linux).
+  8.0sp1, and 10.0.  Get it for free from http://www.altera.com.
 
 With the Icarus Verilog installed you should be able to simply run
 
