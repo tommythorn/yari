@@ -4,7 +4,7 @@ CC = mips-elf-gcc
 CFLAGS =-D_MIPS_SZLONG=32 -D_MIPS_SZPTR=32 -D_MIPS_SIM=1 -D__linux__ \
         -I. -Wall -Wstrict-prototypes -fomit-frame-pointer -G 0 \
         -mno-abicalls -fno-pic -mips1 -pipe \
-	-O
+	-Os
 
 # -Wa,-alh,-L
 
