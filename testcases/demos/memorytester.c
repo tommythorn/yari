@@ -16,7 +16,7 @@
 
 unsigned **ring;
 
-extern unsigned int _end;
+//extern unsigned int _end;
 
 int main(int argc, char **argv)
 {
