@@ -395,6 +395,7 @@ int main(int argc, char **argv)
                 }
 
                 {
+                        uint32_t data_start       = 0x400e0000; // XXX Ough
                         uint32_t num_icache_lines = 1 << icache_way_lines_log2;
                         uint32_t icache_line_size = 4 << icache_words_in_line_log2;
                         uint32_t icache_way_size  = icache_line_size * num_icache_lines;
@@ -421,7 +422,7 @@ int main(int argc, char **argv)
                         }
 
                         /* D$ data */
-                        for (way = 0, start = 0x400e0000; way < 4; ++way, start += dcache_way_size) {
+                        for (way = 0, start = data_start; way < 4; ++way, start += dcache_way_size) {
                                 snprintf(filename, sizeof filename, "dcache_ram%d.mif", way);
                                 dump(filename, run, NULL, start, dcache_way_size);
                         }
@@ -450,8 +451,8 @@ int main(int argc, char **argv)
                         /* This is the tricky part: the tag identifies
                            the non-index part of the physical address,
                            thus all but the way index */
-                        tag = text_start >> (2 + dcache_words_in_line_log2 + dcache_way_lines_log2);
-                        for (way = 0, start = text_start; way < 4; ++way, start += dcache_line_size * 4, ++tag) {
+                        tag = data_start >> (2 + dcache_words_in_line_log2 + dcache_way_lines_log2);
+                        for (way = 0, start = data_start; way < 4; ++way, start += dcache_line_size * 4, ++tag) {
                                 for (i = 0; i < 1 << dcache_way_lines_log2; ++i)
                                         tags[i] = tag;
                                 snprintf(filename, sizeof filename, "dcache_tag%d.mif", way);
