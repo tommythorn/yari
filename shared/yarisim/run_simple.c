@@ -834,7 +834,7 @@ void run_simple(MIPS_state_t *state)
                         last_load_dest = wbr;
                         w = LD32(address & ~3);
                         sh = (address & 3) * 8;
-                        wbv = w << sh | ~(~0 << sh) & t;
+                        wbv = (w << sh) | (~(~0 << sh) & t); // gcc -Wall stupidity
                         /* printf("LWL [%08x]=%08x + t %08x -> %08x!\n", address, w, t, wbv); */
                         break;
 
@@ -842,7 +842,7 @@ void run_simple(MIPS_state_t *state)
                         last_load_dest = wbr;
                         w = LD32(address & ~3);
                         sh = 24 - (address & 3) * 8;
-                        wbv = w >> sh | ~(~0U >> sh) & t;
+                        wbv = (w >> sh) | (~(~0U >> sh) & t); // gcc -Wall stupidity
                         /* printf("LWR [%08x]=%08x + t %08x -> %08x!\n", address, w, t, wbv); */
                         break;
 
@@ -853,14 +853,14 @@ void run_simple(MIPS_state_t *state)
                         wbr = 0;
                         w = LD32(address & ~3);
                         sh = (address & 3) * 8;
-                        ST32(address & ~3, t >> sh | ~(~0U >> sh) & w);
+                        ST32(address & ~3, (t >> sh) | (~(~0U >> sh) & w)); // gcc -Wall stupidity
                         break;
 
                 case SWR:
                         wbr = 0;
                         w = LD32(address & ~3);
                         sh = 24 - (address & 3) * 8;
-                        ST32(address & ~3, t << sh | ~(~0 << sh) & w);
+                        ST32(address & ~3, (t << sh) | (~(~0 << sh) & w)); // gcc -Wall stupidity
                         break;
 
                 case CP1:  {
