@@ -71,7 +71,7 @@ module sram16_ctrl
    assign    mem_waitrequest   = state != S_IDLE || !cnt[CNTSIGN] || !waitcnt[WAITSIGN];
 
    reg       sram_dout_en      = 0;
-   assign    sram_d            = sram_dout_en ? sram_dout : 'hZ;
+   assign    sram_d            = sram_dout_en ? sram_dout : 16'hZ;
 
    always @(negedge clock)
       sram_we_n <= int_we_n;

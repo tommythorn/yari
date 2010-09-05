@@ -197,7 +197,7 @@ module stage_M(input  wire        clock
       `SB:  x_store_data_rotation_delta = 1;
       `SWL: x_store_data_rotation_delta = 0;
       `SWR: x_store_data_rotation_delta = 1;
-      default: x_store_data_rotation_delta = 'hX;
+      default: x_store_data_rotation_delta = 32'hXXXXXXXX;
       endcase
 
    // Warning: the x_store_data_rotation assignment is necessary to

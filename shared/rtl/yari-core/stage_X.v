@@ -185,7 +185,7 @@ module stage_X(input  wire        clock
     */
 
    always @* begin
-      x_res = 'hX;
+      x_res = 32'hXXXXXXXX;
       case (x_opcode)
       `REG:
          case (x_fn)
@@ -211,7 +211,7 @@ module stage_X(input  wire        clock
          `NOR:    x_res = ~(x_op1_val | x_op2_val);
          `SLT:    x_res = {{31{1'b0}}, x_sign_flag ^ x_overflow_flag};
          `SLTU:   x_res = {{31{1'b0}}, ~x_carry_flag};
-         default: x_res = 'hX;
+         default: x_res = 32'hXXXXXXXX;
          endcase
       `REGIMM:    x_res = x_special;// BLTZ, BGEZ, BLTZAL, BGEZAL
       `JAL:       x_res = x_special;
@@ -226,7 +226,7 @@ module stage_X(input  wire        clock
       //`CP1:
       `RDHWR:     x_res = x_special;
       `CP2:       x_res = x_special;
-      default: x_res = 'hX;
+      default: x_res = 32'hXXXXXXXX;
       endcase
    end
 
