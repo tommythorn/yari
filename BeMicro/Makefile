@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------
 #
-#   Copyright 2007 Tommy Thorn - All Rights Reserved
+#   Copyright 2007,2010 Tommy Thorn - All Rights Reserved
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -10,12 +10,8 @@
 #
 # -----------------------------------------------------------------------
 
-IC_LINE_INDEX_BITS=7    # Each set has 128 lines
-IC_WORD_INDEX_BITS=2    # Each line has 4 32-bit words (128 bits)
-DC_LINE_INDEX_BITS=8    # Each set has 256 lines
-DC_WORD_INDEX_BITS=2    # Each line has 4 32-bit words (128 bits)
+TOPDIR=..
+include ../shared/shared.mk
 
-config.h: Makefile ../../makeconfig.sh
-	../../makeconfig.sh \
-		$(IC_LINE_INDEX_BITS) $(IC_WORD_INDEX_BITS) \
-		$(DC_LINE_INDEX_BITS) $(DC_WORD_INDEX_BITS)
+config.h: $(MAKECONFIG) default.conf
+	$(MAKECONFIG) default.conf

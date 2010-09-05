@@ -4,21 +4,23 @@
 # shell script that generates the instruction tag memory
 # initialization files as well as config.h
 
+source $1
+
 # Cachable range
 CACHEABLE_BITS=32
 
-printf 'I$: %3d KiB (%d word lines)\n' $((1 << ($1 + $2 + 4 - 10))) $((1 << $2))
-printf 'D$: %3d KiB (%d word lines)\n' $((1 << ($3 + $4 + 4 - 10))) $((1 << $4))
+printf 'I$: %3d KiB (%d word lines)\n' $((1 << ($IC_LINE_INDEX_BITS + $IC_WORD_INDEX_BITS + 4 - 10))) $((1 << $IC_WORD_INDEX_BITS))
+printf 'D$: %3d KiB (%d word lines)\n' $((1 << ($DC_LINE_INDEX_BITS + $DC_WORD_INDEX_BITS + 4 - 10))) $((1 << $DC_WORD_INDEX_BITS))
 
 # Instruction cache (4-way associtative tag-sequential 8 KiB)
 IC_SET_INDEX_BITS=2     # Caches has four sets
-IC_LINE_INDEX_BITS=$1    # Each set has 128 lines
-IC_WORD_INDEX_BITS=$2    # Each line has 4 32-bit words (128 bits)
+IC_LINE_INDEX_BITS=$IC_LINE_INDEX_BITS    # Each set has 128 lines
+IC_WORD_INDEX_BITS=$IC_WORD_INDEX_BITS    # Each line has 4 32-bit words (128 bits)
 
 # Data cache (4-way associtative tag-sequential 16 KiB)
 DC_SET_INDEX_BITS=2     # Caches has four sets
-DC_LINE_INDEX_BITS=$3    # Each set has 256 lines
-DC_WORD_INDEX_BITS=$4    # Each line has 4 32-bit words (128 bits)
+DC_LINE_INDEX_BITS=$DC_LINE_INDEX_BITS    # Each set has 256 lines
+DC_WORD_INDEX_BITS=$DC_WORD_INDEX_BITS    # Each line has 4 32-bit words (128 bits)
 
 cat<<EOF  > config.h
 // Don't edit this! Edit config.sh
