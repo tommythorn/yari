@@ -138,8 +138,8 @@ set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/vga.v
 set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/hexled.v
 set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/logshiftright.v
 set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/arithshiftbidir.v
-set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/simpledpram.v
-set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/dpram.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/CycloneIII/simpledpram.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/CycloneIII/dpram.v
 set_global_assignment -name MIF_FILE ../initmem.mif
 set_global_assignment -name MIF_FILE ../tags0.mif
 set_global_assignment -name MIF_FILE ../tags1.mif
