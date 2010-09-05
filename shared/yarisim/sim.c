@@ -365,7 +365,7 @@ int main(int argc, char **argv)
         case 'r':
         case 'd':
         case 'm':
-                dump(run);
+                dump(stdout, run, text_start, text_size);
                 exit(0);
 
         case 't':

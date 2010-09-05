@@ -644,62 +644,58 @@ chksum(unsigned x)
         return (x & 255) + ((x >> 8) & 255) + ((x >> 16) & 255) + ((x >> 24) & 255);
 }
 
-void dump(char kind)
+void dump(FILE *f, char kind, uint32_t start, uint32_t size)
 {
-        unsigned p = text_start;
+        uint32_t p;
         int i;
 
-//      assert(text_start == 0x80000000);
-
-        // This is used to dump to "prom" and doesn't need to be very general
-        assert(text_segments == 1);
-
+        assert((start & 3) == 0);
+        assert((size & 3) == 0);
 
         if (kind == 'm') {
-                printf("-- yarisim generated Memory Initialization File (.mif)\n"
-                       "\n"
-                       "WIDTH=32;\n"
-                       "DEPTH=%d;\n"
-                       "\n"
-                       "ADDRESS_RADIX=HEX;\n"
-                       "DATA_RADIX=HEX;\n"
-                       "\n"
-                       "CONTENT BEGIN\n",
-                       mif_size / 4);
+                fprintf(f,
+                        "-- yarisim generated Memory Initialization File (.mif)\n"
+                        "\n"
+                        "WIDTH=32;\n"
+                        "DEPTH=%d;\n"
+                        "\n"
+                        "ADDRESS_RADIX=HEX;\n"
+                        "DATA_RADIX=HEX;\n"
+                        "\n"
+                        "CONTENT BEGIN\n",
+                        size / 4);
         }
 
-        for (i = 0; p < text_start + text_size; p += 4, ++i) {
-                unsigned data = load(p, 4, 1);
+        for (i = 0, p = start; p < start + size; p += 4, ++i) {
+                uint32_t data = load(p, 4, 1);
 
                 switch (kind) {
                 case 'b':
                         /* Binary blob - big endian */
-                        putchar(255 & (data >> 24));
-                        putchar(255 & (data >> 16));
-                        putchar(255 & (data >>  8));
-                        putchar(255 & (data      ));
+                        fputc(255 & (data >> 24), f);
+                        fputc(255 & (data >> 16), f);
+                        fputc(255 & (data >>  8), f);
+                        fputc(255 & (data      ), f);
                         break;
                 case 'd':
-                        printf("%08X\n", data);
+                        fprintf(f, "%08X\n", data);
                         break;
                 case 'm':
-                        printf("\t%08x : %08x;\n", i, data);
+                        fprintf(f, "\t%08x : %08x;\n", i, data);
                         break;
                 default: {
                         unsigned char checksum;
                         checksum = 4 + chksum(i) + chksum(data);
-                        printf(":04%04x00%08x%02x",
-                               i, data, checksum);
+                        fprintf(f, ":04%04x00%08x%02x",
+                                i, data, checksum);
                         break;
                 }
                 }
         }
 
         if (kind == 'm') {
-                printf("END;\n");
+                fprintf(f, "END;\n");
         }
-
-
 }
 
 static void tinymon_cmd(unsigned char cmd, unsigned val)
