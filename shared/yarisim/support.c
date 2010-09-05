@@ -644,13 +644,18 @@ chksum(unsigned x)
         return (x & 255) + ((x >> 8) & 255) + ((x >> 16) & 255) + ((x >> 24) & 255);
 }
 
-void dump(FILE *f, char kind, uint32_t start, uint32_t size)
+void dump(const char *filename, char kind, uint32_t start, uint32_t size)
 {
+        FILE *f;
         uint32_t p;
         int i;
 
         assert((start & 3) == 0);
         assert((size & 3) == 0);
+
+        f = fopen(filename, "w");
+        if (!f)
+                perror(filename), exit(1);
 
         if (kind == 'm') {
                 fprintf(f,
@@ -696,6 +701,8 @@ void dump(FILE *f, char kind, uint32_t start, uint32_t size)
         if (kind == 'm') {
                 fprintf(f, "END;\n");
         }
+
+        fclose(f);
 }
 
 static void tinymon_cmd(unsigned char cmd, unsigned val)

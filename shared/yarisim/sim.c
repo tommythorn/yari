@@ -408,14 +408,14 @@ int main(int argc, char **argv)
                         printf("%2d KiB 4-way D$, organized as %d cache lines, each line being %d bytes\n",
                                dcache_size / 1024, 1 << dcache_way_lines_log2, dcache_line_size);
 
-                        for (way = 0, start = text_start; way < 4; ++way, start += icache_size / 4) {
-                                FILE *f;
+                        for (way = 0, start = text_start; way < 4; ++way, start += icache_way_size) {
                                 snprintf(filename, sizeof filename, "icache_ram%d.mif", way);
-                                f = fopen(filename, "w");
-                                if (!f)
-                                        perror(filename), exit(1);
-                                dump(f, run, start, icache_size / 4);
-                                fclose(f);
+                                dump(filename, run, start, icache_way_size);
+                        }
+
+                        for (way = 0, start = 0x400e0000; way < 4; ++way, start += dcache_way_size) {
+                                snprintf(filename, sizeof filename, "dcache_ram%d.mif", way);
+                                dump(filename, run, start, dcache_way_size);
                         }
 
                         exit(0);
