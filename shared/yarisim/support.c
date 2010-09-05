@@ -644,13 +644,15 @@ chksum(unsigned x)
         return (x & 255) + ((x >> 8) & 255) + ((x >> 16) & 255) + ((x >> 24) & 255);
 }
 
-void dump(const char *filename, char kind, uint32_t start, uint32_t size)
+/* dump operates in two modes: if given a non-NULL memory, dump from
+   memory and ignore start, otherwise go through the memory
+   virtualization. */
+void dump(const char *filename, char kind, uint32_t *memory, uint32_t start, uint32_t size)
 {
         FILE *f;
-        uint32_t p;
         int i;
 
-        assert((start & 3) == 0);
+        assert(memory || (start & 3) == 0);
         assert((size & 3) == 0);
 
         f = fopen(filename, "w");
@@ -671,8 +673,8 @@ void dump(const char *filename, char kind, uint32_t start, uint32_t size)
                         size / 4);
         }
 
-        for (i = 0, p = start; p < start + size; p += 4, ++i) {
-                uint32_t data = load(p, 4, 1);
+        for (i = 0; i * 4 < size; ++i) {
+                uint32_t data = memory ? memory[i] : load(start + i * 4, 4, 1);
 
                 switch (kind) {
                 case 'b':

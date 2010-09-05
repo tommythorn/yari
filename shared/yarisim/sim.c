@@ -378,45 +378,87 @@ int main(int argc, char **argv)
                         printf("Please provide log2 of the number of I$ lines pr way with --icache_way_lines_log2\n");
                         exit(1);
                 }
+
                 if (dcache_way_lines_log2 == 0) {
                         printf("Please provide log2 of the number of D$ lines pr way with --dcache_way_lines_log2\n");
                         exit(1);
                 }
+
                 if (icache_words_in_line_log2 == 0) {
                         printf("Please provide log2 of the number of words in I$ lines --icache-words-in-line-log2");
                         exit(1);
                 }
+
                 if (dcache_words_in_line_log2 == 0) {
                         printf("Please provide log2 of the number of words in D$ lines --dcache-words-in-line-log2");
                         exit(1);
                 }
 
                 {
+                        uint32_t num_icache_lines = 1 << icache_way_lines_log2;
                         uint32_t icache_line_size = 4 << icache_words_in_line_log2;
-                        uint32_t icache_way_size  = icache_line_size << icache_way_lines_log2;
+                        uint32_t icache_way_size  = icache_line_size * num_icache_lines;
                         uint32_t icache_size      = 4 * icache_way_size;
+                        uint32_t num_dcache_lines = 1 << dcache_way_lines_log2;
                         uint32_t dcache_line_size = 4 << dcache_words_in_line_log2;
-                        uint32_t dcache_way_size  = dcache_line_size << dcache_way_lines_log2;
+                        uint32_t dcache_way_size  = dcache_line_size * num_dcache_lines;
                         uint32_t dcache_size      = 4 * dcache_way_size;
 
-                        uint32_t start;
+                        uint32_t start, tag;
                         char filename[99];
-                        int way;
+                        int way, i;
+                        uint32_t *tags;
 
                         printf("%2d KiB 4-way I$, organized as %d cache lines, each line being %d bytes\n",
                                icache_size / 1024, 1 << icache_way_lines_log2, icache_line_size);
                         printf("%2d KiB 4-way D$, organized as %d cache lines, each line being %d bytes\n",
                                dcache_size / 1024, 1 << dcache_way_lines_log2, dcache_line_size);
 
+                        /* I$ data */
                         for (way = 0, start = text_start; way < 4; ++way, start += icache_way_size) {
                                 snprintf(filename, sizeof filename, "icache_ram%d.mif", way);
-                                dump(filename, run, start, icache_way_size);
+                                dump(filename, run, NULL, start, icache_way_size);
                         }
 
+                        /* D$ data */
                         for (way = 0, start = 0x400e0000; way < 4; ++way, start += dcache_way_size) {
                                 snprintf(filename, sizeof filename, "dcache_ram%d.mif", way);
-                                dump(filename, run, start, dcache_way_size);
+                                dump(filename, run, NULL, start, dcache_way_size);
                         }
+
+                        /* I$ tags. */
+                        tags = malloc(num_icache_lines * sizeof tags[0]);
+                        assert(tags);
+
+                        /* This is the tricky part: the tag identifies
+                           the non-index part of the physical address,
+                           thus all but the way index */
+                        tag = text_start >> (2 + icache_words_in_line_log2 + icache_way_lines_log2);
+                        for (way = 0, start = text_start; way < 4; ++way, start += icache_line_size * 4, ++tag) {
+                                for (i = 0; i < 1 << icache_way_lines_log2; ++i)
+                                        tags[i] = tag;
+                                snprintf(filename, sizeof filename, "icache_tag%d.mif", way);
+                                dump(filename, run, tags, 0, num_icache_lines * sizeof tags[0]);
+                        }
+                        free(tags);
+
+
+                        /* D$ tags. */
+                        tags = malloc(num_dcache_lines * sizeof tags[0]);
+                        assert(tags);
+
+                        /* This is the tricky part: the tag identifies
+                           the non-index part of the physical address,
+                           thus all but the way index */
+                        tag = text_start >> (2 + dcache_words_in_line_log2 + dcache_way_lines_log2);
+                        for (way = 0, start = text_start; way < 4; ++way, start += dcache_line_size * 4, ++tag) {
+                                for (i = 0; i < 1 << dcache_way_lines_log2; ++i)
+                                        tags[i] = tag;
+                                snprintf(filename, sizeof filename, "dcache_tag%d.mif", way);
+                                dump(filename, run, tags, 0, num_dcache_lines * sizeof tags[0]);
+                        }
+                        free(tags);
+
 
                         exit(0);
                 }
