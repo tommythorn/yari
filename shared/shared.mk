@@ -18,7 +18,7 @@ all: rtl/config.h rtl/icache_ram0.mif
 rtl/config.h: $(MAKECONFIG) default.conf
 	cd rtl; ../$(MAKECONFIG) ../default.conf
 
-rtl/icache_ram0.mif: yarisim
+rtl/icache_ram0.mif: tinymon.mips yarisim
 	cd rtl; ../$(TOPDIR)/shared/yarisim/sim       \
 		--mif                                 \
 		--icache-way=$(IC_LINE_INDEX_BITS)    \
