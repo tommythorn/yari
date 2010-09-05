@@ -17,6 +17,11 @@ all: rtl/config.h rtl/icache_ram0.mif
 rtl/config.h: $(MAKECONFIG) default.conf
 	cd rtl; ../$(MAKECONFIG) ../default.conf
 
-# XXX we'll make this MUCH better in future
-rtl/icache_ram0.mif: $(TOPDIR)/shared/rtl/initmem.mif
-	cp $< $@
+rtl/icache_ram0.mif:
+	cd rtl; ../$(TOPDIR)/shared/yarisim/sim       \
+		--mif                                 \
+		--icache-way=$(IC_LINE_INDEX_BITS)    \
+		--icache-words=$(IC_WORD_INDEX_BITS)  \
+		--dcache-way=$(DC_LINE_INDEX_BITS)    \
+		--dcache-words=$(DC_WORD_INDEX_BITS)  \
+		../$(TOPDIR)/shared/firmware/tinymon-prom.mips

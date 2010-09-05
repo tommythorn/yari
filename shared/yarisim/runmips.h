@@ -118,6 +118,10 @@ unsigned segfault;
 uint32_t framebuffer_start, framebuffer_size;
 unsigned framebuffer_generation;
 
+// Cache parameters in words log2
+uint32_t icache_way_lines_log2, icache_words_in_line_log2;
+uint32_t dcache_way_lines_log2, dcache_words_in_line_log2;
+
 void exception(char *kind);
 void loadsection(FILE *f, unsigned f_offset, unsigned f_len, unsigned m_addr, unsigned m_len);
 void readelf(char *name);

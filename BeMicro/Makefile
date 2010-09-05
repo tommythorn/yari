@@ -11,5 +11,6 @@
 # -----------------------------------------------------------------------
 
 TOPDIR=..
+include default.conf
 include ../shared/shared.mk
 

@@ -65,6 +65,10 @@ static struct option long_options[] = {
         {"firmware",       0, &enable_firmware_mode, 1}, // load only .text
         {"cosimulation",   0, &enable_cosimulation, 1},
         {"graphics",       0, &enable_graphics, 1},
+        {"icache-way-lines-log2",     1, 0, 1000},
+        {"icache-words-in-line-log2", 1, 0, 1001},
+        {"dcache-way-lines-log2",     1, 0, 1002},
+        {"dcache-words-in-line-log2", 1, 0, 1003},
         // {"file",        1, 0, 'f'}, // 1 = required arg
         // {"serial_in",   1, 0, 'i'}, // 1 = required arg
         // {"serial_out",  1, 0, 'o'}, // 1 = required arg
@@ -298,6 +302,11 @@ int main(int argc, char **argv)
                         usage(argv[0]);
                         break;
 
+                case 1000: icache_way_lines_log2     = atoi(optarg); break;
+                case 1001: icache_words_in_line_log2 = atoi(optarg); break;
+                case 1002: dcache_way_lines_log2     = atoi(optarg); break;
+                case 1003: dcache_words_in_line_log2 = atoi(optarg); break;
+
                 default:
                         printf ("?? getopt returned character code 0%o ??\n", c);
                 }
@@ -365,8 +374,53 @@ int main(int argc, char **argv)
         case 'r':
         case 'd':
         case 'm':
-                dump(stdout, run, text_start, text_size);
-                exit(0);
+                if (icache_way_lines_log2 == 0) {
+                        printf("Please provide log2 of the number of I$ lines pr way with --icache_way_lines_log2\n");
+                        exit(1);
+                }
+                if (dcache_way_lines_log2 == 0) {
+                        printf("Please provide log2 of the number of D$ lines pr way with --dcache_way_lines_log2\n");
+                        exit(1);
+                }
+                if (icache_words_in_line_log2 == 0) {
+                        printf("Please provide log2 of the number of words in I$ lines --icache-words-in-line-log2");
+                        exit(1);
+                }
+                if (dcache_words_in_line_log2 == 0) {
+                        printf("Please provide log2 of the number of words in D$ lines --dcache-words-in-line-log2");
+                        exit(1);
+                }
+
+                {
+                        uint32_t icache_line_size = 4 << icache_words_in_line_log2;
+                        uint32_t icache_way_size  = icache_line_size << icache_way_lines_log2;
+                        uint32_t icache_size      = 4 * icache_way_size;
+                        uint32_t dcache_line_size = 4 << dcache_words_in_line_log2;
+                        uint32_t dcache_way_size  = dcache_line_size << dcache_way_lines_log2;
+                        uint32_t dcache_size      = 4 * dcache_way_size;
+
+                        uint32_t start;
+                        char filename[99];
+                        int way;
+
+                        printf("%2d KiB 4-way I$, organized as %d cache lines, each line being %d bytes\n",
+                               icache_size / 1024, 1 << icache_way_lines_log2, icache_line_size);
+                        printf("%2d KiB 4-way D$, organized as %d cache lines, each line being %d bytes\n",
+                               dcache_size / 1024, 1 << dcache_way_lines_log2, dcache_line_size);
+
+                        for (way = 0, start = text_start; way < 4; ++way, start += icache_size / 4) {
+                                FILE *f;
+                                snprintf(filename, sizeof filename, "icache_ram%d.mif", way);
+                                f = fopen(filename, "w");
+                                if (!f)
+                                        perror(filename), exit(1);
+                                dump(f, run, start, icache_size / 4);
+                                fclose(f);
+                        }
+
+                        exit(0);
+                }
+                break;
 
         case 't':
                 dump_tinymon();
