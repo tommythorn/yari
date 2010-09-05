@@ -78,7 +78,7 @@ IC_TAG_BITS=$((CACHEABLE_BITS - IC_SET_BITS))
 # Now generate tagX.mif
 for set in 0 1 2 3; do
   size=$((1 << IC_LINE_INDEX_BITS))
-  name=tag$set
+  name=icache_tag$set
   val=$(((0xBFC00000 >> IC_SET_BITS) + set))
   gen_tag $name $size $val $IC_TAG_BITS $((1 << IC_LINE_INDEX_BITS))
 done
@@ -89,7 +89,7 @@ DC_TAG_BITS=$((CACHEABLE_BITS - DC_SET_BITS))
 # Now generate tagX.mif
 for set in 0 1 2 3; do
   size=$((1 << DC_LINE_INDEX_BITS))
-  name=dtag$set
+  name=dcache_tag$set
   val=$(((0xFFFFFFFF >> DC_SET_BITS) - set))
   gen_tag $name $size $val $DC_TAG_BITS $((1 << DC_LINE_INDEX_BITS))
 done

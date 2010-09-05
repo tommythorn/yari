@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------
 #
-#   Copyright 2007,2010 Tommy Thorn - All Rights Reserved
+#   Copyright 2010 Tommy Thorn - All Rights Reserved
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -10,6 +10,13 @@
 #
 # -----------------------------------------------------------------------
 
-TOPDIR=..
-include ../shared/shared.mk
+MAKECONFIG=$(TOPDIR)/shared/tools/makeconfig.sh
 
+all: rtl/config.h rtl/icache_ram0.mif
+
+rtl/config.h: $(MAKECONFIG) default.conf
+	cd rtl; ../$(MAKECONFIG) ../default.conf
+
+# XXX we'll make this MUCH better in future
+rtl/icache_ram0.mif: $(TOPDIR)/shared/rtl/initmem.mif
+	cp $< $@

@@ -11,7 +11,7 @@
 // -----------------------------------------------------------------------
 
 `timescale 1ns/10ps
-`include "../../soclib/pipeconnect.h"
+`include "../../shared/rtl/soclib/pipeconnect.h"
 module toplevel(input              clk, // 16 MHz
                 input              exp_rst_n,
                 output reg [ 7:0]  led,

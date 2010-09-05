@@ -164,48 +164,48 @@ module stage_I(input  wire        clock
    reg [3:0]                 tag_write_ena = 0;
 
 
-   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag0")
+   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"icache_tag0")
       tag0_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag0),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[0]));
 
-   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag1")
+   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"icache_tag1")
       tag1_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag1),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[1]));
 
-   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag2")
+   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"icache_tag2")
       tag2_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag2),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[2]));
 
-   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"tag3")
+   simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"icache_tag3")
       tag3_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag3),
                .wraddress(tag_wraddress), .wrdata(tag_write_data),
                .wren(tag_write_ena[3]));
 
-   simpledpram #(32,CACHE_BITS - 4,"../../initmem")
+   simpledpram #(32,CACHE_BITS - 4,"icache_ram0")
       icache_ram0(.clock(clock),
                   .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q0),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 0 && state == S_FILLING && imem_readdatavalid));
 
-   simpledpram #(32,CACHE_BITS - 4,"../../initmem1")
+   simpledpram #(32,CACHE_BITS - 4,"icache_ram1")
       icache_ram1(.clock(clock),
                   .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q1),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 1 && state == S_FILLING && imem_readdatavalid));
 
-   simpledpram #(32,CACHE_BITS - 4,"../../initmem2")
+   simpledpram #(32,CACHE_BITS - 4,"icache_ram2")
       icache_ram2(.clock(clock),
                   .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q2),
                   .wraddress({i_pc`CSI,fill_wi}),
                   .wrdata(imem_readdata),
                   .wren(fill_set == 2 && state == S_FILLING && imem_readdatavalid));
 
-   simpledpram #(32,CACHE_BITS - 4,"../../initmem3")
+   simpledpram #(32,CACHE_BITS - 4,"icache_ram3")
       icache_ram3(.clock(clock),
                   .rdaddress({fetchaddress`CSI,fetchaddress`WDX}), .rddata(ic_q3),
                   .wraddress({i_pc`CSI,fill_wi}),

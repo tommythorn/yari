@@ -386,22 +386,22 @@ module stage_M(input  wire        clock
    reg         peripherals_readdatavalid = 0;
    reg         outstanding_cache_miss = 0;
 
-   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag0")
+   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dcache_tag0")
       tag0_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag0),
                .wraddress(fill_csi), .wrdata(fill_chk),
                .wren(dmem_readdatavalid && &fill_wi && fill_set == 0));
 
-   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag1")
+   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dcache_tag1")
       tag1_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag1),
                .wraddress(fill_csi), .wrdata(fill_chk),
                .wren(dmem_readdatavalid && &fill_wi && fill_set == 1));
 
-   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag2")
+   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dcache_tag2")
       tag2_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag2),
                .wraddress(fill_csi), .wrdata(fill_chk),
                .wren(dmem_readdatavalid && &fill_wi && fill_set == 2));
 
-   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dtag3")
+   simpledpram #(TAG_BITS,DC_LINE_INDEX_BITS,"dcache_tag3")
       tag3_ram(.clock(clock), .rdaddress(d_csi), .rddata(x_tag3),
                .wraddress(fill_csi), .wrdata(fill_chk),
                .wren(dmem_readdatavalid && &fill_wi && fill_set == 3));
@@ -411,7 +411,7 @@ module stage_M(input  wire        clock
     * and use a late select.
     */
 
-   dpram #(32, CACHE_BITS -4, "dcache0")
+   dpram #(32, CACHE_BITS -4, "dcache_ram0")
       dcache0_ram(.clock(clock),
                  // Write-through caches only write to caches on hits, but go to
                  // memory in all cases
@@ -434,7 +434,7 @@ module stage_M(input  wire        clock
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
 
-   dpram #(32, CACHE_BITS -4, "dcache1")
+   dpram #(32, CACHE_BITS -4, "dcache_ram1")
       dcache1_ram(.clock(clock),
                  // Write-through caches only write to caches on hits, but go to
                  // memory in all cases
@@ -457,7 +457,7 @@ module stage_M(input  wire        clock
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
 
-   dpram #(32, CACHE_BITS -4, "dcache2")
+   dpram #(32, CACHE_BITS -4, "dcache_ram2")
       dcache2_ram(.clock(clock),
                  // Write-through caches only write to caches on hits, but go to
                  // memory in all cases
@@ -480,7 +480,7 @@ module stage_M(input  wire        clock
                  .rddata_b());
    //defparam    dcache_ram.debug = 1;
 
-   dpram #(32, CACHE_BITS -4, "dcache3")
+   dpram #(32, CACHE_BITS -4, "dcache_ram3")
       dcache3_ram(.clock(clock),
                  // Write-through caches only write to caches on hits, but go to
                  // memory in all cases
