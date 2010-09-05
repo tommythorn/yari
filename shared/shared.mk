@@ -11,17 +11,24 @@
 # -----------------------------------------------------------------------
 
 MAKECONFIG=$(TOPDIR)/shared/tools/makeconfig.sh
+FIRMWARE ?= tinymon.mips
 
 all: rtl/config.h rtl/icache_ram0.mif
 
 rtl/config.h: $(MAKECONFIG) default.conf
 	cd rtl; ../$(MAKECONFIG) ../default.conf
 
-rtl/icache_ram0.mif:
+rtl/icache_ram0.mif: yarisim
 	cd rtl; ../$(TOPDIR)/shared/yarisim/sim       \
 		--mif                                 \
 		--icache-way=$(IC_LINE_INDEX_BITS)    \
 		--icache-words=$(IC_WORD_INDEX_BITS)  \
 		--dcache-way=$(DC_LINE_INDEX_BITS)    \
 		--dcache-words=$(DC_WORD_INDEX_BITS)  \
-		../$(TOPDIR)/shared/firmware/tinymon-prom.mips
+		../$(FIRMWARE)
+
+tinymon.mips: $(TOPDIR)/shared/firmware/tinymon.c
+	mips-elf-gcc -T$(TOPDIR)/shared/firmware/prom.ld -D_mips_ -msoft-float -s -Os $< -o $@
+
+yarisim:
+	make -C $(TOPDIR)/shared/yarisim
