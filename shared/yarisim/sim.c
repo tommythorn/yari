@@ -400,10 +400,13 @@ int main(int argc, char **argv)
                         uint32_t icache_line_size = 4 << icache_words_in_line_log2;
                         uint32_t icache_way_size  = icache_line_size * num_icache_lines;
                         uint32_t icache_size      = 4 * icache_way_size;
+                        uint32_t icache_tag_width = 32 - icache_way_lines_log2 - icache_words_in_line_log2 - 2;
+
                         uint32_t num_dcache_lines = 1 << dcache_way_lines_log2;
                         uint32_t dcache_line_size = 4 << dcache_words_in_line_log2;
                         uint32_t dcache_way_size  = dcache_line_size * num_dcache_lines;
                         uint32_t dcache_size      = 4 * dcache_way_size;
+                        uint32_t dcache_tag_width = 32 - dcache_way_lines_log2 - dcache_words_in_line_log2 - 2;
 
                         uint32_t start, tag;
                         char filename[99];
@@ -418,13 +421,13 @@ int main(int argc, char **argv)
                         /* I$ data */
                         for (way = 0, start = text_start; way < 4; ++way, start += icache_way_size) {
                                 snprintf(filename, sizeof filename, "icache_ram%d.mif", way);
-                                dump(filename, run, NULL, start, icache_way_size);
+                                dump(filename, run, 32, NULL, start, icache_way_size);
                         }
 
                         /* D$ data */
                         for (way = 0, start = data_start; way < 4; ++way, start += dcache_way_size) {
                                 snprintf(filename, sizeof filename, "dcache_ram%d.mif", way);
-                                dump(filename, run, NULL, start, dcache_way_size);
+                                dump(filename, run, 32, NULL, start, dcache_way_size);
                         }
 
                         /* I$ tags. */
@@ -439,7 +442,7 @@ int main(int argc, char **argv)
                                 for (i = 0; i < 1 << icache_way_lines_log2; ++i)
                                         tags[i] = tag;
                                 snprintf(filename, sizeof filename, "icache_tag%d.mif", way);
-                                dump(filename, run, tags, 0, num_icache_lines * sizeof tags[0]);
+                                dump(filename, run, icache_tag_width, tags, 0, num_icache_lines * sizeof tags[0]);
                         }
                         free(tags);
 
@@ -456,7 +459,7 @@ int main(int argc, char **argv)
                                 for (i = 0; i < 1 << dcache_way_lines_log2; ++i)
                                         tags[i] = tag;
                                 snprintf(filename, sizeof filename, "dcache_tag%d.mif", way);
-                                dump(filename, run, tags, 0, num_dcache_lines * sizeof tags[0]);
+                                dump(filename, run, dcache_tag_width, tags, 0, num_dcache_lines * sizeof tags[0]);
                         }
                         free(tags);
 

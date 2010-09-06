@@ -647,7 +647,7 @@ chksum(unsigned x)
 /* dump operates in two modes: if given a non-NULL memory, dump from
    memory and ignore start, otherwise go through the memory
    virtualization. */
-void dump(const char *filename, char kind, uint32_t *memory, uint32_t start, uint32_t size)
+void dump(const char *filename, char kind, uint32_t width, uint32_t *memory, uint32_t start, uint32_t size)
 {
         FILE *f;
         int i;
@@ -663,13 +663,14 @@ void dump(const char *filename, char kind, uint32_t *memory, uint32_t start, uin
                 fprintf(f,
                         "-- yarisim generated Memory Initialization File (.mif)\n"
                         "\n"
-                        "WIDTH=32;\n"
+                        "WIDTH=%d;\n"
                         "DEPTH=%d;\n"
                         "\n"
                         "ADDRESS_RADIX=HEX;\n"
                         "DATA_RADIX=HEX;\n"
                         "\n"
                         "CONTENT BEGIN\n",
+                        width,
                         size / 4);
         }
 

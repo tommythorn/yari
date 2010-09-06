@@ -134,7 +134,7 @@ void disass(unsigned pc, inst_t i);
 
 void init_reg_use_map(void);
 void run_simple(MIPS_state_t *s);
-void dump(const char *filename, char kind, uint32_t *memory, uint32_t start, uint32_t size);
+void dump(const char *filename, char kind, uint32_t width, uint32_t *memory, uint32_t start, uint32_t size);
 void dump_tinymon(void);
 
 // Local Variables:
