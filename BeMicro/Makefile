@@ -14,3 +14,9 @@ TOPDIR=..
 include default.conf
 include ../shared/shared.mk
 
+# Override the make rule
+tinymon.mips-o: tinymon.c
+	mips-elf-gcc -D_mips_ -msoft-float -c -Os $< -o $@
+
+tinymon.mips: tinymon.mips-o
+	mips-elf-ld -Tprom.ld $< -o $@
