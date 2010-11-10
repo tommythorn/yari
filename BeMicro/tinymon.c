@@ -63,8 +63,12 @@ void serial_out(unsigned ch)
                 serial_out('\r');
 
         check_serial_input();
-        while (SER_OUTBUSY())
-                check_serial_input();
+
+        while (SER_OUTBUSY()) {
+            set_leds(0);
+            check_serial_input();
+        }
+
         SER_OUT(ch);
         set_leds(ch);
 }
@@ -269,7 +273,7 @@ int main()
                 unsigned char error_code = ' ';
 
                 do {
-                        puts("Tinymon 2010-09-05 (Use 'h' for help)\n");
+                        puts("Tinymon 2010-11-10 (Use 'h' for help)\n");
 
                         do
                             c = serial_in_lowercase();
@@ -343,7 +347,7 @@ int main()
                         serial_out('\n');
                 }
                 else if (cmd == 'e') {
-                        puts("\nExeccute!\n");
+                        puts("\nExecute!\n");
 #if defined(HOSTTEST)
                         printf("Execute from %08x\n", arg);
 #else
@@ -365,7 +369,7 @@ int main()
                                 chk += w;
                                 store4(addr, w);
 
-                                if (((unsigned) addr & (1 << 12) - 1) == 0)
+                                if (((unsigned) addr & (1 << 10) - 1) == 0)
                                     serial_out('\r'), print_dec(100 * k / arg), serial_out('%');
                         }
                         serial_out('\r');

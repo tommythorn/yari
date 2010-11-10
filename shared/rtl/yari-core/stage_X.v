@@ -86,7 +86,6 @@ module stage_X(input  wire        clock
    reg [31:0] x_op2_val = 0;
    reg [ 5:0] x_fn      = 0;
    reg [ 4:0] x_sa      = 0;
-   reg [ 4:0] x_rs      = 0;
    reg [31:0] x_npc     = 0;
 
    /* XXX Ideally, the core frequency is a configuration variable set
@@ -135,10 +134,12 @@ module stage_X(input  wire        clock
 
    reg [ 6:0]         div_n = 0;
 
+`ifdef LATER
    reg [31:0]         cp0_status = 0,     // XXX -- " --
                       cp0_epc = 0,
                       cp0_errorepc = 0,
                       cp0_cause = 0;
+`endif
 
    reg x_has_delay_slot = 0;
 
@@ -239,7 +240,6 @@ module stage_X(input  wire        clock
       x_opcode           <= d_opcode;
       x_fn               <= d_fn;
       x_sa               <= d_sa;
-      x_rs               <= d_rs;
       x_op1_val          <= d_op1_val;
       x_op2_val          <= d_op2_val;
       x_rt               <= d_rt;
@@ -312,7 +312,7 @@ module stage_X(input  wire        clock
        * result = divisor & 0xFFFF_FFFF
        */
       if (!div_n[6]) begin
-         {div_hi,div_lo} <= div_shifted;
+         {div_hi,div_lo} <= div_shifted[63:0];
          if (!div_diff[32]) begin
             div_hi    <= div_diff[31:0];
             div_lo[0] <= 1'd1;
@@ -496,11 +496,13 @@ module stage_X(input  wire        clock
                   x_restart    <= 1;
                   x_restart_pc <= 'hBFC00380;
                   x_flush_D    <= 1;
+`ifdef LATER
                   cp0_status[`CP0_STATUS_EXL] <= 1;
                   //cp0_cause.exc_code = EXC_BP;
                   cp0_cause <= 9 << 2;
                   // cp0_cause.bd = branch_delay_slot; // XXX DELAY SLOT HANDLING!
                   cp0_epc <= d_pc; // XXX DELAY SLOT HANDLING!
+`endif
                end
             endcase
       `REGIMM: // BLTZ, BGEZ, BLTZAL, BGEZAL

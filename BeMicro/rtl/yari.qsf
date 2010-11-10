@@ -51,6 +51,9 @@ set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
 set_global_assignment -name SMART_RECOMPILE ON
 
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to X20*
+
 set_location_assignment PIN_E2 -to clk
 set_location_assignment PIN_B4 -to led[0]
 set_location_assignment PIN_C2 -to led[1]
@@ -105,14 +108,87 @@ set_location_assignment PIN_T12 -to exp_rst_n
 set_location_assignment PIN_C8 -to rxd
 set_location_assignment PIN_D8 -to txd
 
+# X201[1:34]
+set_location_assignment PIN_A12 -to X201[1]
+set_location_assignment PIN_B12 -to X201[2]
+set_location_assignment PIN_B13 -to X201[3]
+set_location_assignment PIN_A14 -to X201[4]
+set_location_assignment PIN_B14 -to X201[5]
+set_location_assignment PIN_A15 -to X201[6]
+set_location_assignment PIN_B16 -to X201[7]
+set_location_assignment PIN_C14 -to X201[8]
+set_location_assignment PIN_C16 -to X201[9]
+set_location_assignment PIN_C15 -to X201[10]
+set_location_assignment PIN_D16 -to X201[11]
+set_location_assignment PIN_D15 -to X201[12]
+set_location_assignment PIN_F15 -to X201[13]
+set_location_assignment PIN_F16 -to X201[14]
+set_location_assignment PIN_G15 -to X201[15]
+set_location_assignment PIN_G16 -to X201[16]
+set_location_assignment PIN_H15 -to X201[17]
+set_location_assignment PIN_H16 -to X201[18]
+set_location_assignment PIN_J16 -to X201[19]
+set_location_assignment PIN_K16 -to X201[20]
+set_location_assignment PIN_K15 -to X201[21]
+set_location_assignment PIN_L16 -to X201[22]
+set_location_assignment PIN_N15 -to X201[23]
+set_location_assignment PIN_N16 -to X201[24]
+set_location_assignment PIN_P15 -to X201[25]
+set_location_assignment PIN_P16 -to X201[26]
+set_location_assignment PIN_P14 -to X201[27]
+set_location_assignment PIN_R16 -to X201[28]
+set_location_assignment PIN_T15 -to X201[29]
+set_location_assignment PIN_R14 -to X201[30]
+set_location_assignment PIN_T14 -to X201[31]
+set_location_assignment PIN_R13 -to X201[32]
+set_location_assignment PIN_T13 -to X201[33]
+set_location_assignment PIN_R12 -to X201[34]
+#set_location_assignment PIN_RST_N -to X201[35]
+#set_location_assignment PIN_GND -to X201[36]
+
+# X202[3:32]
+#set_location_assignment PIN_5V -to X202[1]
+#set_location_assignment PIN_5V -to X202[2]
+set_location_assignment PIN_B10 -to X202[3]
+set_location_assignment PIN_A11 -to X202[4]
+set_location_assignment PIN_B11 -to X202[5]
+set_location_assignment PIN_C9 -to X202[6]
+set_location_assignment PIN_C11 -to X202[7]
+set_location_assignment PIN_A13 -to X202[8]
+set_location_assignment PIN_D12 -to X202[9]
+set_location_assignment PIN_D14 -to X202[10]
+set_location_assignment PIN_E10 -to X202[11]
+set_location_assignment PIN_E11 -to X202[12]
+set_location_assignment PIN_F13 -to X202[13]
+set_location_assignment PIN_F14 -to X202[14]
+set_location_assignment PIN_G11 -to X202[15]
+set_location_assignment PIN_J12 -to X202[16]
+set_location_assignment PIN_J13 -to X202[17]
+set_location_assignment PIN_J14 -to X202[18]
+set_location_assignment PIN_J15 -to X202[19]
+set_location_assignment PIN_K12 -to X202[20]
+set_location_assignment PIN_L15 -to X202[21]
+set_location_assignment PIN_L14 -to X202[22]
+set_location_assignment PIN_L13 -to X202[23]
+set_location_assignment PIN_L11 -to X202[24]
+set_location_assignment PIN_M11 -to X202[25]
+set_location_assignment PIN_N12 -to X202[26]
+set_location_assignment PIN_N14 -to X202[27]
+set_location_assignment PIN_N11 -to X202[28]
+set_location_assignment PIN_R11 -to X202[29]
+set_location_assignment PIN_T11 -to X202[30]
+set_location_assignment PIN_R10 -to X202[31]
+set_location_assignment PIN_T10 -to X202[32]
+#set_location_assignment PIN_PWR_N -to X202[33]
+#set_location_assignment PIN_GND   -to X202[34]
+#set_location_assignment PIN_3.3V  -to X202[35]
+#set_location_assignment PIN_3.3V  -to X202[36]
+
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-
-
-
 
 set_global_assignment -name SOURCE_FILE ../config.h
 set_global_assignment -name VERILOG_FILE toplevel.v
@@ -141,5 +217,7 @@ set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/arithsh
 set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/CycloneIII/simpledpram.v
 set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/CycloneIII/dpram.v
 set_global_assignment -name SDC_FILE yari.sdc
+
+
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

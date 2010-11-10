@@ -25,9 +25,12 @@ module toplevel(input              clk, // 16 MHz
                 output      [17:0] ram_addr,
                 input              exp_pres,
                 input              rxd,
-                output             txd);
+                output             txd,
 
-   parameter                       FREQ = 50000000;
+                inout       [3:32] X202
+                );
+
+   parameter                       FREQ = 27'd50000000; // 27-bit is enough for 268 MHz
    parameter                       BPS = 230400;
 
    wire                            reset_button = 0 /*~exp_rst_n*/;
@@ -151,4 +154,13 @@ module toplevel(input              clk, // 16 MHz
                .rs232out_busy(rs232out_busy),
                .rs232out_w(rs232out_w),
                .rs232out_d(rs232out_d));
+
+
+   // Extension board X202
+   reg [3:32] x202_counter = 0;
+
+   always @(posedge clock)
+      x202_counter <= x202_counter + 1;
+
+   assign X202 = x202_counter;
 endmodule
