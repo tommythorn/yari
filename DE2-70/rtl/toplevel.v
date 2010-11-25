@@ -11,8 +11,8 @@
 // -----------------------------------------------------------------------
 
 `timescale 1ns/10ps
-`include "../../soclib/pipeconnect.h"
-module main
+`include "../../shared/rtl/soclib/pipeconnect.h"
+module yarisoc
    (input         iCLK_50
    ,input         iCLK_28 // Actually 28.63636 MHz
 

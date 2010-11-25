@@ -14,7 +14,7 @@
 
 
 # The default values for assignments are stored in the file
-#               yari_soc_assignment_defaults.qdf
+#               yarisoc_assignment_defaults.qdf
 # If this file doesn't exist, and for assignments not listed, see file
 #               assignment_defaults.qdf
 
@@ -25,7 +25,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C70F896C6
-set_global_assignment -name TOP_LEVEL_ENTITY main
+set_global_assignment -name TOP_LEVEL_ENTITY yarisoc
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "7.2 SP3"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "18:46:57  MAY 4, 2008"
 set_global_assignment -name LAST_QUARTUS_VERSION 8.1
@@ -569,40 +569,34 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS OUTPUT DRIVING AN UNSPECIFIED SIGNAL"
 
 
+set_global_assignment -name VERILOG_FILE toplevel.v
 set_global_assignment -name VERILOG_FILE video.v
-set_global_assignment -name VERILOG_FILE main.v
 set_global_assignment -name VERILOG_FILE rs232.v
 set_global_assignment -name VERILOG_FILE mega/pll.v
 set_global_assignment -name QIP_FILE mega/video_pll.qip
 set_global_assignment -name VERILOG_FILE ssram_ctrl.v
-set_global_assignment -name SOURCE_FILE ../../soclib/pipeconnect.h
-set_global_assignment -name VERILOG_FILE "../../yari-core/yari.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/asm.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_I.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_D.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_X.v"
-set_global_assignment -name VERILOG_FILE "../../yari-core/stage_M.v"
-set_global_assignment -name VERILOG_FILE ../../soclib/dmem.v
-set_global_assignment -name VERILOG_FILE ../../soclib/peri_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/pipeconnect.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232in.v
-set_global_assignment -name VERILOG_FILE ../../soclib/rs232out.v
-set_global_assignment -name VERILOG_FILE ../../soclib/bus_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/dc_ctrl.v
-set_global_assignment -name VERILOG_FILE ../../soclib/vga.v
-set_global_assignment -name VERILOG_FILE ../../soclib/hexled.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/simpledpram.v
-set_global_assignment -name VERILOG_FILE ../altera/cyclone/dpram.v
-set_global_assignment -name MIF_FILE ../altera/initmem.mif
-set_global_assignment -name MIF_FILE tags0.mif
-set_global_assignment -name MIF_FILE tags1.mif
-set_global_assignment -name MIF_FILE tags2.mif
-set_global_assignment -name MIF_FILE tags3.mif
-set_global_assignment -name CDF_FILE main.cdf
+set_global_assignment -name SOURCE_FILE ../../shared/rtl/soclib/pipeconnect.h
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/yari.v"
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/asm.v"
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/stage_I.v"
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/stage_D.v"
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/stage_X.v"
+set_global_assignment -name VERILOG_FILE "../../shared/rtl/yari-core/stage_M.v"
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/dmem.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/peri_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/pipeconnect.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/rs232in.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/rs232out.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/bus_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/dc_ctrl.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/vga.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/soclib/hexled.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/simpledpram.v
+set_global_assignment -name VERILOG_FILE ../../shared/rtl/altera/cyclone/dpram.v
+set_global_assignment -name CDF_FILE yarisoc.cdf
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_global_assignment -name PARTITION_COLOR 14622752 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name QIP_FILE mega/video_fifo.qip
 
