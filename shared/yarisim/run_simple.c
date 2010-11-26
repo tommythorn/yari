@@ -678,7 +678,7 @@ void run_simple(MIPS_state_t *state)
                 case CP0:
                         /* Two possible formats */
                         if (i.r.rs & 0x10) {
-                                if (i.r.funct == C0_ERET) {
+                                if ((c0_map_t) i.r.funct == C0_ERET) {
                                         /* Exception Return */
                                         annul_delay_slot = 1;
                                         if (branch_delay_slot)
@@ -696,13 +696,13 @@ void run_simple(MIPS_state_t *state)
                                 /* C1 format */
                                 fprintf(stderr,
                                         "Unhandled CP0 command %s\n",
-                                        i.r.funct == C0_TLBR  ? "tlbr" :
-                                        i.r.funct == C0_TLBWI ? "tlbwi" :
-                                        i.r.funct == C0_TLBWR ? "tlbwr" :
-                                        i.r.funct == C0_TLBP  ? "tlbp" :
-                                        i.r.funct == C0_ERET  ? "eret" :
-                                        i.r.funct == C0_DERET ? "deret" :
-                                        i.r.funct == C0_WAIT  ? "wait" :
+                                        (c0_map_t) i.r.funct == C0_TLBR  ? "tlbr" :
+                                        (c0_map_t) i.r.funct == C0_TLBWI ? "tlbwi" :
+                                        (c0_map_t) i.r.funct == C0_TLBWR ? "tlbwr" :
+                                        (c0_map_t) i.r.funct == C0_TLBP  ? "tlbp" :
+                                        (c0_map_t) i.r.funct == C0_ERET  ? "eret" :
+                                        (c0_map_t) i.r.funct == C0_DERET ? "deret" :
+                                        (c0_map_t) i.r.funct == C0_WAIT  ? "wait" :
                                         "???");
                         } else {
                                 assert(i.r.funct == 0);
@@ -868,7 +868,7 @@ void run_simple(MIPS_state_t *state)
                                 fatal("%08x:%08x, opcode 0x%x.s not handled\n",
                                       pc_prev, i.raw, i.r.funct);
                         if (i.r.rs == 17 /* D */) {
-                                if (i.r.funct == CP1_ADD)
+                                if ((cp1_sdw_map_t) i.r.funct == CP1_ADD)
                                         fatal("%08x:%08x, opcode add.d not handled\n",
                                               pc_prev, i.raw);
                                 fatal("%08x:%08x, opcode 0x%x.d not handled\n",

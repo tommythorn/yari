@@ -69,12 +69,12 @@ typedef enum regimm_map {
 } regimm_map_t;
 
 
-enum cp1_sdw_map {
+typedef enum cp1_sdw_map {
         CP1_ADD, CP1_SUB, CP1_MUL, CP1_DIV, CP1_SQRT, CP1_ABS, CP1_MOV, CP1_NEG,
         CP1_ROUND_W = 12, CP1_TRUNC_W, CP1_CEIL_W, CP1_FLOOR_W,
         CP1_MOVZ, CP1_MOVN,
         // etc ...
-};
+} cp1_sdw_map_t;
 
 /*
   move from coprocessor 0

@@ -399,13 +399,13 @@ void disass(unsigned pc, inst_t i)
                 if (i.r.rs & 0x10) {
                         /* C1 format */
                         sprintf(buf,
-                                i.r.funct == C0_TLBR  ? "tlbr" :
-                                i.r.funct == C0_TLBWI ? "tlbwi" :
-                                i.r.funct == C0_TLBWR ? "tlbwr" :
-                                i.r.funct == C0_TLBP  ? "tlbp" :
-                                i.r.funct == C0_ERET  ? "eret" :
-                                i.r.funct == C0_DERET ? "deret" :
-                                i.r.funct == C0_WAIT  ? "wait" :
+                                (c0_map_t) i.r.funct == C0_TLBR  ? "tlbr" :
+                                (c0_map_t) i.r.funct == C0_TLBWI ? "tlbwi" :
+                                (c0_map_t) i.r.funct == C0_TLBWR ? "tlbwr" :
+                                (c0_map_t) i.r.funct == C0_TLBP  ? "tlbp" :
+                                (c0_map_t) i.r.funct == C0_ERET  ? "eret" :
+                                (c0_map_t) i.r.funct == C0_DERET ? "deret" :
+                                (c0_map_t) i.r.funct == C0_WAIT  ? "wait" :
                                 "???");
                 } else {
                         /* Regular r format with i.r.rs[3] ? MT : MF */
