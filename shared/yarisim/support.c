@@ -517,7 +517,9 @@ unsigned load(unsigned a,  // IN: address
                         break;
 
                 default:
-                        fatal("Unknown register 0x%08x\n", a);
+                        res = ~0U;
+                        break;
+                        //fatal("Unknown register 0x%08x\n", a);
                 }
 
                 service_rs232();
@@ -602,7 +604,9 @@ void store(unsigned a, unsigned v, int c)
                         write(rs232out_fd, &ch, 1);
                 }
                 return;
-        }
+        } else if ((a & 0xFF000000) == 0xFF000000 &&
+                   a <= 0xFF00002C)
+                ;
 
         if (!(addr_mapped(a) && addr_mapped(a + c - 1)))
                 fatal("\tstoring outside memory 0x%08x\n", a);
