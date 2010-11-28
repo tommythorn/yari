@@ -38,7 +38,7 @@ module stallcheck(clock, stall, a);
 endmodule
 `endif
 
-module yari(input  wire        clock          // K5  PLL1 input clock (50 MHz)
+module yari(input  wire        clock
            ,input  wire        rst
 
             // Memory access
