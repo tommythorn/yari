@@ -1,16 +1,15 @@
-# Please change to match your preferences
-
-
-export YARI_XTOOLS_TARGET=mips-elf
-export YARI_XTOOLS_INSTALL_PREFIX=/home/$(USER)/tools
-export YARI_XTOOLS_SUDO= #sudo
-export YARI_XTOOLS_BUILDDIR=/tmp/build-tools/build
-
-export PATH:=$(YARI_XTOOL_INSTALL_PREFIX)/bin:$(PATH)
-export MAKE_OPTION=-j4
-# enable this if you install into a directory that you don't own
-
 # XXX Needs a proper multi-level build system
+
+include config.mk
+
+# export these variables for the BUILD-xxx scripts
+export YARI_XTOOLS_TARGET
+export PREFIX
+export YARI_XTOOLS_SUDO
+export YARI_XTOOLS_BUILDDIR
+export PATH
+export MAKE_OPTION
+
 
 # No suffix or path!!
 TESTPROG=testall
@@ -34,13 +33,13 @@ install-gdb:
 install-sdl:
 	$(MAKE) -C SDL-1.2 install
 
-install-binutils: $(YARI_XTOOLS_INSTALL_PREFIX)/bin/$(YARI_XTOOLS_TARGET)-as
+install-binutils: $(PREFIX)/bin/$(YARI_XTOOLS_TARGET)-as
 	cd tools; ./BUILD-binutils.sh
 
-install-gcc: $(YARI_XTOOLS_INSTALL_PREFIX)/bin/$(YARI_XTOOLS_TARGET)-gcc
+install-gcc: $(PREFIX)/bin/$(YARI_XTOOLS_TARGET)-gcc
 	cd tools; ./BUILD-gcc.sh
 
-install-newlib: $(YARI_XTOOLS_INSTALL_PREFIX)/$(YARI_XTOOLS_TARGET)/lib/yari.ld
+install-newlib: $(PREFIX)/$(YARI_XTOOLS_TARGET)/lib/yari.ld
 	cd tools; ./BUILD-newlib.sh
 
 install-yarisim:

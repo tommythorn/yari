@@ -1,15 +1,17 @@
-CFLAGS=-g -Wall -MD -O2 $(shell sdl-config --cflags)
+include ../config.mk
+
+CFLAGS=-g -Wall -Werror -MD -O2 $(shell sdl-config --cflags)
 LDFLAGS=$(shell sdl-config --libs)
 TESTPROG=please-set-TESTPROG
 FLAGS=
 
-all: sim
+all: yarisim
 
-install: sim
-	cp sim $(YARI_XTOOLS_INSTALL_PREFIX)/bin/yarisim
+install: yarisim
+	cp yarisim $(PREFIX)/bin
 
-run: sim
-	./sim $(FLAGS) $(TESTPROG) $(FIRMWARE)
+run: yarisim
+	yarisim $(FLAGS) $(TESTPROG) $(FIRMWARE)
 
 tests: tests.c
 	mips-elf-gcc -O -msoft-float -Tmymips.ld $< -o $@
@@ -17,16 +19,17 @@ tests: tests.c
 tests.c:
 	../testcases/testgen > tests.c
 
-all_: sim output
-	./sim --simple output
+all_: yarisim output
+	./yarisim --simple output
 
 output: output.c Makefile mymips.ld
 	mips-elf-gcc -msoft-float -Tmymips.ld output.c -o output
 
-sim: sim.o support.o run_simple.o
+yarisim: sim.o support.o run_simple.o
+	$(CC) $(LDFLAGS) $^ -o $@
 
 clean:
-	-rm *.o *.d sim
+	-rm *.o *.d yarisim
 
 realclean: clean
 	-rm *~

@@ -11,6 +11,7 @@
 # -----------------------------------------------------------------------
 
 MAKECONFIG=$(TOPDIR)/shared/tools/makeconfig.sh
+YARISIM ?= $(TOPDIR)/shared/yarisim/yarisim
 FIRMWARE ?= tinymon.mips
 
 all: rtl/config.h rtl/icache_ram0.mif
@@ -18,8 +19,8 @@ all: rtl/config.h rtl/icache_ram0.mif
 rtl/config.h: $(MAKECONFIG) default.conf
 	cd rtl; ../$(MAKECONFIG) ../default.conf
 
-rtl/icache_ram0.mif: tinymon.mips yarisim
-	cd rtl; ../$(TOPDIR)/shared/yarisim/sim       \
+rtl/icache_ram0.mif: tinymon.mips $(YARISIM)
+	cd rtl; ../$(YARISIM)                         \
 		--mif                                 \
 		--icache-way=$(IC_LINE_INDEX_BITS)    \
 		--icache-words=$(IC_WORD_INDEX_BITS)  \
