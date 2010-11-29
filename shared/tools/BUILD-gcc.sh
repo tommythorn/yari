@@ -22,6 +22,7 @@ cd build-gcc
   --target=$target                         \
   --with-gnu-as                            \
   --with-gnu-ar				   \
+  --disable-libssp			   \
   --with-gmp=/opt/fsf --with-mpfr=/opt/fsf --with-mpc=/opt/fsf
 
 

@@ -1,8 +1,10 @@
 # Please change to match your preferences
-export YARI_XTOOLS_INSTALL_PREFIX=/opt/$(YARI_XTOOLS_TARGET)
-export YARI_XTOOLS_SUDO= #sudo
-export YARI_XTOOLS_BUILDDIR=/tmp/build-xtools/build
+PREFIX=/usr/local
+
 export YARI_XTOOLS_TARGET=mips-elf
+export YARI_XTOOLS_INSTALL_PREFIX=$(PREFIX)/$(YARI_XTOOLS_TARGET)
+export YARI_XTOOLS_SUDO= #sudo
+export YARI_XTOOLS_BUILDDIR=/tmp/build-tools/build
 
 export PATH:=$(YARI_XTOOL_INSTALL_PREFIX)/bin:$(PATH)
 export MAKE_OPTION=-j4
@@ -26,24 +28,24 @@ usage:
 	@echo "VERB     -- Options for the simulator.  Default is $(VERB)."
 
 install-gdb:
-	cd xtools; ./BUILD-gdb.sh
+	cd tools; ./BUILD-gdb.sh
 
 install-sdl:
 	$(MAKE) -C SDL-1.2 install
 
 install-binutils:
-	cd xtools; ./BUILD-binutils.sh
+	cd tools; ./BUILD-binutils.sh
 
 install-gcc:
-	cd xtools; ./BUILD-gcc.sh
+	cd tools; ./BUILD-gcc.sh
 
 install-newlib:
-	cd xtools; ./BUILD-newlib.sh
+	cd tools; ./BUILD-newlib.sh
 
 install-yarisim:
 	$(MAKE) -C yarisim install
 
-install-xtools: install-binutils install-gcc install-newlib install-gdb install-sdl install-yarisim
+install-tools: install-binutils install-gcc install-newlib install-gdb install-sdl install-yarisim
 
 isasim:
 	$(MAKE) -C testcases $(TESTPROG)-prom.mips
