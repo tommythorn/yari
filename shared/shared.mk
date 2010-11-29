@@ -28,11 +28,5 @@ rtl/icache_ram0.mif: tinymon.mips $(YARISIM)
 		--dcache-words=$(DC_WORD_INDEX_BITS)  \
 		../$(FIRMWARE)
 
-tinymon.mips-o: $(TOPDIR)/shared/firmware/tinymon.c
-	mips-elf-gcc -D_mips_ -msoft-float -c -Os $< -o $@
-
-tinymon.mips: tinymon.mips-o
-	mips-elf-ld -T$(TOPDIR)/shared/firmware/prom.ld $< -o $@
-
-yarisim:
-	make -C $(TOPDIR)/shared/yarisim
+$(YARISIM):
+	$(MAKE) -C $(TOPDIR)/shared/yarisim
