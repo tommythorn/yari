@@ -1,8 +1,8 @@
 # Please change to match your preferences
-PREFIX=/usr/local
+
 
 export YARI_XTOOLS_TARGET=mips-elf
-export YARI_XTOOLS_INSTALL_PREFIX=$(PREFIX)/$(YARI_XTOOLS_TARGET)
+export YARI_XTOOLS_INSTALL_PREFIX=/home/$(USER)/tools
 export YARI_XTOOLS_SUDO= #sudo
 export YARI_XTOOLS_BUILDDIR=/tmp/build-tools/build
 
@@ -21,6 +21,7 @@ VERB=--verb
 
 usage:
 	@echo Usage:
+	@echo '   make install-tools -- Install compiler, libraries, and simulator'
 	@echo '   make isasim -- run a software simulation of the test program'
 	@echo '   make rtlsim -- run a simulated the RTL on the test program'
 	@echo Make variables:
@@ -33,19 +34,19 @@ install-gdb:
 install-sdl:
 	$(MAKE) -C SDL-1.2 install
 
-install-binutils:
+install-binutils: $(YARI_XTOOLS_INSTALL_PREFIX)/bin/$(YARI_XTOOLS_TARGET)-as
 	cd tools; ./BUILD-binutils.sh
 
-install-gcc:
+install-gcc: $(YARI_XTOOLS_INSTALL_PREFIX)/bin/$(YARI_XTOOLS_TARGET)-gcc
 	cd tools; ./BUILD-gcc.sh
 
-install-newlib:
+install-newlib: $(YARI_XTOOLS_INSTALL_PREFIX)/$(YARI_XTOOLS_TARGET)/lib/yari.ld
 	cd tools; ./BUILD-newlib.sh
 
 install-yarisim:
 	$(MAKE) -C yarisim install
 
-install-tools: install-binutils install-gcc install-newlib install-gdb install-sdl install-yarisim
+install-tools: install-yarisim install-binutils install-gcc install-newlib install-gdb install-sdl
 
 isasim:
 	$(MAKE) -C testcases $(TESTPROG)-prom.mips
