@@ -86,7 +86,6 @@ module stage_X(input  wire        clock
    reg [31:0] x_op2_val = 0;
    reg [ 5:0] x_fn      = 0;
    reg [ 4:0] x_sa      = 0;
-   reg [31:0] x_npc     = 0;
 
    /* XXX Ideally, the core frequency is a configuration variable set
     * at the top level, but as I'm using a different platform than the
@@ -120,7 +119,10 @@ module stage_X(input  wire        clock
    // premature. Of course this leads to headaches with forwarding and
    // hazards on instruction depending on these... Sigh.
    reg                mult_busy = 0;
-   reg [63:0]         mult_a = 0, mult_3a = 0;
+   reg [63:0]         mult_a = 0;
+`ifdef MULT_RADIX_4
+   reg [63:0]         mult_3a = 0;
+`endif
    reg [31:0]         mult_b = 0;
    reg                mult_neg = 0;
    reg [31:0]         mult_lo = 0;
@@ -236,7 +238,6 @@ module stage_X(input  wire        clock
       x_valid            <= d_valid;
       x_instr            <= d_instr;
       x_pc               <= d_pc;
-      x_npc              <= d_npc;
       x_opcode           <= d_opcode;
       x_fn               <= d_fn;
       x_sa               <= d_sa;
@@ -462,7 +463,9 @@ module stage_X(input  wire        clock
                   mult_lo <= 0;
                   mult_a <= d_op1_val;
                   mult_b <= d_op2_val;
+`ifdef MULT_RADIX_4
                   mult_3a <= 3 * d_op1_val;
+`endif
                   mult_neg <= 0;
 
                   $display("%05dc EX: %dU * %dU", $time, d_op1_val, d_op2_val);
@@ -486,7 +489,9 @@ module stage_X(input  wire        clock
                   mult_lo <= 0;
                   mult_neg <= d_op1_val[31] ^ d_op2_val[31];
                   mult_a <= d_op1_val[31] ? {32'd0,32'd0 - d_op1_val} : d_op1_val;
+`ifdef MULT_RADIX_4
                   mult_3a <= d_op1_val[31] ? 3 * {32'd0,32'd0-d_op1_val} : 3 * d_op1_val;
+`endif
                   mult_b <= d_op2_val[31] ? 32'd0 - d_op2_val  : d_op2_val;
                   $display("%05dc EX: %d * %d", $time, d_op1_val, d_op2_val);
                end

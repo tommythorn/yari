@@ -151,6 +151,8 @@ module stage_M(input  wire        clock
 
    wire                       x_miss = x_hits == 0;
    reg  [DC_SET_INDEX_BITS-1:0]  x_set;
+   /* Yes this is one-hot. I don't know why Quartus think I need to be
+    reminded. */
    always @* casex (x_hits)
                'b1000: x_set = 3;
                'b0100: x_set = 2;
@@ -197,7 +199,7 @@ module stage_M(input  wire        clock
       `SB:  x_store_data_rotation_delta = 1;
       `SWL: x_store_data_rotation_delta = 0;
       `SWR: x_store_data_rotation_delta = 1;
-      default: x_store_data_rotation_delta = 32'hXXXXXXXX;
+      default: x_store_data_rotation_delta = 2'bxx;
       endcase
 
    // Warning: the x_store_data_rotation assignment is necessary to
@@ -238,12 +240,14 @@ module stage_M(input  wire        clock
    // Inputs to stage WB - access cache
    reg  [31:0]                m_address    = 0;
    reg                        m_load       = 0;
+`ifdef SIMULATE_MAIN
    reg  [DC_SET_INDEX_BITS-1:0] m_set      = 0;
    reg  [TAG_BITS-1:0]        m_chk        = 0; // Tag check
    reg  [DC_LINE_INDEX_BITS-1:0] m_csi     = 0; // Cache Set Index (which cache in the set)
    reg  [DC_WORD_INDEX_BITS-1:0] m_wi      = 0; // Word Index (which word in the cache line)
    reg  [31:0]                m_store_data = 0;
    reg  [ 3:0]                m_byteena    = 0;
+`endif
 
    wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
 
@@ -513,7 +517,7 @@ module stage_M(input  wire        clock
    reg [32:0]  lfsr = 0;
 
    always @(posedge clock) begin
-      x_last_store_address <= ~0;
+      x_last_store_address <= ~30'h0;
 
       lfsr <= {lfsr[31:0], ~lfsr[32] ^ lfsr[19]};
 
@@ -543,10 +547,12 @@ module stage_M(input  wire        clock
          m_res_alu <= x_res;
       end
 
+`ifdef SIMULATE_MAIN
       m_chk     <= x_chk;
       m_set     <= x_set;
       m_csi     <= x_csi;
       m_wi      <= x_wi;
+`endif
 
       // ****** Store ******
 

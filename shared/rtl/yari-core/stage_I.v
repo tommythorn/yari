@@ -140,6 +140,8 @@ module stage_I(input  wire        clock
                         (hits_2[2] ? ic_q2 : 0) |
                         (hits_2[3] ? ic_q3 : 0));
 
+   /* Yes this is one-hot. I don't know why Quartus think I need to be
+    reminded. */
    always @* casex (hits_2)
              'b0001: i_valid = i2_valid;
              'b0010: i_valid = i2_valid;
@@ -163,6 +165,12 @@ module stage_I(input  wire        clock
    reg [TAG_BITS-1:0]        tag_write_data;
    reg [3:0]                 tag_write_ena = 0;
 
+   /* It is sad that you have to pull tricks like these to get
+    Verilog/Quartus to use parametrized sizing without stupid
+    warnings, but you can't write TAG_BITS'(~0) so this is the best
+    workaround I've found. */
+   wire [TAG_BITS-1:0]       tag_const0 = 1'd0;
+   wire [TAG_BITS-1:0]       tag_illegal = ~tag_const0;
 
    simpledpram #(TAG_BITS,IC_LINE_INDEX_BITS,"icache_tag0")
       tag0_ram(.clock(clock), .rdaddress(fetchaddress`CSI), .rddata(tag0),
@@ -298,7 +306,7 @@ module stage_I(input  wire        clock
                      tag0, tag1, tag2, tag3);
 `endif
          tag_wraddress  <= pending_synci_a`CSI;
-         tag_write_data <= ~0;
+         tag_write_data <= tag_illegal;
          tag_write_ena  <= hits_2;
          // XXX We must wait for SB to drain!  It happens to work as
          // is right now as the SB gets priority but that's actually a
