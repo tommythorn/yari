@@ -12,6 +12,17 @@
 
 TOPDIR=..
 include default.conf
+
+bemicro: rtl/yari.sof
+
+program: rtl/yari.sof
+	cd rtl; quartus_pgm yari.cdf
+
+rtl/yari.sof: rtl/config.h rtl/icache_ram0.mif
+	cd rtl; quartus_map yari.qsf
+	cd rtl; quartus_fit yari.qsf
+	cd rtl; quartus_asm yari.qsf
+
 include ../shared/shared.mk
 
 tinymon.mips-o: tinymon.c
