@@ -59,19 +59,19 @@ module sram16_ctrl
    parameter S_PAUSE    = 4;
    reg [ 2:0] state     = S_IDLE;
 
-   wire       sel       = mem_address[29:26] == 'h4;
-   reg [CNTSIGN:0] cnt      = ~0;
-   reg        int_we_n  = 1;
-   reg [ 1:0] pendingid;
-   reg [31:0] sram_dout;
-   reg [15:0] writedata_hi;
-   reg [ 1:0] be_n_hi;
-   reg [WAITSIGN:0] waitcnt = ~0;
+   wire             sel         = mem_address[29:26] == 'h4;
+   reg [CNTSIGN:0]  cnt         = {CNTSIGN+1{1'b1}}; // A complicated way to write -1
+   reg              int_we_n    = 1;
+   reg [ 1:0]       pendingid;
+   reg [15:0]       sram_dout;
+   reg [15:0]       writedata_hi;
+   reg [ 1:0]       be_n_hi;
+   reg  [WAITSIGN:0] waitcnt    = {WAITSIGN+1{1'b1}}; // A complicated way to write -1
 
-   assign    mem_waitrequest   = state != S_IDLE || !cnt[CNTSIGN] || !waitcnt[WAITSIGN];
+   assign    mem_waitrequest    = state != S_IDLE || !cnt[CNTSIGN] || !waitcnt[WAITSIGN];
 
-   reg       sram_dout_en      = 0;
-   assign    sram_d            = sram_dout_en ? sram_dout : 16'hZ;
+   reg       sram_dout_en       = 0;
+   assign    sram_d             = sram_dout_en ? sram_dout : 16'hZ;
 
    always @(negedge clock)
       sram_we_n <= int_we_n;
@@ -92,7 +92,7 @@ module sram16_ctrl
                waitcnt             <= wait_cycles - 1'd1;
 
                // Burst reading.
-               cnt                 <= cnt - 1;
+               cnt                 <= cnt - 1'd1;
                sram_a              <= sram_a + 1'd1;
                mem_readdata[31:16] <= sram_d; // Little Endian
                mem_readdata[15: 0] <= mem_readdata[31:16];
