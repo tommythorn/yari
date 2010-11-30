@@ -56,6 +56,7 @@ module yari(input  wire        clock
            ,input  wire `RES   peripherals_res
            );
 
+   parameter FREQ = 0; // Frequency in Hz, should be passed down from the top-level
    parameter debug = 1;
 
    wire          i1_valid, i2_valid;
@@ -299,6 +300,7 @@ module yari(input  wire        clock
                .perf_retired_inst(perf_retired_inst),
                .perf_sb_full(perf_sb_full)
                );
+   defparam stX.FREQ = FREQ;
 
    stage_M stM(.clock(clock),
 

@@ -79,6 +79,7 @@ module stage_X(input  wire        clock
               ,input  wire [31:0] perf_sb_full
               );
 
+   parameter FREQ = 0;
    parameter debug = 0;
 
 `include "config.h"
@@ -87,13 +88,7 @@ module stage_X(input  wire        clock
    reg [ 5:0] x_fn      = 0;
    reg [ 4:0] x_sa      = 0;
 
-   /* XXX Ideally, the core frequency is a configuration variable set
-    * at the top level, but as I'm using a different platform than the
-    * one we're comparing JOP to, I hardwire it here. This isn't
-    * cheating as this is the frequency we attain on a EP1C12C6 that
-    * the JOP numbers came from, but I don't have that particular FPGA.
-    */
-   wire [31:0]        perf_frequency   = 80000;
+   wire [31:0]        perf_frequency   = FREQ / 1000; // Given in Hz, reported in kHz
 
    wire               d_ops_eq         = d_op1_val == d_op2_val;
    reg                x_negate_op2     = 0;
@@ -161,6 +156,7 @@ module stage_X(input  wire        clock
          1:  x_special <= 4 << IC_WORD_INDEX_BITS;
          2:  x_special <= tsc[35:4]; // @40 MHz 28 min before rollover
          3:  x_special <= 1 << 4;    // TSC scaling factor
+         4:  x_special <= tsc[31:0]; // Unscaled, but truncated TSC (local hack)
          endcase
 
       `LUI: x_special <= {d_simm[15: 0], 16'd0};

@@ -99,6 +99,7 @@ module toplevel(input              clk, // 16 MHz
        ,.peripherals_req(rs232_req)
        ,.peripherals_res(rs232_res)
        );
+   defparam yari_inst.FREQ = FREQ;
 
    assign ram_ce2 = 1;
    sram16_ctrl sram16_ctrl_inst
