@@ -12,16 +12,17 @@
 
 TOPDIR=..
 include default.conf
+QFILTER=|grep -v '^    '|egrep -i 'warning|error'
 
-bemicro: rtl/yari.sof
+all: rtl/yari.sof
 
 program: rtl/yari.sof
 	cd rtl; quartus_pgm yari.cdf
 
-rtl/yari.sof: rtl/config.h rtl/icache_ram0.mif
-	cd rtl; quartus_map yari.qsf
-	cd rtl; quartus_fit yari.qsf
-	cd rtl; quartus_asm yari.qsf
+rtl/yari.sof: rtl/config.h rtl/icache_ram0.mif rtl/toplevel.v
+	cd rtl; quartus_map yari.qsf $(QFILTER)
+	cd rtl; quartus_fit yari.qsf $(QFILTER)
+	cd rtl; quartus_asm yari.qsf $(QFILTER)
 
 include ../shared/shared.mk
 
