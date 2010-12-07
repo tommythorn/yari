@@ -13,7 +13,6 @@
 `timescale 1ns/10ps
 `include "../../shared/rtl/soclib/pipeconnect.h"
 module toplevel(input              clk, // 16 MHz
-                input              exp_rst_n,
                 output reg [ 7:0]  led,
                 output             ram_lb_n,
                 output             ram_ub_n,
@@ -23,11 +22,12 @@ module toplevel(input              clk, // 16 MHz
                 output             ram_we_n,
                 output             ram_ce2,
                 output      [17:0] ram_addr,
-                input              exp_pres,
                 input              rxd,
-                output             txd,
+                output             txd
 
-                inout       [3:32] X202
+//              input              exp_rst_n,
+//              input              exp_pres,
+//              inout       [3:32] X202
                 );
 
    parameter                       FREQ = 27'd50000000; // 27-bit is enough for 268 MHz
@@ -155,13 +155,4 @@ module toplevel(input              clk, // 16 MHz
                .rs232out_busy(rs232out_busy),
                .rs232out_w(rs232out_w),
                .rs232out_d(rs232out_d));
-
-
-   // Extension board X202
-   reg [3:32] x202_counter = 0;
-
-   always @(posedge clock)
-      x202_counter <= x202_counter + 1;
-
-   assign X202 = x202_counter;
 endmodule

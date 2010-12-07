@@ -31,7 +31,7 @@ module sram16_ctrl
    ,output reg  [31:0] mem_readdata
    ,output reg   [1:0] mem_readdataid = 0
 
-   ,output reg  [29:0] sram_a
+   ,output reg  [17:0] sram_a
    ,inout  wire [15:0] sram_d
    ,output reg         sram_cs_n = 1
    ,output reg   [1:0] sram_be_n
@@ -61,12 +61,14 @@ module sram16_ctrl
 
    wire             sel         = mem_address[29:26] == 'h4;
    reg [CNTSIGN:0]  cnt         = {CNTSIGN+1{1'b1}}; // A complicated way to write -1
+   wire [31:0]      cnt0        = (burst_length << 1) - 1; // We use cnt0 to avoid a warning
    reg              int_we_n    = 1;
    reg [ 1:0]       pendingid;
    reg [15:0]       sram_dout;
    reg [15:0]       writedata_hi;
    reg [ 1:0]       be_n_hi;
-   reg  [WAITSIGN:0] waitcnt    = {WAITSIGN+1{1'b1}}; // A complicated way to write -1
+   reg [WAITSIGN:0] waitcnt     = {WAITSIGN+1{1'b1}}; // A complicated way to write -1
+   wire [31:0]      waitcnt0    = wait_cycles - 1'd1; // We use waitcnt0 to avoid a warning
 
    assign    mem_waitrequest    = state != S_IDLE || !cnt[CNTSIGN] || !waitcnt[WAITSIGN];
 
@@ -89,7 +91,7 @@ module sram16_ctrl
          S_IDLE:
             if (!cnt[CNTSIGN]) begin
 
-               waitcnt             <= wait_cycles - 1'd1;
+               waitcnt             <= waitcnt0[WAITSIGN:0];
 
                // Burst reading.
                cnt                 <= cnt - 1'd1;
@@ -103,20 +105,20 @@ module sram16_ctrl
 
             end else if (mem_read) begin
 
-               waitcnt      <= wait_cycles - 1'd1;
+               waitcnt      <= waitcnt0[WAITSIGN:0];
                pendingid    <= mem_id;
-               sram_a       <= mem_address << 1;
+               sram_a       <= mem_address[16:0] << 1;
                sram_cs_n    <= 0;
                sram_oe_n    <= 0;
                sram_be_n    <= 0;
                int_we_n     <= 1;
                sram_dout_en <= 0;
-               cnt          <= (burst_length << 1) - 1;
+               cnt          <= cnt0[CNTSIGN:0];
 
             end else if (mem_write) begin
 
-               waitcnt                  <= wait_cycles - 1'd1;
-               sram_a                   <= mem_address << 1;
+               waitcnt                  <= waitcnt0[WAITSIGN:0];
+               sram_a                   <= mem_address[16:0] << 1;
                sram_dout_en             <= 1;
                {writedata_hi,sram_dout[15:0]} <= mem_writedata;
                {be_n_hi,sram_be_n[1:0]}      <= ~mem_writedatamask;
@@ -138,7 +140,7 @@ module sram16_ctrl
          end
 
          S_WRITE2: begin
-            waitcnt   <= wait_cycles - 1'd1;
+            waitcnt   <= waitcnt0[WAITSIGN:0];
             sram_a[0] <= 1;
             sram_dout <= writedata_hi;  // Little endian
             sram_be_n <= be_n_hi;
@@ -153,7 +155,7 @@ module sram16_ctrl
 
          S_PAUSE: begin
             sram_cs_n <= 1;
-            waitcnt   <= wait_cycles - 1'd1;
+            waitcnt   <= waitcnt0[WAITSIGN:0];
             state     <= S_IDLE;
          end
       endcase
