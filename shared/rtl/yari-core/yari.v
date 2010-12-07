@@ -77,6 +77,7 @@ module yari(input  wire        clock
    wire          imem_readdatavalid;
 
    wire          d_valid;
+   wire          d_illegal_instr;
    wire [31:0]   d_instr;
    wire [31:0]   d_pc;
    wire [31:0]   d_npc;
@@ -210,6 +211,7 @@ module yari(input  wire        clock
 
                // Outputs, mostly derived from d_instr
                .d_valid(d_valid),
+               .d_illegal_instr(d_illegal_instr),
                .d_instr(d_instr),
                .d_pc(d_pc),
                .d_npc(d_npc),
@@ -304,7 +306,8 @@ module yari(input  wire        clock
 
    stage_M stM(.clock(clock),
 
-               .boot(boot),
+               // XXX Rebooting on illegal instruction is harsh
+               .boot(boot | d_illegal_instr),
                .boot_pc('hBFC00000),
 
                .d_simm(d_simm),

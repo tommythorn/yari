@@ -41,7 +41,6 @@ module stage_M(input  wire        clock
               ,input  wire [31:0] x_rt_val
               ,input  wire [ 5:0] x_wbr
               ,input  wire [31:0] x_res
-              ,output reg  [31:0] x_lw_res // lw has latecy 1, other loads 2
 
               // Connection to main memory
               ,input              dmem_waitrequest
@@ -251,10 +250,10 @@ module stage_M(input  wire        clock
 
    wire [31:0]                dc_q0, dc_q1, dc_q2, dc_q3;
 
-   always @* x_lw_res = ((x_hits[0] ? dc_q0 : 0) |
-                         (x_hits[1] ? dc_q1 : 0) |
-                         (x_hits[2] ? dc_q2 : 0) |
-                         (x_hits[3] ? dc_q3 : 0));
+   wire [31:0] x_lw_res = ((x_hits[0] ? dc_q0 : 0) |
+                           (x_hits[1] ? dc_q1 : 0) |
+                           (x_hits[2] ? dc_q2 : 0) |
+                           (x_hits[3] ? dc_q3 : 0));
 
    reg  [31:0]                m_res_alu    = 0;
    reg  [31:0]                m_lw_res     = 0;
@@ -421,9 +420,9 @@ module stage_M(input  wire        clock
                  // memory in all cases
                  .address_a({d_csi,d_wi}),
                  .rddata_a(dc_q0),
-                 .byteena_a(0),
+                 .byteena_a(4'd0),
                  .wrdata_a(0),
-                 .wren_a(0),
+                 .wren_a(1'd0),
 
                  // Unfortunately, we have to use different port for
                  // reading and writing now, as we can't write until
@@ -444,9 +443,9 @@ module stage_M(input  wire        clock
                  // memory in all cases
                  .address_a({d_csi,d_wi}),
                  .rddata_a(dc_q1),
-                 .byteena_a(0),
+                 .byteena_a(4'd0),
                  .wrdata_a(0),
-                 .wren_a(0),
+                 .wren_a(1'd0),
 
                  // Unfortunately, we have to use different port for
                  // reading and writing now, as we can't write until
@@ -467,9 +466,9 @@ module stage_M(input  wire        clock
                  // memory in all cases
                  .address_a({d_csi,d_wi}),
                  .rddata_a(dc_q2),
-                 .byteena_a(0),
+                 .byteena_a(4'd0),
                  .wrdata_a(0),
-                 .wren_a(0),
+                 .wren_a(1'd0),
 
                  // Unfortunately, we have to use different port for
                  // reading and writing now, as we can't write until
@@ -490,9 +489,9 @@ module stage_M(input  wire        clock
                  // memory in all cases
                  .address_a({d_csi,d_wi}),
                  .rddata_a(dc_q3),
-                 .byteena_a(0),
+                 .byteena_a(4'd0),
                  .wrdata_a(0),
-                 .wren_a(0),
+                 .wren_a(1'd0),
 
                  // Unfortunately, we have to use different port for
                  // reading and writing now, as we can't write until

@@ -70,7 +70,6 @@ module stage_D(input  wire        clock
               // For debugging only
               ,output wire        i_valid_muxed
               ,output wire [31:0] i_pc_muxed
-              ,output wire [31:0] i_npc_muxed
               ,output wire [31:0] i_instr_muxed
               );
 
@@ -90,8 +89,8 @@ module stage_D(input  wire        clock
     */
    assign i_valid_muxed = i_valid | d_load_use_hazard;
    assign i_pc_muxed    = d_load_use_hazard ? d_pc    : i_pc;
-   assign i_npc_muxed   = d_load_use_hazard ? d_npc   : i_npc;
    assign i_instr_muxed = d_load_use_hazard ? d_instr : i_instr;
+   wire [31:0] i_npc_muxed = d_load_use_hazard ? d_npc   : i_npc;
 
    assign {i_opcode,i__rs,i__rt,i_rd,i_sa,i_fn} = i_instr_muxed;
    assign i_rs = {1'b1,i__rs}; // Bit 5 means valid.
