@@ -84,7 +84,8 @@ module rs232(input  wire        clk,
      end
 
    // wire rs232en = (peri_ctrl_req`A & 'hFFF0) == 'h0000;
-   assign rs232out_d    = rs232_req`WD;
+   wire [31:0] rs232_writedata = rs232_req`WD;
+   assign rs232out_d    = rs232_writedata[7:0];
    assign rs232out_w    = rs232_req`W & addr[3:0] == 0;
 
 `ifdef __ICARUS__

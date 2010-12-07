@@ -34,22 +34,23 @@ module rs232out
    parameter           TTYCLK_SIGN = 16; // 2^TTYCLK_SIGN > period * 2
    parameter           COUNT_SIGN  = 4;
 
-   reg [TTYCLK_SIGN:0] ttyclk      = 0; // [-4096; 4095]
-   reg [8:0]           shift_out   = 0;
-   reg [COUNT_SIGN:0]  count       = 0; // [-16; 15]
+   reg  [TTYCLK_SIGN:0] ttyclk      = 0; // [-4096; 4095]
+   wire [31:0]          ttyclk_bit  = period - 2;
+   reg  [8:0]           shift_out   = 0;
+   reg  [COUNT_SIGN:0]  count       = 0; // [-16; 15]
 
-   assign              serial_out  = shift_out[0];
-   assign              busy        = ~count[COUNT_SIGN] | ~ttyclk[TTYCLK_SIGN];
+   assign               serial_out  = shift_out[0];
+   assign               busy        = ~count[COUNT_SIGN] | ~ttyclk[TTYCLK_SIGN];
 
    always @(posedge clock)
       if (~ttyclk[TTYCLK_SIGN]) begin
-         ttyclk     <= ttyclk - 1;
+         ttyclk     <= ttyclk - 1'd1;
       end else if (~count[COUNT_SIGN]) begin
-         ttyclk     <= period - 2;
-         count      <= count - 1;
+         ttyclk     <= ttyclk_bit[TTYCLK_SIGN:0];
+         count      <= count - 1'd1;
          shift_out  <= {1'b1, shift_out[8:1]};
       end else if (we) begin
-         ttyclk     <= period - 2;
+         ttyclk     <= ttyclk_bit[TTYCLK_SIGN:0];
          count      <= 9; // 1 start bit + 8 data + 1 stop - 1 due to SIGN trick
          shift_out  <= {transmit_data, 1'b0};
       end

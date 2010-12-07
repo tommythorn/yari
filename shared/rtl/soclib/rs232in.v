@@ -25,12 +25,14 @@ module rs232in
    parameter           frequency  = 25_000_000;
    parameter           period     = (frequency + bps/2) / bps;
 
-   reg [16:0] ttyclk     = 0;
-   reg [7:0]  shift_in   = 0;
-   reg [4:0]  count      = 0;
+   reg  [16:0] ttyclk       = 0;
+   wire [31:0] ttyclk_bit   = period - 2;
+   wire [31:0] ttyclk_start = (3 * period) / 2 - 2;
+   reg  [ 7:0] shift_in     = 0;
+   reg  [ 4:0] count        = 0;
 
-   reg        rxd         = 0;
-   reg        rxd2        = 0;
+   reg         rxd          = 0;
+   reg         rxd2         = 0;
 
    /*
     * The theory: look for a negedge, then wait 1.5 bit period to skip
@@ -48,19 +50,19 @@ module rs232in
       {rxd2,rxd} <= {rxd,serial_in};
 
       if (~ttyclk[16]) begin
-         ttyclk <= ttyclk - 1;
+         ttyclk <= ttyclk - 1'd1;
       end else if (count) begin
          if (count == 1) begin
             received_data <= {rxd2, shift_in[7:1]};
             attention     <= 1;
          end
 
-         count       <= count - 1;
+         count       <= count - 1'd1;
          shift_in    <= {rxd2, shift_in[7:1]}; // Shift in from the left
-         ttyclk      <= period - 2;
+         ttyclk      <= ttyclk_bit[16:0];
       end else if (~rxd2) begin
          // Just saw the negedge of the start bit
-         ttyclk      <= (3 * period) / 2 - 2;
+         ttyclk      <= ttyclk_start[16:0];
          count       <= 8;
       end
    end
