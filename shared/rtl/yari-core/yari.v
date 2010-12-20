@@ -306,8 +306,7 @@ module yari(input  wire        clock
 
    stage_M stM(.clock(clock),
 
-               // XXX Rebooting on illegal instruction is harsh
-               .boot(boot | d_illegal_instr),
+               .boot(boot),
                .boot_pc('hBFC00000),
 
                .d_simm(d_simm),
