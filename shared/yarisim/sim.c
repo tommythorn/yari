@@ -25,6 +25,7 @@ int enable_regwrites  = 1; // XXX
 int enable_firmware_mode = 0;
 int enable_cosimulation = 0;
 int enable_graphics = 0;
+int enable_register_dump = 0;
 
 int endian_is_big = 0;
 struct timeval stat_start_time, stat_stop_time;
@@ -65,6 +66,7 @@ static struct option long_options[] = {
         {"firmware",       0, &enable_firmware_mode, 1}, // load only .text
         {"cosimulation",   0, &enable_cosimulation, 1},
         {"graphics",       0, &enable_graphics, 1},
+        {"regdump",       0, &enable_register_dump, 1},
         {"icache-way-lines-log2",     1, 0, 1000},
         {"icache-words-in-line-log2", 1, 0, 1001},
         {"dcache-way-lines-log2",     1, 0, 1002},

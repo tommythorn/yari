@@ -385,6 +385,13 @@ void run_simple(MIPS_state_t *state)
                 if (!branch_delay_slot)
                         state->epc = state->pc;
 
+		if (enable_register_dump==1) {
+			for (j=0; j<32; ++j) {
+				printf("%d ", state->r[j]);
+			}
+			printf("\n");
+		}
+
                 i.raw = annul_delay_slot ? 0 : icache_fetch(state->pc);
                 state->pc = pc_next;
                 pc_next += sizeof(inst_t);

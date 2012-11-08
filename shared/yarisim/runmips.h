@@ -20,6 +20,7 @@ extern int enable_testcases;
 extern int enable_regwrites;
 extern int enable_firmware_mode;
 extern int enable_cosimulation;
+extern int enable_register_dump;
 
 extern int endian_is_big;
 
