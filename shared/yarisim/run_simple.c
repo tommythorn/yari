@@ -363,11 +363,6 @@ void run_simple(MIPS_state_t *state)
         memset(state->cp0r, 0, sizeof state->cp0r);
         state->lo = state->hi = 0;
 
-        // Linux binaries expects $sp to be valid.
-        // XXX I should have a global configuration for the memory
-        // setup.
-        state->r[29] = 0x40000000 + 1024 * 1024;
-
         // Status after reset
         state->cp0_status.ds_ts = 0;
         state->cp0_status.ds_sr = 0;
