@@ -579,7 +579,7 @@ void run_simple(MIPS_state_t *state)
                         case AND:  wbv = s & t; break;
                         case OR:   wbv = s | t; break;
                         case XOR:  wbv = s ^ t; break;
-                        case NOR:  wbv = s |~ t; break;
+                        case NOR:  wbv = ~(s | t); break;
 
                         case SLT:  wbv = (int) s < (int) t; break;
                         case SLTU: wbv = s < t; break;
