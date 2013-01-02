@@ -535,7 +535,7 @@ module stage_M(input  wire        clock
       one_shot_restart <= 0;
 
       // Stalling for uncached_loads
-      if (x_valid) begin
+      if (x_valid && !m_restart) begin
          // We thread x_res through the byte/halfword extraction network
          m_pc      <= x_pc;
          m_instr   <= x_instr;
@@ -556,7 +556,7 @@ module stage_M(input  wire        clock
       // ****** Store ******
 
       // Uncache stores
-      if (x_store && x_address[31:24] == 8'hFF) begin
+      if (x_store && x_address[31:24] == 8'hFF && !m_restart) begin
          $display("%05d   uncached store %8x <- %8x/%1d", $time,
                   x_address, x_store_data, x_byteena);
 
@@ -604,7 +604,7 @@ module stage_M(input  wire        clock
 
 
       // Uncached loads
-      if (x_load && x_address[31:24] == 8'hFF) begin
+      if (x_load && x_address[31:24] == 8'hFF && !m_restart) begin
          if (got_uncached_data) begin
             got_uncached_data     <= 0;
             uncached_load_pending <= 0;
