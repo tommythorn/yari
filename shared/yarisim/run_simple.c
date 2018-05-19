@@ -45,7 +45,6 @@ char *inst_name[64+64+32] = {
         [64+0x20] = "ADD", "ADDU", "SUB", "SUBU", "AND", "OR", "XOR", "NOR",
         [64+0x2a] = "SLT", "SLTU",
         [64+0x30] = "TGE",   "TGEU",  "TLT",  "TLTU",  "TEQ",  0, "TNE",
-        [64+0x34] = "TEQ",
 
         // REGIMM MAP
         [128+0] = "BLTZ",
@@ -481,6 +480,7 @@ void run_simple(MIPS_state_t *state)
                         case SW:
                         case SWL:
                         case SWR:  st_old = LD32(address & ~3); break;
+                        default: break;
                         }
 
 
